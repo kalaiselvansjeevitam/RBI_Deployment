@@ -1,0 +1,413 @@
+import { useEffect, useState } from "react";
+import Layout from "../../../app/components/Layout/Layout";
+import TableComponent, {
+  type Column,
+} from "../../../app/components/shared/TableComponent";
+// import { Button } from "../../../app/components/ui/button";
+import { Loader } from "lucide-react";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import Swal from "sweetalert2";
+import React from "react";
+import {
+  useGetupdateWorkshopStatus,
+  useGetWorkshopByFilters,
+  useGetWorkshopByFiltersByDate,
+} from "../../../app/core/api/Admin";
+import SchoolSheet from "./Shared/SchoolSheet";
+import { Button } from "../../../app/components/ui/button";
+import type { WorkshopByFiltersData } from "../../../app/lib/types";
+
+export const ViewWorkshop = () => {
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [loader, setLoader] = useState(false);
+  //   const [open, setOpen] = useState(false);
+  const [filterApplied, setFilterApplied] = useState(false);
+  //   const [loaderside, setLoaderSide] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 10;
+  const { mutateAsync: getSchoolDashboradData } = useGetWorkshopByFilters();
+  //   const { mutateAsync: getSchoolPaymentDetails } = useGetSchoolPaymentDetails();
+  const { mutateAsync: getSchoolDetailsByDate } =
+    useGetWorkshopByFiltersByDate();
+  const [submitTrigger, setSubmitTrigger] = useState(0);
+  //   const [studentSheetData, setStudentSheetData] = useState<any[]>([]);
+  const [schoolSheetData, setSchoolSheetData] = useState<
+    WorkshopByFiltersData[]
+  >([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [workingStatus, setWorkingStatus] = useState<string>("");
+  const getOffsetForPage = (page: number): number => {
+    return page * itemsPerPage;
+  };
+  const [open, setOpen] = useState(false);
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(
+    null,
+  );
+  // const [selectedWorkshop, setSelectedWorkshop] =
+  //   useState<WorkshopByFiltersData | null>(null);
+
+  const fetchData = async () => {
+    try {
+      setLoader(true);
+      const offset = getOffsetForPage(currentPage).toString();
+      const result = await getSchoolDashboradData({ offset, get_by: "all" });
+      const sourceData = result?.list ?? [];
+      const total_count = result?.total ?? 0;
+      const transformed = sourceData.map((item: WorkshopByFiltersData) => ({
+        id: item.id || "-",
+        workshop_name: item.workshop_name || "-",
+        date: item.date || "-",
+        from_time: item.from_time || "-",
+        to_time: item.to_time || "-",
+        vle_name: item.vle_name || "-",
+        work_shop_status: item.work_shop_status || "-",
+        checklist: item.checklist || "",
+        total_citizens: item.total_citizens || "0",
+        videos_count: item.videos_count || "0",
+        images_count: item.images_count || "0",
+        fullData: item,
+      }));
+
+      setSchoolSheetData(transformed);
+      setTotalCount(total_count);
+    } catch (error: any) {
+      Swal.fire("Error", error?.response?.data?.message, "error");
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  const fetchDataByDate = async () => {
+    if (!startDate || !endDate) return;
+    try {
+      setLoader(true);
+      const formatDate = (date: Date) => {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const offset = getOffsetForPage(currentPage).toString();
+      const response = await getSchoolDetailsByDate({
+        start_date: formatDate(startDate),
+        end_date: formatDate(endDate),
+        offset,
+        work_shop_status: workingStatus,
+      });
+
+      const rawData = response?.list ?? [];
+      const count = response?.total ?? 0;
+      if (response?.result.toLowerCase() == "success") {
+        Swal.fire("Success", response?.message, "success");
+      } else {
+        Swal.fire("Error", response?.message, "error");
+      }
+      const transformed = rawData.map((item: WorkshopByFiltersData) => ({
+        id: item.id || "-",
+        workshop_name: item.workshop_name || "-",
+        date: item.date || "-",
+        from_time: item.from_time || "-",
+        to_time: item.to_time || "-",
+        vle_name: item.vle_name || "-",
+        work_shop_status: item.work_shop_status || "-",
+        checklist: item.checklist || "",
+        total_citizens: item.total_citizens || "0",
+        videos_count: item.videos_count || "0",
+        images_count: item.images_count || "0",
+        fullData: item,
+      }));
+      setSchoolSheetData(transformed);
+      setTotalCount(count);
+    } catch (error: any) {
+      Swal.fire("Error", error?.response?.data?.message, "error");
+      console.error("API call failed:", error);
+    } finally {
+      setLoader(false);
+    }
+  };
+  const [shouldReload, setShouldReload] = useState(false);
+  // const handleSheetClose = (updated = false) => {
+  //   setOpen(false);
+
+  //   if (updated) {
+  //     setShouldReload(true);
+  //   }
+  // };
+  useEffect(() => {
+    if (!shouldReload) return;
+
+    if (filterApplied) {
+      fetchDataByDate();
+    } else {
+      fetchData();
+    }
+
+    setShouldReload(false);
+  }, [shouldReload]);
+
+  useEffect(() => {
+    if (filterApplied) {
+      fetchDataByDate();
+    } else {
+      fetchData();
+    }
+  }, [currentPage, filterApplied, submitTrigger]);
+
+  useEffect(() => {
+    if (!startDate || !endDate) {
+      setFilterApplied(false);
+    }
+  }, [startDate, endDate]);
+  const STATUS_OPTIONS = ["Select", "Completed", "Cancelled"];
+  const StatusUpdater = ({ row }: { row: WorkshopByFiltersData }) => {
+    const [editing, setEditing] = useState(false);
+    const [status, setStatus] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const { mutateAsync: updateWorkshopStatus } = useGetupdateWorkshopStatus();
+
+    const handleSave = async () => {
+      if (!status) return;
+
+      try {
+        setLoading(true);
+
+        const res = await updateWorkshopStatus({
+          work_shop_id: row.id,
+          status,
+        });
+
+        if (res?.result?.toLowerCase() === "success") {
+          Swal.fire("Success", res.message, "success");
+
+          // update table data instantly
+          row.work_shop_status = status;
+
+          setEditing(false);
+          setStatus("");
+        } else {
+          Swal.fire("Error", res.message, "error");
+        }
+      } catch {
+        Swal.fire("Error", "Status update failed", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    /* ---------- VIEW MODE ---------- */
+
+    if (!editing) {
+      return (
+        <button
+          onClick={() => setEditing(true)}
+          className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Update
+        </button>
+      );
+    }
+
+    /* ---------- EDIT MODE ---------- */
+
+    return (
+      <div className="flex items-center gap-2">
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="border rounded-md px-2 py-1 text-xs"
+        >
+          <option value="">Select</option>
+          {STATUS_OPTIONS.map(
+            (opt) =>
+              opt !== "Select" && (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ),
+          )}
+        </select>
+
+        <button
+          onClick={handleSave}
+          disabled={!status || loading}
+          className={`px-2 py-1 text-xs rounded-md text-white ${
+            !status || loading
+              ? "bg-gray-400"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
+        >
+          {loading ? "..." : "Save"}
+        </button>
+
+        <button
+          onClick={() => {
+            setEditing(false);
+            setStatus("");
+          }}
+          className="px-2 py-1 text-xs rounded-md border"
+        >
+          ✕
+        </button>
+      </div>
+    );
+  };
+
+  const tableContents: Column[] = [
+    { key: "id", label: "ID", align: "center" },
+    { key: "workshop_name", label: "Workshop Name", align: "center" },
+    { key: "date", label: "Date", align: "left" },
+    {
+      key: "time",
+      label: "Time",
+      align: "center",
+      render: (_value, row) => `${row.from_time} - ${row.to_time}`,
+    },
+    { key: "vle_name", label: "VLE Name", align: "center" },
+    {
+      key: "view",
+      label: "View",
+      align: "center",
+      render: (_value, row) => (
+        <Button
+          size="sm"
+          onClick={() => {
+            setSelectedWorkshopId(row.id);
+            setOpen(true);
+          }}
+        >
+          View
+        </Button>
+      ),
+    },
+    {
+      key: "status",
+      label: "Update Status",
+      align: "center",
+      render: (_v, r) => <StatusUpdater row={r} />,
+    },
+  ];
+
+  const handleOkClick = () => {
+    if (!startDate || !endDate) {
+      Swal.fire("Error", "Please select both start and end dates", "warning");
+      return;
+    }
+    if (!workingStatus) {
+      Swal.fire("Error", "Please select Status Filter", "warning");
+      return;
+    }
+    if (startDate > endDate) {
+      Swal.fire(
+        "Error",
+        "Please select end date is greater than start date",
+        "warning",
+      );
+      return;
+    }
+    setFilterApplied(true);
+    setCurrentPage(0);
+    setSubmitTrigger((prev) => prev + 1);
+  };
+
+  const CustomInput = React.forwardRef(({ value, onClick }: any, ref: any) => (
+    <button
+      onClick={onClick}
+      ref={ref}
+      className="border border-gray-700 rounded-md p-1 text-sm w-[140px] text-left"
+    >
+      {value || "Select Date"}
+    </button>
+  ));
+
+  return (
+    <Layout headerTitle="View Workshop">
+      <div className="flex justify-between items-center flex-wrap gap-4 text-sm mt-3 px-4 pt-3">
+        {/* Left-aligned count */}
+        <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>
+
+        {/* Centered filters (use margin auto for center alignment) */}
+        <div className="flex justify-center items-center gap-4 mx-auto">
+          <label className="flex items-center space-x-2 font-bold">
+            <span>From:</span>
+            <ReactDatePicker
+              dateFormat={"dd/MM/yyyy"}
+              selected={startDate}
+              onChange={(date: any) => setStartDate(date || undefined)}
+              placeholderText="Select Start Date"
+              className="border border-gray-700 rounded-md p-1 text-sm w-[140px]"
+              popperClassName="z-50"
+              customInput={<CustomInput />}
+            />
+          </label>
+
+          <label className="flex items-center space-x-2 font-bold">
+            <span>To:</span>
+            <ReactDatePicker
+              dateFormat={"dd/MM/yyyy"}
+              selected={endDate}
+              onChange={(date: any) => setEndDate(date || undefined)}
+              placeholderText="Select End Date"
+              className="border border-gray-700 rounded-md p-1 text-sm w-[140px]"
+              minDate={startDate}
+              popperClassName="z-50"
+              customInput={<CustomInput />}
+            />
+          </label>
+
+          <label className="flex items-center space-x-2 font-bold">
+            <span>Status:</span>
+            <select
+              value={workingStatus}
+              onChange={(e) => setWorkingStatus(e.target.value)}
+              className="border border-gray-700 rounded-md p-1 text-sm w-[150px]"
+            >
+              <option value="">Select Status</option>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Cancelled">Cancelled</option>
+              <option value="SendingForApproval">SendingForApproval</option>
+            </select>
+          </label>
+
+          <button
+            onClick={handleOkClick}
+            className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 text-sm"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-3">
+        {loader ? (
+          <div className="flex justify-center py-4">
+            <Loader className="animate-spin w-6 h-6 text-blue-600" />
+          </div>
+        ) : (
+          <TableComponent
+            columns={tableContents}
+            data={schoolSheetData}
+            itemsPerPage={itemsPerPage}
+            totalItems={totalCount}
+            currentPage={currentPage}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
+      </div>
+
+      <SchoolSheet
+        open={open}
+        workshopId={selectedWorkshopId}
+        openClose={() => setOpen(false)}
+      />
+    </Layout>
+  );
+};
