@@ -96,7 +96,7 @@ export const ViewUser = () => {
         sub_district_name: item.sub_district_name || "-",
         specilization: item.specilization || "-",
         degree: item.degree || "-",
-        city: item.city || "-",
+        district: item.district || "-",
         state: item.state || "-",
         pincode: item.pincode || "-",
         last_log_in: item.last_log_in || "-",
@@ -130,7 +130,6 @@ export const ViewUser = () => {
     { key: "specilization", label: "Specilization", align: "left" },
     { key: "district_name", label: "District", align: "center" },
     { key: "sub_district_name", label: "Sub District", align: "center" },
-    { key: "city", label: "City", align: "center" },
     { key: "state", label: "State", align: "center" },
     { key: "pincode", label: "Pincode", align: "center" },
     {

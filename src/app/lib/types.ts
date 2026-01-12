@@ -182,7 +182,7 @@ export type AllUser = {
   address: string;
   district_name: string;
   sub_district_name: string;
-  city: string;
+  district: string;
   state: string;
   specilization: string;
   degree: string;
@@ -198,6 +198,7 @@ export type AllUser = {
 export interface GetLocationListRes {
   result: string;
   message: string;
+  total: number;
   list: LocationType[];
 }
 
@@ -225,7 +226,7 @@ export interface GetGenderCountRes {
 
 export interface CityCount {
   total: string;
-  city: string;
+  district: string;
 }
 
 export interface GetCityCountRes {
@@ -248,12 +249,13 @@ export interface GetDistrictListRes {
 
 export interface Workshop {
   workshop_id: string;
+  workshop_name : string;
   workshop_date: string;
   workshop_from_time: string;
   workshop_to_time: string;
   workshop_status: string;
   workshop_centre: string;
-  workshop_city: string;
+  workshop_district: string;
   workshop_pincode: string;
   vle_id: string;
   vle_mobile_number: string;
@@ -286,7 +288,7 @@ export interface WorkshopStatusResponse {
 
 export interface Testimony {
   testimony_id: string;
-  media_type: string; 
+  media_type: string;
   filepath: string;
   testimony_note: string;
   is_approved: string;
@@ -300,4 +302,46 @@ export interface TestimonyResponse {
   message: string; // e.g., "list found"
   data: Testimony[];
 }
+export interface DashboardStats {
+  total_citizens: string;
+  total_work: string;
+  total_pending: string;
+  total_approved: string;
+  total_rejected: string;
+}
 
+export interface GetDashboardStatsRes {
+  result: string;
+  message: string;
+  list: DashboardStats[];
+}
+
+export interface allStatusCounters {
+  total_workshops:string,
+  pending_count:string,
+  completed_count:string,
+  approved_count:string,
+  cancelled_count:string,
+  rejected_count:string,
+  total_location_managers:string
+}
+
+export interface allStatusCountersRes {
+  result: string;
+  message: string;
+  list: allStatusCounters[];
+}
+
+export interface districtWiseWorkshopBarGraph {
+  pending_count:string,
+  completed_count:string,
+  approved_count:string,
+  cancelled_count:string,
+  rejected_count:string,
+}
+
+export interface districtWiseWorkshopBarGraphRes {
+  result: string;
+  message: string;
+  list: districtWiseWorkshopBarGraph[];
+}

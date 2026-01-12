@@ -89,7 +89,7 @@ const VLEDashboard = () => {
   }, [genderData]);
   const cityChartData = useMemo(() => {
     return cityData.map((item) => ({
-      city: item.city,
+      district: item.district,
       Citizen_Count: Number(item.total),
     }));
   }, [cityData]);
@@ -175,7 +175,7 @@ const VLEDashboard = () => {
             <BarChartComponent
               data={cityChartData}
               dataKey="Citizen_Count"
-              categoryKey="city"
+              categoryKey="district"
               height={300}
               fillColor="#22c55e"
             />

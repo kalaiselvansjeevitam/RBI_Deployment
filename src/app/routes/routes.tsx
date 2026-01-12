@@ -21,6 +21,22 @@ import ViewCitizenByCard from "../../pages/VLE/WorkShop/ViewCitizenByCard";
 import { ViewUser } from "../../pages/Admin/ViewUser";
 import ViewManageSession from "../../pages/Admin/ManageSession/ViewManageSession";
 import TestimonyByWorkshop from "../../pages/Admin/ManageSession/shared/testimonybyworkshop";
+import CreateLocationManage from "../../pages/Admin/LocationManager/createLocationManage";
+import ViewLocationManagerPage from "../../pages/Admin/LocationManager/viewLocationManager";
+import VLEReport from "../../pages/Admin/Reports/VLEReport";
+import CitizenReport from "../../pages/Admin/Reports/CitizenReport";
+import WorkshopReport from "../../pages/Admin/Reports/WorkshopReport";
+import RBIDashboard from "../../pages/RBI/RBIDashboard";
+import RBIMonthView from "../../pages/RBI/RBIMonthView";
+import RBIWorkshopDateWise from "../../pages/RBI/RBIWorkshopDateWise";
+import RBIReportsHome from "../../pages/RBI/Reports/RBIReportsHome";
+import DistrictStatusReport from "../../pages/RBI/Reports/DistrictStatusReport";
+import GenderParticipationReport from "../../pages/RBI/Reports/GenderParticipationReport";
+import CitizenDataReport from "../../pages/RBI/Reports/CitizenDataReport";
+import LocationScheduleReport from "../../pages/RBI/Reports/LocationScheduleReport";
+import DistrictPendingCompleteReport from "../../pages/RBI/Reports/DistrictPendingCompleteReport";
+import WorkshopsLt50Report from "../../pages/RBI/Reports/WorkshopsLt50Report";
+import DashboardSubAdmin from "../../pages/SubAdmin/SubAdminDashboard";
 
 export const authProtectedRoutes = [
   {
@@ -90,6 +106,46 @@ export const authProtectedRoutes = [
         ),
       },
       {
+        path: ROUTE_URL.createLoactionManager,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <CreateLocationManage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.viewLocationManager,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <ViewLocationManagerPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.downloadVLEReport,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <VLEReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.downloadCitizenReport,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <CitizenReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.downloadWorkshopReport,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <WorkshopReport />
+          </RequireRole>
+        ),
+      },
+      {
         path: ROUTE_URL.ViewWorkshop,
         element: (
           <RequireRole allowedRoles={["vle"]}>
@@ -150,6 +206,95 @@ export const authProtectedRoutes = [
         element: (
           <RequireRole allowedRoles={["vle"]}>
             <ViewCitizenByCard />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiDashboard,
+        element: (
+          <RequireRole allowedRoles={["rbi"]}>
+            <RBIDashboard />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiMonthView,
+        element: (
+          <RequireRole allowedRoles={["rbi"]}>
+            <RBIMonthView />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiWorkshopDateWise,
+        element: (
+          <RequireRole allowedRoles={["rbi"]}>
+            <RBIWorkshopDateWise />
+          </RequireRole>
+        ),
+      },
+
+      {
+        path: ROUTE_URL.rbiReports,
+        element: (
+          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+            <RBIReportsHome />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiReportDistrictStatus,
+        element: (
+          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+            <DistrictStatusReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiReportGenderParticipation,
+        element: (
+          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+            <GenderParticipationReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiReportCitizenData,
+        element: (
+          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+            <CitizenDataReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiReportLocationSchedule,
+        element: (
+          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+            <LocationScheduleReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiReportDistrictPendingComplete,
+        element: (
+          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+            <DistrictPendingCompleteReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiReportWorkshopsLt50,
+        element: (
+          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+            <WorkshopsLt50Report />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.subAdminDashboard,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <DashboardSubAdmin />
           </RequireRole>
         ),
       },

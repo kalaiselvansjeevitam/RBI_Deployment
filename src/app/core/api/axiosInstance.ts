@@ -11,8 +11,8 @@ import Swal from "sweetalert2";
 const axiosInstance = axios.create({
   // baseURL: "http://localhost/olympiad/",
   baseURL: "http://lochanaragupathy.com/rbi_deployment/api/",
-  // baseURL :"https://jeevitam.in/rbi_deployment/api/",
-  // baseURL :"https://jeevitam.in/jeevitam.in/kalaiarasan/rbi_deployment/api/",
+  // baseURL :"https://jeevitam.in/rbi-deployment/api/",
+  // baseURL :"https://jeevitam.in/jeevitam.in/kalaiarasan/rbi-deployment/api/",
   timeout: DEFAULT_API_TIMEOUT,
   headers: {
     "Content-Type": "application/json",

@@ -2,9 +2,12 @@ import { useMutation } from "@tanstack/react-query";
 import { GET, POST } from "./axiosInstance";
 import { API_URL } from "../constants/coreUrl";
 import type {
+  allStatusCountersRes,
+  districtWiseWorkshopBarGraphRes,
   GetAllUsersResponse,
   GetCitizenbyCardRes,
   GetCityCountRes,
+  GetDashboardStatsRes,
   GetDistrictListRes,
   GetGenderCountRes,
   GetLocationListRes,
@@ -46,7 +49,7 @@ type UserUpdateParams = {
   address: string;
   district_name: string;
   sub_district_name: string;
-  city: string;
+  district: string;
   state: string;
   pincode: string;
   specilization: string;
@@ -75,7 +78,7 @@ type CreateWorkShopParams = {
   date: string;
   from_time: string;
   to_time: string;
-  city: string;
+  district: string;
   pincode: string;
   location: string;
 };
@@ -119,7 +122,7 @@ export const useGetCreateWorkshopParams = () =>
       date,
       from_time,
       to_time,
-      city,
+      district,
       pincode,
       location,
     }: CreateWorkShopParams) => {
@@ -130,7 +133,7 @@ export const useGetCreateWorkshopParams = () =>
           date: date,
           from_time: from_time,
           to_time: to_time,
-          city: city,
+          district: district,
           pincode: pincode,
           location_manager: location,
         },
@@ -334,7 +337,7 @@ export const useGetUpdateUser = () =>
       address,
       district_name,
       sub_district_name,
-      city,
+      district,
       state,
       pincode,
       specilization,
@@ -350,7 +353,7 @@ export const useGetUpdateUser = () =>
           district_name: district_name,
           specilization: specilization,
           sub_district_name: sub_district_name,
-          city: city,
+          district: district,
           degree: degree,
           change_user_id: change_user_id,
           state: state,
@@ -408,6 +411,14 @@ export const useGetlocationWiseBarChartParams = () =>
       });
     },
   });
+export const useGetadminDashboardValuesParams = () =>
+  useMutation({
+    mutationFn: () => {
+      return POST<GetDashboardStatsRes>({
+        url: API_URL.adminDashboardValues,
+      });
+    },
+  });
 
 export const useGetDistrictParams = () =>
   useMutation({
@@ -455,29 +466,145 @@ export const useGetgetWorkshopList = () =>
 
 export const useGetTestimoniesByWorkshop = () =>
   useMutation({
-    mutationFn: (data:{workshop_id : string}) => {
+    mutationFn: (data: { workshop_id: string }) => {
       return POST<TestimonyResponse>({
-        url: API_URL.getWorkshopStatus,
-        data
+        url: API_URL.getTestimonyByWorkshop,
+        data,
       });
     },
   });
 
-  export const useApproveTestimony = () =>
+export const useApproveTestimony = () =>
   useMutation({
-    mutationFn: (data:{testimony_id : number,approve_status:string,rejected_reason:string}) => {
-      return POST<TestimonyResponse>({
-        url: API_URL.getWorkshopStatus,
-        data
+    mutationFn: (data: {
+      testimony_id: number;
+      approve_status: string;
+      rejected_reason: string;
+    }) => {
+      return POST<GetResponse>({
+        url: API_URL.updateTestimonystatus,
+        data,
       });
     },
   });
-  export const useRejectTestimony = () =>
+export const useRejectTestimony = () =>
   useMutation({
-    mutationFn: (data:{workshop_id : string}) => {
-      return POST<TestimonyResponse>({
-        url: API_URL.getWorkshopStatus,
-        data
+    mutationFn: (data: {
+      testimony_id: number;
+      approve_status: string;
+      rejected_reason: string;
+    }) => {
+      return POST<GetResponse>({
+        url: API_URL.updateTestimonystatus,
+        data,
+      });
+    },
+  });
+
+export const useGetupdateWorkshopStatusByAdmin = () =>
+  useMutation({
+    mutationFn: (data: {
+      workshop_id: number;
+      workshop_status: string;
+      rejected_reason: string;
+    }) => {
+      return POST<GetResponse>({
+        url: API_URL.updateWorkshopStatus,
+        data,
+      });
+    },
+  });
+
+export const useGetCreateLoactionManager = () =>
+  useMutation({
+    mutationFn: (data: {
+      center_name: string;
+      district: string;
+      pincode: string;
+      center_address: string;
+    }) => {
+      return POST<GetResponse>({
+        url: API_URL.createLocationManage,
+        data,
+      });
+    },
+  });
+
+export const useUpdateLocationManager = () =>
+  useMutation({
+    mutationFn: (data: {
+      center_name: string;
+      district: string;
+      pincode: string;
+      center_address: string;
+      location_manager_id: number;
+    }) => {
+      return POST<GetResponse>({
+        url: API_URL.updateLocationManager,
+        data,
+      });
+    },
+  });
+export const useDeleteLocationManager = () =>
+  useMutation({
+    mutationFn: (data: { location_manager_id: number }) => {
+      return POST<GetResponse>({
+        url: API_URL.deleteLocationManager,
+        data,
+      });
+    },
+  });
+
+export const useGetDownloadVLEParams = () =>
+  useMutation({
+    mutationFn: (data: { district: string }) => {
+      return POST<GetResponsewithFile>({
+        url: API_URL.downloadVLE,
+        data,
+      });
+    },
+  });
+
+export const useGetDownloadCitizenParams = () =>
+  useMutation({
+    mutationFn: (data: {
+      district: string;
+      vle_id: string;
+      start_date: string;
+      end_date: string;
+      gender: string;
+    }) => {
+      return POST<GetResponsewithFile>({
+        url: API_URL.downloadCitizen,
+        data,
+      });
+    },
+  });
+export const useGetDownloadWorkshopParams = () =>
+  useMutation({
+    mutationFn: (data: { district: string }) => {
+      return POST<GetResponsewithFile>({
+        url: API_URL.downloadWorkshop,
+        data,
+      });
+    },
+  });
+
+export const useGetallStatusCountersParams = () =>
+  useMutation({
+    mutationFn: () => {
+      return POST<allStatusCountersRes>({
+        url: API_URL.allStatusCounters,
+      });
+    },
+  });
+
+export const useGetdistrictWiseWorkshopBarGraphParams = () =>
+  useMutation({
+    mutationFn: (data:{district:string}) => {
+      return POST<districtWiseWorkshopBarGraphRes>({
+        url: API_URL.districtWiseWorkshopBarGraph,
+        data,
       });
     },
   });

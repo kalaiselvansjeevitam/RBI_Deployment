@@ -25,7 +25,7 @@ const CreateWorkshop = () => {
     to_time: "",
     vle_id: "",
     location: "",
-    city: "",
+    district: "",
     pincode: "",
   });
 
@@ -37,7 +37,7 @@ const CreateWorkshop = () => {
       to_time: "",
       vle_id: "",
       location: "",
-      city: "",
+      district: "",
       pincode: "",
     });
   }
@@ -108,8 +108,8 @@ const CreateWorkshop = () => {
       newErrors.to_time = "To time must be after From time";
     }
 
-    // ✅ City (text only)
-    if (!formData.city) newErrors.location = "City is required";
+    // ✅ district (text only)
+    if (!formData.district) newErrors.location = "district is required";
 
     // ✅ Pincode (6-digit numeric)
     if (!formData.pincode) {
@@ -264,16 +264,16 @@ const CreateWorkshop = () => {
             </div>
             <div>
               <label className="text-sm font-medium">
-                City <span className="text-red-500">*</span>
+                District <span className="text-red-500">*</span>
               </label>
 
               <select
-                name="city" // 👈 stays "city"
-                value={formData.city}
+                name="district" // 👈 stays "district"
+                value={formData.district}
                 onChange={handleChange}
                 className="w-full border rounded-md px-3 py-2"
               >
-                <option value="">Select City</option>
+                <option value="">Select District</option>
 
                 {districts.map((d) => (
                   <option key={d.id} value={d.district}>
@@ -282,8 +282,8 @@ const CreateWorkshop = () => {
                 ))}
               </select>
 
-              {errors.city && (
-                <p className="text-xs text-red-500">{errors.city}</p>
+              {errors.district && (
+                <p className="text-xs text-red-500">{errors.district}</p>
               )}
             </div>
 

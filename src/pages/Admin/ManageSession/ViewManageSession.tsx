@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import {
   useGetDistrictParams,
   useGetgetWorkshopList,
+  useGetupdateWorkshopStatusByAdmin,
   useGetVleParams,
   useGetWorkShopParams,
 } from "../../../app/core/api/Admin";
@@ -17,6 +18,7 @@ import React from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
+import { ROUTE_URL } from "../../../app/core/constants/coreUrl";
 
 export const ViewManageSession = () => {
   const [loader, setLoader] = useState(false);
@@ -72,13 +74,72 @@ export const ViewManageSession = () => {
     if (!date) return "";
     return date.toISOString().split("T")[0]; // YYYY-MM-DD
   };
+  const { mutateAsync: updateWorkshopStatus } =
+    useGetupdateWorkshopStatusByAdmin();
+  const handleApproveWorkshop = async (workshopId: number) => {
+    try {
+      const res = await updateWorkshopStatus({
+        workshop_id: workshopId,
+        workshop_status: "Approved",
+        rejected_reason: "",
+      });
+
+      // ✅ success message from backend
+      Swal.fire(
+        "Success",
+        res?.message || "Workshop approved successfully",
+        "success",
+      );
+
+      fetchData(); // refresh table
+    } catch (error: any) {
+      // ✅ backend error message
+      const message =
+        error?.response?.data?.message || error?.message || "Approval failed";
+
+      Swal.fire("Error", message, "error");
+    }
+  };
+
+  const handleRejectWorkshop = async (workshopId: number) => {
+    const { value: reason } = await Swal.fire({
+      title: "Reject Workshop",
+      input: "text",
+      inputLabel: "Reason for rejection",
+      inputPlaceholder: "Enter reason",
+      showCancelButton: true,
+      inputValidator: (value) =>
+        !value ? "Rejection reason is required" : null,
+    });
+
+    if (!reason) return;
+
+    try {
+      const res = await updateWorkshopStatus({
+        workshop_id: workshopId,
+        workshop_status: "Rejected",
+        rejected_reason: reason,
+      });
+
+      // ✅ success message from backend
+      Swal.fire("Error", res?.message || "Workshop Rejected", "error");
+
+      fetchData(); // refresh table
+    } catch (error: any) {
+      // ✅ backend error message
+      const message =
+        error?.response?.data?.message || error?.message || "Rejection failed";
+
+      Swal.fire("Error", message, "error");
+    }
+  };
 
   const getOffsetForPage = (page: number): number => {
     return page * itemsPerPage;
   };
   const fetchData = async () => {
     if (!districtfilter) {
-      Swal.fire("Validation Error", "City is mandatory", "warning");
+      Swal.fire("Validation Error", "District is mandatory", "warning");
       return;
     }
     const isOnlyOneDateSelected =
@@ -124,12 +185,13 @@ export const ViewManageSession = () => {
 
   const navigate = useNavigate();
 
-const handleViewTestimony = (workshopId: string) => {
-  // Navigate to the testimony page and pass workshop_id
-  navigate(`/testimonyByWorkshop/${workshopId}`);
-};
+  const handleViewTestimony = (workshopId: string) => {
+    // Navigate to the testimony page and pass workshop_id
+    navigate(`${ROUTE_URL.testimonyByWorkshop}?workshop_id=${workshopId}`);
+  };
   const tableContents: Column[] = [
     { key: "workshop_id", label: "Workshop ID", align: "center" },
+    { key: "workshop_name", label: "Workshop Name", align: "center" },
     { key: "workshop_date", label: "Date", align: "left" },
     {
       key: "time",
@@ -140,24 +202,50 @@ const handleViewTestimony = (workshopId: string) => {
     },
     { key: "workshop_status", label: "Workshop Status", align: "left" },
     { key: "workshop_centre", label: "Workshop Center", align: "left" },
-    { key: "workshop_city", label: "Workshop City", align: "left" },
+    { key: "workshop_district", label: "Workshop District", align: "left" },
     { key: "workshop_pincode", label: "Workshop Pincode", align: "left" },
     { key: "vle_id", label: "VLE ID", align: "center" },
     { key: "vle_mobile_number", label: "VLE Mobile Number", align: "center" },
     { key: "vle_name", label: "VLE Name", align: "center" },
     {
-    key: "view_testimony",
-    label: "View Testimony",
-    align: "center",
-    render: (_: any, row: Workshop) => (
-      <button
-        onClick={() => handleViewTestimony(row.workshop_id)}
-        className="bg-blue-600 text-white px-2 py-1 rounded-md text-sm"
-      >
-        View
-      </button>
-    ),
-  },
+      key: "view_testimony",
+      label: "View Testimony",
+      align: "center",
+      render: (_: any, row: Workshop) => (
+        <button
+          onClick={() => handleViewTestimony(row.workshop_id)}
+          className="bg-blue-600 text-white px-2 py-1 rounded-md text-sm"
+        >
+          View
+        </button>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      align: "center",
+      render: (_: any, row: Workshop) => (
+        <div className="flex justify-center gap-2">
+          {row.workshop_status !== "Approved" && (
+            <button
+              onClick={() => handleApproveWorkshop(Number(row.workshop_id))}
+              className="bg-green-600 text-white px-2 py-1 rounded-md text-xs"
+            >
+              Approve
+            </button>
+          )}
+
+          {row.workshop_status !== "Rejected" && (
+            <button
+              onClick={() => handleRejectWorkshop(Number(row.workshop_id))}
+              className="bg-red-600 text-white px-2 py-1 rounded-md text-xs"
+            >
+              Reject
+            </button>
+          )}
+        </div>
+      ),
+    },
   ];
   useEffect(() => {
     if (districtfilter) {
@@ -226,13 +314,13 @@ const handleViewTestimony = (workshopId: string) => {
         </label>
 
         <label className="flex items-center space-x-2 font-bold">
-          <span>City:</span>
+          <span>District:</span>
           <select
             value={districtfilter}
             onChange={(e) => setDistrictFilter(e.target.value)}
             className="border border-gray-700 rounded-md p-1 text-sm w-[150px]"
           >
-            <option value="">Select City</option>
+            <option value="">Select District</option>
             {districtList.map((d: any) => (
               <option key={d.id} value={d.district}>
                 {d.district}

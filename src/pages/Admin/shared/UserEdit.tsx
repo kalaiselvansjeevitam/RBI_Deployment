@@ -31,7 +31,7 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
     address: "",
     district_name: "",
     sub_district_name: "",
-    city: "",
+    district: "",
     state: "",
     pincode: "",
     specilization: "",
@@ -64,7 +64,7 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
         address: user.address || "",
         district_name: user.district_name || "",
         sub_district_name: user.sub_district_name || "",
-        city: user.city || "",
+        district: user.district || "",
         state: user.state || "",
         pincode: user.pincode || "",
         specilization: user.specilization || "",
@@ -177,12 +177,12 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
 
             <div>
               <label className="block font-medium text-gray-700 mb-1">
-                City
+                District
               </label>
               <input
                 className="w-full border rounded-md px-3 py-2"
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                value={form.district}
+                onChange={(e) => setForm({ ...form, district: e.target.value })}
               />
             </div>
 

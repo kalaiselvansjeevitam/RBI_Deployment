@@ -9,6 +9,11 @@ import {
   ClipboardList,
   UserPlus,
   Eye,
+  Locate,
+  File,
+  FileText,
+  // Calendar,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -77,16 +82,45 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
           href: ROUTE_URL.viewSession,
           icon: User,
         },
-        // {
-        //   label: "View Users",
-        //   href: ROUTE_URL.viewUser,
-        //   icon: View,
-        // },
-        // {
-        //   label: "VLE Upload",
-        //   href: ROUTE_URL.uploadVle,
-        //   icon: Upload,
-        // },
+      ],
+    });
+    sidebarItems.splice(3, 0, {
+      icon: Locate,
+      label: "Location Manager",
+      href: ROUTE_URL.createLoactionManager,
+      children: [
+        {
+          label: "Add Locations",
+          href: ROUTE_URL.createLoactionManager,
+          icon: UserPlus,
+        },
+        {
+          label: "View Locations",
+          href: ROUTE_URL.viewLocationManager,
+          icon: View,
+        },
+      ],
+    });
+    sidebarItems.splice(4, 0, {
+      icon: File,
+      label: "Report",
+      href: ROUTE_URL.downloadVLEReport,
+      children: [
+        {
+          label: "VLE Report",
+          href: ROUTE_URL.downloadVLEReport,
+          icon: UserPlus,
+        },
+        {
+          label: "Citizen Report",
+          href: ROUTE_URL.downloadCitizenReport,
+          icon: View,
+        },
+        {
+          label: "Workshop Report",
+          href: ROUTE_URL.downloadWorkshopReport,
+          icon: View,
+        },
       ],
     });
   } else if (user_type?.toLowerCase() === "vle") {
@@ -131,6 +165,106 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
           label: "Create Citizens",
           href: ROUTE_URL.createCitizens,
           icon: UserPlus,
+        },
+      ],
+    });
+  }else if (user_type?.toLowerCase() === "rbi") {
+    sidebarItems.splice(2, 0, {
+      icon: BarChart3,
+      label: "Dashboard",
+      href: ROUTE_URL.rbiDashboard,
+    });
+
+    // sidebarItems.splice(3, 0, {
+    //   icon: Calendar,
+    //   label: "Month View",
+    //   href: ROUTE_URL.rbiMonthView,
+    // });
+
+    // sidebarItems.splice(4, 0, {
+    //   icon: ClipboardList,
+    //   label: "Workshop Date Wise",
+    //   href: ROUTE_URL.rbiWorkshopDateWise,
+    // });
+
+    sidebarItems.splice(5, 0, {
+      icon: FileText,
+      label: "Reports",
+      href: ROUTE_URL.rbiReports,
+      children: [
+        {
+          label: "District Status",
+          href: ROUTE_URL.rbiReportDistrictStatus,
+          icon: View,
+        },
+        {
+          label: "Gender Participation",
+          href: ROUTE_URL.rbiReportGenderParticipation,
+          icon: View,
+        },
+        {
+          label: "Citizen Data",
+          href: ROUTE_URL.rbiReportCitizenData,
+          icon: View,
+        },
+        {
+          label: "Location Schedule",
+          href: ROUTE_URL.rbiReportLocationSchedule,
+          icon: View,
+        },
+        {
+          label: "Pending vs Complete",
+          href: ROUTE_URL.rbiReportDistrictPendingComplete,
+          icon: View,
+        },
+        {
+          label: "< 50 Attendees",
+          href: ROUTE_URL.rbiReportWorkshopsLt50,
+          icon: View,
+        },
+      ],
+    });
+  }
+  else if (user_type?.toLowerCase() === "sub_admin") {
+    sidebarItems.splice(1, 0, {
+      icon: Home,
+      label: "Sub Admin Dashboard",
+      href: ROUTE_URL.subAdminDashboard,
+    });
+    sidebarItems.splice(2, 0, {
+      icon: FileText,
+      label: "Reports",
+      href: ROUTE_URL.rbiReports,
+      children: [
+        {
+          label: "District Status",
+          href: ROUTE_URL.rbiReportDistrictStatus,
+          icon: View,
+        },
+        {
+          label: "Gender Participation",
+          href: ROUTE_URL.rbiReportGenderParticipation,
+          icon: View,
+        },
+        {
+          label: "Citizen Data",
+          href: ROUTE_URL.rbiReportCitizenData,
+          icon: View,
+        },
+        {
+          label: "Location Schedule",
+          href: ROUTE_URL.rbiReportLocationSchedule,
+          icon: View,
+        },
+        {
+          label: "Pending vs Complete",
+          href: ROUTE_URL.rbiReportDistrictPendingComplete,
+          icon: View,
+        },
+        {
+          label: "< 50 Attendees",
+          href: ROUTE_URL.rbiReportWorkshopsLt50,
+          icon: View,
         },
       ],
     });

@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: "/rbi_deployment/admin/",
+  base: "/rbi-deployment/admin/",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -14,7 +14,7 @@ export default defineConfig({
   },
   server: {
     host: true,
-    allowedHosts: ["400f09c62208.ngrok-free.app"],
+    allowedHosts: ["05c8f7d3d07f.ngrok-free.app"],
   },
   build: {
     minify: "esbuild",
