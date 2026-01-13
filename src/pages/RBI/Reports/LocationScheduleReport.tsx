@@ -14,30 +14,28 @@ export default function LocationScheduleReport() {
 
   const canGenerate = Boolean(district);
   const { mutateAsync: getDistricts } = useGetDistrictParams();
-        const [districtList, setDistrictList] = useState<string[]>([]);
-      useEffect(() => {
-        (async () => {
-          try {
-            const districtRes = await getDistricts();
-            const districts =
-              districtRes?.list ??
-              [];
-    
-            const names: string[] = Array.isArray(districts)
-              ? districts
-                  .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
-                  .map((x: any) => String(x))
-                  .filter(Boolean)
-              : [];
-    
-            setDistrictList(names);
-          } catch (e) {
-            console.error("Failed to load districts:", e);
-            setDistrictList([]);
-          }
-        })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, []);
+  const [districtList, setDistrictList] = useState<string[]>([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const districtRes = await getDistricts();
+        const districts = districtRes?.list ?? [];
+
+        const names: string[] = Array.isArray(districts)
+          ? districts
+              .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
+              .map((x: any) => String(x))
+              .filter(Boolean)
+          : [];
+
+        setDistrictList(names);
+      } catch (e) {
+        console.error("Failed to load districts:", e);
+        setDistrictList([]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Layout headerTitle="Location-wise Workshop Schedule Report">
@@ -48,36 +46,36 @@ export default function LocationScheduleReport() {
           filtersSlot={
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-              <label className="text-sm text-gray-600">
-                District (required)
-              </label>
-              {districtList.length > 0 ? (
-                <select
-                  className="border rounded-md h-10 px-3 w-full"
-                  value={district}
-                  onChange={(e) => {
-                    setDistrict(e.target.value);
-                    if (e.target.value === "") {
-                      // Add any reset logic here if needed
-                      // For example, clearing the download link state in ReportDownloadCard
-                    }
-                  }}
-                >
-                  <option value="">All districts</option>
-                  {districtList.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <Input
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                  placeholder="e.g., Springfield"
-                />
-              )}
-            </div>
+                <label className="text-sm text-gray-600">
+                  District (required)
+                </label>
+                {districtList.length > 0 ? (
+                  <select
+                    className="border rounded-md h-10 px-3 w-full"
+                    value={district}
+                    onChange={(e) => {
+                      setDistrict(e.target.value);
+                      if (e.target.value === "") {
+                        // Add any reset logic here if needed
+                        // For example, clearing the download link state in ReportDownloadCard
+                      }
+                    }}
+                  >
+                    <option value="">All districts</option>
+                    {districtList.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    placeholder="e.g., Springfield"
+                  />
+                )}
+              </div>
 
               <div>
                 <label className="text-sm text-gray-600">

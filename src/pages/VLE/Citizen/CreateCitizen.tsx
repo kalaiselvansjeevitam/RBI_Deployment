@@ -110,6 +110,26 @@ const CreateCitizen = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
+    if (name === "name") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
+      return;
+    }
+    if (name === "father_name") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
+      return;
+    }
+    if (name === "mother_name") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
+      return;
+    }
+    if (name === "pincode") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 6);
+      setFormData((prev) => ({ ...prev, [name]: digitsOnly }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -121,8 +141,16 @@ const CreateCitizen = () => {
       newErrors.mobile_number = "Enter valid 10 digit number";
     if (!/^\S+@\S+\.\S+$/.test(formData.email_id))
       newErrors.email_id = "Invalid email";
-    if (!formData.age || Number(formData.age) < 1)
-      newErrors.age = "Enter valid age";
+    if (!formData.age) {
+      newErrors.age = "Age is required";
+    } else {
+      const age = Number(formData.age);
+
+      if (isNaN(age) || age < 18 || age > 60) {
+        newErrors.age = "Age must be between 18 and 60";
+      }
+    }
+
     if (!formData.work_shop_id) newErrors.work_shop_id = "Required";
     if (!formData.gender) newErrors.gender = "Required";
     if (!formData.father_name.trim()) newErrors.father_name = "Required";

@@ -37,14 +37,12 @@ export default function DistrictPendingCompleteReport() {
   const canPrev = offset > 0;
   const canNext = offset + PAGE_SIZE < total;
   const { mutateAsync: getDistricts } = useGetDistrictParams();
-    const [districtList, setDistrictList] = useState<string[]>([]);
+  const [districtList, setDistrictList] = useState<string[]>([]);
   useEffect(() => {
     (async () => {
       try {
         const districtRes = await getDistricts();
-        const districts =
-          districtRes?.list ??
-          [];
+        const districts = districtRes?.list ?? [];
 
         const names: string[] = Array.isArray(districts)
           ? districts

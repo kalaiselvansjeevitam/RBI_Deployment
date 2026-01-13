@@ -1,48 +1,18 @@
-// import { useMutation } from "@tanstack/react-query";
-// import { POST } from "./axiosInstance";
-// import { API_URL } from "../constants/coreUrl";
+import { useMutation } from "@tanstack/react-query";
+import { POST } from "./axiosInstance";
+import { API_URL } from "../constants/coreUrl";
 
-// import type {
-//   GetStudentPaymentDetails,
-//   GetSchoolPaymentDetailsView,
-//   GetSchoolResgistrations,
-//   GetSendPaymentLink,
-//   GetStudentDetails,
-//   GetSchoolPaymentDetails,
-//   GetDashboardValues,
-//   GetStudentDashboardValues,
-//   GetAdminUserLogout,
-// } from "../../lib/types";
-// type StudentDetailsParams = {
-//   start_date: string;
-//   filter_by: string;
-//   end_date: string;
-//   offset: string;
-// };
-// type SchoolDetailsParams = {
-//   start_date: string;
-//   end_date: string;
-//   offset: string;
-// };
+import type { GetResponse } from "../../lib/types";
 
-// type PaymentDetailsParams = {
-//   school_id: number;
-//   total_registrations: string;
-// };
-// type StudentRegistrationParams = {
-//   file: File;
-//   form_data: FormData;
-// };
-
-// export const useGetStudentDetails = () =>
-//   useMutation({
-//     mutationFn: () => {
-//       return POST<GetStudentDetails>({
-//         url: API_URL.getStudentDetails,
-//         data: { get_by: "index" },
-//       });
-//     },
-//   });
+export const useGetadminUserLogout = () =>
+  useMutation({
+    mutationFn: () => {
+      return POST<GetResponse>({
+        url: API_URL.logout,
+        data: { get_by: "index" },
+      });
+    },
+  });
 
 // import {
 //   ActivityListResponse,

@@ -77,7 +77,8 @@ export default function ReportDownloadCard({
       if (isSuccess(res)) {
         if (!url) {
           setError(
-            msg || "Report generated but server did not return a download link."
+            msg ||
+              "Report generated but server did not return a download link.",
           );
           return;
         }

@@ -11,6 +11,7 @@ import type {
   GetDistrictListRes,
   GetGenderCountRes,
   GetLocationListRes,
+  GetMediaCountResponse,
   GetResponse,
   GetResponsewithFile,
   GetResponseWithId,
@@ -47,9 +48,8 @@ type SchoolDetailsParams = {
 type UserUpdateParams = {
   username: string;
   address: string;
-  district_name: string;
   sub_district_name: string;
-  district: string;
+  district_name: string;
   state: string;
   pincode: string;
   specilization: string;
@@ -185,6 +185,15 @@ export const useGetWorkshopParams = () =>
       });
     },
   });
+export const useGetMediaCount = () =>
+  useMutation({
+    mutationFn: (data: { workshop_id: string }) => {
+      return POST<GetMediaCountResponse>({
+        url: API_URL.getworkshoptestimonyCount,
+        data,
+      });
+    },
+  });
 
 export const useGetMapCitizen = () =>
   useMutation({
@@ -269,7 +278,11 @@ export const useGetupdateChecklist = () =>
 
 export const useGetupdateWorkshopStatus = () =>
   useMutation({
-    mutationFn: (data: { work_shop_id: string; status: string }) => {
+    mutationFn: (data: {
+      work_shop_id: string;
+      status: string;
+      notes: string;
+    }) => {
       return POST<GetResponse>({
         url: API_URL.updateStatus,
         data,
@@ -335,9 +348,8 @@ export const useGetUpdateUser = () =>
     mutationFn: ({
       username,
       address,
-      district_name,
       sub_district_name,
-      district,
+      district_name,
       state,
       pincode,
       specilization,
@@ -350,10 +362,9 @@ export const useGetUpdateUser = () =>
         data: {
           username: username,
           address: address,
-          district_name: district_name,
           specilization: specilization,
           sub_district_name: sub_district_name,
-          district: district,
+          district_name: district_name,
           degree: degree,
           change_user_id: change_user_id,
           state: state,
@@ -601,7 +612,7 @@ export const useGetallStatusCountersParams = () =>
 
 export const useGetdistrictWiseWorkshopBarGraphParams = () =>
   useMutation({
-    mutationFn: (data:{district:string}) => {
+    mutationFn: (data: { district: string }) => {
       return POST<districtWiseWorkshopBarGraphRes>({
         url: API_URL.districtWiseWorkshopBarGraph,
         data,

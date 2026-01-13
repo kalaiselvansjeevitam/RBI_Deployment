@@ -29,9 +29,8 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
   const [form, setForm] = useState({
     username: "",
     address: "",
-    district_name: "",
     sub_district_name: "",
-    district: "",
+    district_name: "",
     state: "",
     pincode: "",
     specilization: "",
@@ -62,9 +61,8 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
       setForm({
         username: user.username || "",
         address: user.address || "",
-        district_name: user.district_name || "",
         sub_district_name: user.sub_district_name || "",
-        district: user.district || "",
+        district_name: user.district_name || "",
         state: user.state || "",
         pincode: user.pincode || "",
         specilization: user.specilization || "",
@@ -172,17 +170,6 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
                 onChange={(e) =>
                   setForm({ ...form, sub_district_name: e.target.value })
                 }
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium text-gray-700 mb-1">
-                District
-              </label>
-              <input
-                className="w-full border rounded-md px-3 py-2"
-                value={form.district}
-                onChange={(e) => setForm({ ...form, district: e.target.value })}
               />
             </div>
 

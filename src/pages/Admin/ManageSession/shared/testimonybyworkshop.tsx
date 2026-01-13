@@ -41,15 +41,15 @@ const TestimonyByWorkshop = () => {
 
   const handleApprove = async (id: string) => {
     try {
-      await approveTestimony({
+      const res = await approveTestimony({
         testimony_id: Number(id),
         approve_status: "Approved",
         rejected_reason: "",
       });
-      Swal.fire("Success", "Testimony approved", "success");
+      Swal.fire("Success", res.message, "success");
       fetchTestimonies();
-    } catch (error) {
-      Swal.fire("Error", "Failed to update status", "error");
+    } catch (error :any) {
+      Swal.fire("Error", error?.response?.data?.message, "error");
     }
   };
 

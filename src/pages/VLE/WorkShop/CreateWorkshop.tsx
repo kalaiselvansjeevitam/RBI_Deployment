@@ -28,6 +28,12 @@ const CreateWorkshop = () => {
     district: "",
     pincode: "",
   });
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      workshop_name: "Digital Literacy Awareness Program",
+    }));
+  }, []);
 
   function reSetAll() {
     setFormData({
@@ -83,6 +89,16 @@ const CreateWorkshop = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
+    if (name === "workshop_name") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
+      return;
+    }
+    if (name === "pincode") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 6);
+      setFormData((prev) => ({ ...prev, [name]: digitsOnly }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -173,7 +189,7 @@ const CreateWorkshop = () => {
                 value={formData.workshop_name}
                 onChange={handleChange}
                 className="w-full border rounded-md px-3 py-2"
-                placeholder="Enter workshop name"
+                placeholder="Enter Your Workshop Name"
               />
               {errors.workshop_name && (
                 <p className="text-xs text-red-500 mt-1">

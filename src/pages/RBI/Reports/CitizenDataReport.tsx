@@ -30,7 +30,7 @@ export default function CitizenDataReport() {
   const [tableEndDate, setTableEndDate] = useState("");
 
   const [rows, setRows] = useState<CitizenRow[]>([]);
-    const { mutateAsync: getDistricts } = useGetDistrictParams();
+  const { mutateAsync: getDistricts } = useGetDistrictParams();
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [offset, setOffset] = useState(0);
   const [total, setTotal] = useState(0);
@@ -96,28 +96,26 @@ export default function CitizenDataReport() {
     return `${offset + 1}–${Math.min(offset + PAGE_SIZE, total)}`;
   }, [offset, total]);
   useEffect(() => {
-      (async () => {
-        try {
-          const districtRes = await getDistricts();
-          const districts =
-            districtRes?.list ??
-            [];
-  
-          const names: string[] = Array.isArray(districts)
-            ? districts
-                .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
-                .map((x: any) => String(x))
-                .filter(Boolean)
-            : [];
-  
-          setDistrictList(names);
-        } catch (e) {
-          console.error("Failed to load districts:", e);
-          setDistrictList([]);
-        }
-      })();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    (async () => {
+      try {
+        const districtRes = await getDistricts();
+        const districts = districtRes?.list ?? [];
+
+        const names: string[] = Array.isArray(districts)
+          ? districts
+              .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
+              .map((x: any) => String(x))
+              .filter(Boolean)
+          : [];
+
+        setDistrictList(names);
+      } catch (e) {
+        console.error("Failed to load districts:", e);
+        setDistrictList([]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Layout headerTitle="District-wise Citizen Data Report">
@@ -129,36 +127,36 @@ export default function CitizenDataReport() {
           filtersSlot={
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-              <label className="text-sm text-gray-600">
-                District (required)
-              </label>
-              {districtList.length > 0 ? (
-                <select
-                  className="border rounded-md h-10 px-3 w-full"
-                  value={downloadDistrict}
-                  onChange={(e) => {
-                    setDownloadDistrict(e.target.value);
-                    if (e.target.value === "") {
-                      // Add any reset logic here if needed
-                      // For example, clearing the download link state in ReportDownloadCard
-                    }
-                  }}
-                >
-                  <option value="">All districts</option>
-                  {districtList.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <Input
-                  value={downloadDistrict}
-                  onChange={(e) => setDownloadDistrict(e.target.value)}
-                  placeholder="e.g., Springfield"
-                />
-              )}
-            </div>
+                <label className="text-sm text-gray-600">
+                  District (required)
+                </label>
+                {districtList.length > 0 ? (
+                  <select
+                    className="border rounded-md h-10 px-3 w-full"
+                    value={downloadDistrict}
+                    onChange={(e) => {
+                      setDownloadDistrict(e.target.value);
+                      if (e.target.value === "") {
+                        // Add any reset logic here if needed
+                        // For example, clearing the download link state in ReportDownloadCard
+                      }
+                    }}
+                  >
+                    <option value="">All districts</option>
+                    {districtList.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    value={downloadDistrict}
+                    onChange={(e) => setDownloadDistrict(e.target.value)}
+                    placeholder="e.g., Springfield"
+                  />
+                )}
+              </div>
 
               <div>
                 <label className="text-sm text-gray-600">

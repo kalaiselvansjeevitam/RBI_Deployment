@@ -237,7 +237,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReports,
         element: (
-          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
             <RBIReportsHome />
           </RequireRole>
         ),
@@ -245,7 +245,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportDistrictStatus,
         element: (
-          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
             <DistrictStatusReport />
           </RequireRole>
         ),
@@ -253,7 +253,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportGenderParticipation,
         element: (
-          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
             <GenderParticipationReport />
           </RequireRole>
         ),
@@ -261,7 +261,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportCitizenData,
         element: (
-          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
             <CitizenDataReport />
           </RequireRole>
         ),
@@ -269,7 +269,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportLocationSchedule,
         element: (
-          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
             <LocationScheduleReport />
           </RequireRole>
         ),
@@ -277,7 +277,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportDistrictPendingComplete,
         element: (
-          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
             <DistrictPendingCompleteReport />
           </RequireRole>
         ),
@@ -285,7 +285,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportWorkshopsLt50,
         element: (
-          <RequireRole allowedRoles={["rbi","sub_admin"]}>
+          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
             <WorkshopsLt50Report />
           </RequireRole>
         ),

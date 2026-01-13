@@ -51,8 +51,7 @@ const DashboardSubAdmin = () => {
   const { mutateAsync: getCardsApi } = useGetallStatusCountersParams();
   const { mutateAsync: getStatusCountsApi } =
     useGetdistrictWiseWorkshopBarGraphParams();
-  const { mutateAsync: getGenderCountsApi } =
-    useGetgenderWiseDonutParams();
+  const { mutateAsync: getGenderCountsApi } = useGetgenderWiseDonutParams();
 
   /* -------------------- EFFECTS -------------------- */
 
@@ -116,7 +115,6 @@ const DashboardSubAdmin = () => {
   return (
     <Layout headerTitle="Sub Admin Dashboard">
       <div className="px-6 mt-6 space-y-8">
-
         {/* 🔹 SECTION 1: TOP SUMMARY */}
         <div className="bg-gray-50 rounded-2xl p-6 shadow-sm">
           <h2 className="text-lg font-semibold mb-4">Overall Summary</h2>
@@ -128,7 +126,10 @@ const DashboardSubAdmin = () => {
           ) : (
             cards && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card title="Total Workshops" value={cards.total_workshops ?? 0} />
+                <Card
+                  title="Total Workshops"
+                  value={cards.total_workshops ?? 0}
+                />
                 <Card title="Pending" value={cards.pending_count ?? 0} />
                 <Card title="Completed" value={cards.completed_count ?? 0} />
                 <Card title="Approved" value={cards.approved_count ?? 0} />
@@ -145,37 +146,52 @@ const DashboardSubAdmin = () => {
 
         {/* 🔹 SECTION 2: DISTRICT STATUS */}
         <div className="bg-gray-50 rounded-2xl p-6 shadow-sm relative min-h-[220px]">
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-lg font-semibold">District-wise Status</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">District-wise Status</h2>
 
-    <select
-      value={district}
-      onChange={(e) => setDistrict(e.target.value)}
-      className="border rounded-md p-2 text-sm bg-white"
-    >
-      {districtList.map((d) => (
-        <option key={d.id} value={d.district}>
-          {d.district}
-        </option>
-      ))}
-    </select>
-  </div>
+            <select
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              className="border rounded-md p-2 text-sm bg-white"
+            >
+              {districtList.map((d) => (
+                <option key={d.id} value={d.district}>
+                  {d.district}
+                </option>
+              ))}
+            </select>
+          </div>
 
-  {loadingDistrictData && <SectionLoader />}
+          {loadingDistrictData && <SectionLoader />}
 
-  <div className={loadingDistrictData ? "opacity-40 pointer-events-none" : ""}>
-    {statusCounts && (
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card title="Completed" value={statusCounts.completed_count ?? 0} />
-        <Card title="Pending" value={statusCounts.pending_count ?? 0} />
-        <Card title="Approved" value={statusCounts.approved_count ?? 0} />
-        <Card title="Rejected" value={statusCounts.rejected_count ?? 0} />
-        <Card title="Cancelled" value={statusCounts.cancelled_count ?? 0} />
-      </div>
-    )}
-  </div>
-</div>
-
+          <div
+            className={
+              loadingDistrictData ? "opacity-40 pointer-events-none" : ""
+            }
+          >
+            {statusCounts && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <Card
+                  title="Completed"
+                  value={statusCounts.completed_count ?? 0}
+                />
+                <Card title="Pending" value={statusCounts.pending_count ?? 0} />
+                <Card
+                  title="Approved"
+                  value={statusCounts.approved_count ?? 0}
+                />
+                <Card
+                  title="Rejected"
+                  value={statusCounts.rejected_count ?? 0}
+                />
+                <Card
+                  title="Cancelled"
+                  value={statusCounts.cancelled_count ?? 0}
+                />
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* 🔹 SECTION 3: GENDER DONUT */}
         <div className="bg-gray-50 rounded-2xl p-6 shadow-sm">
@@ -193,7 +209,6 @@ const DashboardSubAdmin = () => {
             </div>
           )}
         </div>
-
       </div>
     </Layout>
   );

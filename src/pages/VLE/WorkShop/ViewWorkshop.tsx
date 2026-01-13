@@ -163,98 +163,135 @@ export const ViewWorkshop = () => {
       setFilterApplied(false);
     }
   }, [startDate, endDate]);
-  const STATUS_OPTIONS = ["Select", "Completed", "Cancelled"];
+  const STATUS_OPTIONS = ["Completed", "Cancelled"];
+
   const StatusUpdater = ({ row }: { row: WorkshopByFiltersData }) => {
-    const [editing, setEditing] = useState(false);
-    const [status, setStatus] = useState("");
     const [loading, setLoading] = useState(false);
 
     const { mutateAsync: updateWorkshopStatus } = useGetupdateWorkshopStatus();
 
-    const handleSave = async () => {
-      if (!status) return;
+    const openStatusPopup = async () => {
+      const { value } = await Swal.fire({
+        title: "Update Status",
+        html: `
+  <div style="
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    font-size:13px;
+    color:#111827;
+    text-align:left;
+  ">
 
+    <label style="font-weight:600;font-size:12px">
+      Status <span style="color:#dc2626">*</span>
+    </label>
+
+    <select
+      id="status"
+      class="swal2-input"
+      style="height:32px;font-size:13px;color:#111827;border:1px solid #9ca3af"
+    >
+      <option value="">Select Status</option>
+      ${STATUS_OPTIONS.map((s) => `<option value="${s}">${s}</option>`).join(
+        "",
+      )}
+    </select>
+
+    <label style="font-weight:600;font-size:12px;margin-top:6px">
+      Feedback Notes <span style="color:#dc2626">*</span>
+    </label>
+
+    <textarea
+      id="notes"
+      class="swal2-textarea"
+      style="font-size:13px;min-height:70px;color:#111827;border:1px solid #9ca3af"
+      placeholder="Enter notes"
+    ></textarea>
+
+  </div>
+`,
+
+        showCancelButton: true,
+        confirmButtonText: "Update",
+        cancelButtonText: "Cancel",
+        focusConfirm: false,
+        customClass: {
+          popup: "rounded-lg",
+          title: "text-sm font-semibold",
+          confirmButton:
+            "px-3 py-1 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md ml-2",
+
+          cancelButton:
+            "px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded-md mr-2",
+        },
+        buttonsStyling: false,
+        preConfirm: () => {
+          const status = (
+            document.getElementById("status") as HTMLSelectElement
+          )?.value;
+
+          const notes = (
+            document.getElementById("notes") as HTMLTextAreaElement
+          )?.value;
+
+          if (!status) {
+            Swal.showValidationMessage("Please select a status");
+            return;
+          }
+
+          if (!notes || !notes.trim()) {
+            Swal.showValidationMessage("Notes are required");
+            return;
+          }
+
+          return { status, notes };
+        },
+      });
+
+      if (!value) return;
+
+      await saveStatus(value.status, value.notes);
+    };
+
+    const saveStatus = async (status: string, notes: string) => {
       try {
         setLoading(true);
 
         const res = await updateWorkshopStatus({
           work_shop_id: row.id,
           status,
+          notes, // ✅ notes passed here
         });
 
         if (res?.result?.toLowerCase() === "success") {
           Swal.fire("Success", res.message, "success");
 
-          // update table data instantly
+          // update UI instantly
           row.work_shop_status = status;
-
-          setEditing(false);
-          setStatus("");
         } else {
           Swal.fire("Error", res.message, "error");
         }
-      } catch {
-        Swal.fire("Error", "Status update failed", "error");
+      } catch (error: any) {
+        Swal.fire(
+          "Error",
+          error?.response?.data?.message || "Failed to update status",
+          "error",
+        );
+        console.error("Update failed", error);
       } finally {
         setLoading(false);
       }
     };
 
-    /* ---------- VIEW MODE ---------- */
-
-    if (!editing) {
-      return (
-        <button
-          onClick={() => setEditing(true)}
-          className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700"
-        >
-          Update
-        </button>
-      );
-    }
-
-    /* ---------- EDIT MODE ---------- */
-
     return (
-      <div className="flex items-center gap-2">
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="border rounded-md px-2 py-1 text-xs"
-        >
-          <option value="">Select</option>
-          {STATUS_OPTIONS.map(
-            (opt) =>
-              opt !== "Select" && (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ),
-          )}
-        </select>
-
-        <button
-          onClick={handleSave}
-          disabled={!status || loading}
-          className={`px-2 py-1 text-xs rounded-md text-white ${
-            !status || loading
-              ? "bg-gray-400"
-              : "bg-green-600 hover:bg-green-700"
-          }`}
-        >
-          {loading ? "..." : "Save"}
-        </button>
-
-        <button
-          onClick={() => {
-            setEditing(false);
-            setStatus("");
-          }}
-          className="px-2 py-1 text-xs rounded-md border"
-        >
-          ✕
-        </button>
-      </div>
+      <button
+        disabled={loading}
+        onClick={openStatusPopup}
+        className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+      >
+        Update
+      </button>
     );
   };
 
@@ -269,6 +306,7 @@ export const ViewWorkshop = () => {
       render: (_value, row) => `${row.from_time} - ${row.to_time}`,
     },
     { key: "vle_name", label: "VLE Name", align: "center" },
+    { key: "work_shop_status", label: "Workshop Status", align: "center" },
     {
       key: "view",
       label: "View",

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import useWindowSize from "../../core/hooks/windowResize";
 import { ROUTE_URL } from "../../core/constants/coreUrl";
 import Swal, { type DismissReason } from "sweetalert2";
-// import { useGetadminUserLogout } from "../../core/api/Dashboard.service";
+import { useGetadminUserLogout } from "../../core/api/Dashboard.service";
 // import useWindowSize from '@/app/core/hooks/windowResize';
 // import { ROUTE_URL } from '@/app/core/constants/coreUrl';
 // import { Input } from '../ui/input';
@@ -28,7 +28,7 @@ export interface SweetAlertResult<T = any> {
 const Header: React.FC<HeaderProps> = ({ headerTitle, css, toolbar }) => {
   const isDesktop = useWindowSize();
   const navigate = useNavigate();
-  // const { mutateAsync: getLogout } = useGetadminUserLogout();
+  const { mutateAsync: getLogout } = useGetadminUserLogout();
 
   return (
     <>
@@ -68,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({ headerTitle, css, toolbar }) => {
                 }).then(async (result) => {
                   if (result.isConfirmed) {
                     console.log();
-                    // await getLogout();
+                    await getLogout();
                     navigate(ROUTE_URL.login);
                     await sessionStorage.removeItem("session_token");
                   }

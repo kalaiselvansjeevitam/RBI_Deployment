@@ -70,30 +70,28 @@ export default function GenderParticipationReport() {
     return `${offset + 1}–${Math.min(offset + PAGE_SIZE, total)}`;
   }, [offset, total]);
   const { mutateAsync: getDistricts } = useGetDistrictParams();
-      const [districtList, setDistrictList] = useState<string[]>([]);
-    useEffect(() => {
-      (async () => {
-        try {
-          const districtRes = await getDistricts();
-          const districts =
-            districtRes?.list ??
-            [];
-  
-          const names: string[] = Array.isArray(districts)
-            ? districts
-                .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
-                .map((x: any) => String(x))
-                .filter(Boolean)
-            : [];
-  
-          setDistrictList(names);
-        } catch (e) {
-          console.error("Failed to load districts:", e);
-          setDistrictList([]);
-        }
-      })();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+  const [districtList, setDistrictList] = useState<string[]>([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const districtRes = await getDistricts();
+        const districts = districtRes?.list ?? [];
+
+        const names: string[] = Array.isArray(districts)
+          ? districts
+              .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
+              .map((x: any) => String(x))
+              .filter(Boolean)
+          : [];
+
+        setDistrictList(names);
+      } catch (e) {
+        console.error("Failed to load districts:", e);
+        setDistrictList([]);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Layout headerTitle="Gender-wise Workshop Participation Report">

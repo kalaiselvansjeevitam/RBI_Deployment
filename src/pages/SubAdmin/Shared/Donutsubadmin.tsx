@@ -21,7 +21,6 @@ const DonutChartSubAdminComponent = ({
   data,
   height = 240,
 }: DonutChartProps) => {
-
   // 🔴 CRITICAL FIX: convert total to number
   const chartData = data.map((item) => ({
     gender: item.gender,
@@ -34,8 +33,8 @@ const DonutChartSubAdminComponent = ({
         <PieChart>
           <Pie
             data={chartData}
-            dataKey="total"     // ✅ number
-            nameKey="gender"    // ✅ label
+            dataKey="total" // ✅ number
+            nameKey="gender" // ✅ label
             innerRadius={60}
             outerRadius={90}
             paddingAngle={3}

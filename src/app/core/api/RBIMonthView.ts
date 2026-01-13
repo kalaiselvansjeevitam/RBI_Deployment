@@ -12,7 +12,7 @@ export type ApiEnvelope<T> = {
   list: any;
   result: string;
   message: string;
-  total : number;
+  total: number;
   data: T;
 };
 

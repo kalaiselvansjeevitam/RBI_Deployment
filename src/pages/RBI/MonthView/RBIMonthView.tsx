@@ -120,7 +120,7 @@ export default function RBIMonthView() {
             completed: safeNum(r.completed_count ?? 0),
             approved: safeNum(r.approved_count ?? 0),
             rejected: safeNum(r.rejected_count ?? 0),
-          }))
+          })),
         );
 
         // Keep offset state in sync with what we fetched
@@ -148,7 +148,7 @@ export default function RBIMonthView() {
 
   const monthLabel = useMemo(
     () => MONTHS.find((m) => m.value === month)?.label || "Month View",
-    [month]
+    [month],
   );
 
   const canPrev = canFetch && !loading && offset > 0;

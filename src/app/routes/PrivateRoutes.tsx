@@ -44,7 +44,9 @@ export const RequireRole = ({ allowedRoles, children }: RequireRoleProps) => {
       return <Navigate to={ROUTE_URL.adminDashboard} replace />;
     if (role === "vle") return <Navigate to={ROUTE_URL.vleDashboard} replace />;
     if (role === "rbi") return <Navigate to={ROUTE_URL.rbiDashboard} replace />;
-    if (role === "sub_admin") return <Navigate to={ROUTE_URL.subAdminDashboard} replace />;
+    if (role === "sub_admin")
+      return <Navigate to={ROUTE_URL.subAdminDashboard} replace />;
+    if (role === "" || null) return <Navigate to={ROUTE_URL.login} replace />;
 
     return <Navigate to={ROUTE_URL.login} replace />;
   }
@@ -59,7 +61,9 @@ export const RoleFallbackRedirect = () => {
     return <Navigate to={ROUTE_URL.adminDashboard} replace />;
   if (role === "vle") return <Navigate to={ROUTE_URL.vleDashboard} replace />;
   if (role === "rbi") return <Navigate to={ROUTE_URL.rbiDashboard} replace />;
-  if (role === "sub_admin") return <Navigate to={ROUTE_URL.subAdminDashboard} replace />;
+  if (role === "sub_admin")
+    return <Navigate to={ROUTE_URL.subAdminDashboard} replace />;
+  if (role === "" || null) return <Navigate to={ROUTE_URL.login} replace />;
 
   return <Navigate to={ROUTE_URL.login} replace />;
 };

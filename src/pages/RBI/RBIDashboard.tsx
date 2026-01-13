@@ -219,7 +219,7 @@ export default function RBIDashboard() {
                 status: String(x.workshop_name ?? ""),
                 count: Number(x.total ?? 0),
               }))
-              .filter((x) => x.status && x.count > 0)
+              .filter((x) => x.status && x.count > 0),
           );
         } else {
           setProgramsBarData([]);
@@ -234,7 +234,7 @@ export default function RBIDashboard() {
               district: String(x.district ?? ""),
               completed: Number(x.completed_count ?? 0),
               approved: Number(x.approved_count ?? 0),
-            }))
+            })),
           );
         } else {
           setTopVles([]);
@@ -250,7 +250,7 @@ export default function RBIDashboard() {
               district: String(x.district ?? ""),
               completed: Number(x.completed_count ?? 0),
               approved: Number(x.approved_count ?? 0),
-            }))
+            })),
           );
         } else {
           setTopDistricts([]);
@@ -258,9 +258,7 @@ export default function RBIDashboard() {
 
         // District list: your existing API returns some structure.
         // We'll try to pull list of district names safely.
-        const districts =
-          districtRes?.list ??
-          [];
+        const districts = districtRes?.list ?? [];
 
         const names: string[] = Array.isArray(districts)
           ? districts

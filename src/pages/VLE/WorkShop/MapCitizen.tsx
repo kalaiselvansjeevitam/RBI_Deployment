@@ -8,6 +8,7 @@ import {
 } from "../../../app/core/api/Admin";
 import Swal from "sweetalert2";
 import { Loader } from "lucide-react";
+// import CitizenUploadFormat from "../../../assets/files/CitizenUploadFormat.xlsx"
 
 interface WorkshopOption {
   id: string;
@@ -143,17 +144,19 @@ const MapCitizen = () => {
               <option value="">Select</option>
               {workshops.map((workshop) => (
                 <option key={workshop.id} value={workshop.id}>
-                  {workshop.workshop_name} - {workshop.date}
+                  {workshop.id} - {workshop.date} - {workshop.workshop_name}
                 </option>
               ))}
             </select>
           </div>
 
           {/* Excel Upload */}
+          {/* Excel Upload */}
           <div>
             <label className="text-sm font-medium">
               Upload Excel File <span className="text-red-500">*</span>
             </label>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -161,11 +164,29 @@ const MapCitizen = () => {
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               className="w-full border rounded-md px-3 py-2 bg-white"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Only .xls or .xlsx files allowed
-            </p>
-          </div>
 
+            {/* Selected file name */}
+            {file && (
+              <p className="text-xs text-green-600 mt-1">
+                Selected file: <span className="font-medium">{file.name}</span>
+              </p>
+            )}
+
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs text-gray-500">
+                Only .xls or .xlsx files allowed
+              </p>
+
+              {/* Sample Excel download */}
+              <a
+                href="/rbi-deployment/admin/files/sample.xlsx"
+                download
+                className="text-sm text-blue-600 hover:underline font-medium"
+              >
+                Download Sample Excel
+              </a>
+            </div>
+          </div>
           {/* Error */}
           {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 

@@ -69,16 +69,16 @@ const ViewCitizenByCard = () => {
   const navigate = useNavigate();
   return (
     <Layout headerTitle="View Citizen Details">
-      <div className="mb-4 flex items-center gap-270">
-        {/* Back button */}
-
+      <div className="mb-4 flex items-center justify-between">
         {/* Total count */}
         <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>
+
+        {/* Back button */}
         <button
           onClick={() => navigate(-1)}
           className="px-3 py-1.5 text-sm font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700"
         >
-          <div className="text-white-600 font-bold">← Back</div>
+          ← Back
         </button>
       </div>
 

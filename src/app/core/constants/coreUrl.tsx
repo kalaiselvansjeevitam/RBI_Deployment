@@ -23,7 +23,7 @@ export const ROUTE_URL = {
   downloadVLEReport: "/rbi-deployment/admin/DownloadVLEReport",
   downloadCitizenReport: "/rbi-deployment/admin/DownloadCitizenReport",
   downloadWorkshopReport: "/rbi-deployment/admin/DownloadWorkshopReport",
-  subAdminDashboard : "/rbi-deployment/admin/sub-admin-dashboard",
+  subAdminDashboard: "/rbi-deployment/admin/sub-admin-dashboard",
 
   rbiDashboard: "/rbi-deployment/admin/rbiDashboard",
   rbiMonthView: "/rbi-deployment/admin/rbi/month-view",
@@ -44,10 +44,12 @@ export const ROUTE_URL = {
 
 export const API_URL = {
   login: "user-login",
+  logout: "user-logout",
   createUser: "create-user",
   createWorkShop: "/createWorkShop",
   createCitizen: "/createCitizens",
   getWorkshop: "/getWorkshop",
+  getworkshoptestimonyCount: "/workshop-testimony-count",
   uploadCitizens: "/uploadCitizens",
   uploadTestimony: "/update-testimony",
   uploadVle: "/upload-vle",
@@ -79,7 +81,7 @@ export const API_URL = {
   downloadVLE: "/download-vle-report",
   downloadCitizen: "/download-citizen-report",
   downloadWorkshop: "/download-workshop-report",
-  allStatusCounters : "/allStatusCounters",
+  allStatusCounters: "/allStatusCounters",
 
   // RBI Reports (DOWNLOAD)
   downloadDistrictWiseWorkshopReport: "/download-district-wise-workshop-report",

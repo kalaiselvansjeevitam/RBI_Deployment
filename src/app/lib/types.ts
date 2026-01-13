@@ -92,6 +92,18 @@ export interface GetWorkshopRes {
     },
   ];
 }
+// Single media count item
+export interface MediaTypeCount {
+  media_type: "image" | "video";
+  media_type_count: string; // API returns string
+}
+
+// Full API response
+export interface GetMediaCountResponse {
+  result: "Success" | "Failure";
+  message: string;
+  data: MediaTypeCount[];
+}
 
 /* ---------- ROOT RESPONSE ---------- */
 export interface VLEDashboardResponse {
@@ -180,9 +192,8 @@ export type AllUser = {
   mobile_number: string;
   email_id: string;
   address: string;
-  district_name: string;
   sub_district_name: string;
-  district: string;
+  district_name: string;
   state: string;
   specilization: string;
   degree: string;
@@ -249,7 +260,7 @@ export interface GetDistrictListRes {
 
 export interface Workshop {
   workshop_id: string;
-  workshop_name : string;
+  workshop_name: string;
   workshop_date: string;
   workshop_from_time: string;
   workshop_to_time: string;
@@ -317,13 +328,13 @@ export interface GetDashboardStatsRes {
 }
 
 export interface allStatusCounters {
-  total_workshops:string,
-  pending_count:string,
-  completed_count:string,
-  approved_count:string,
-  cancelled_count:string,
-  rejected_count:string,
-  total_location_managers:string
+  total_workshops: string;
+  pending_count: string;
+  completed_count: string;
+  approved_count: string;
+  cancelled_count: string;
+  rejected_count: string;
+  total_location_managers: string;
 }
 
 export interface allStatusCountersRes {
@@ -333,11 +344,11 @@ export interface allStatusCountersRes {
 }
 
 export interface districtWiseWorkshopBarGraph {
-  pending_count:string,
-  completed_count:string,
-  approved_count:string,
-  cancelled_count:string,
-  rejected_count:string,
+  pending_count: string;
+  completed_count: string;
+  approved_count: string;
+  cancelled_count: string;
+  rejected_count: string;
 }
 
 export interface districtWiseWorkshopBarGraphRes {

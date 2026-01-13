@@ -168,7 +168,7 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
         },
       ],
     });
-  }else if (user_type?.toLowerCase() === "rbi") {
+  } else if (user_type?.toLowerCase() === "rbi") {
     sidebarItems.splice(2, 0, {
       icon: BarChart3,
       label: "Dashboard",
@@ -224,8 +224,7 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
         },
       ],
     });
-  }
-  else if (user_type?.toLowerCase() === "sub_admin") {
+  } else if (user_type?.toLowerCase() === "sub_admin") {
     sidebarItems.splice(1, 0, {
       icon: Home,
       label: "Sub Admin Dashboard",

@@ -41,9 +41,9 @@ const Login = () => {
         navigate(ROUTE_URL.vleDashboard, { replace: true });
       } else if (res.data.user_type.toLowerCase() === "admin") {
         navigate(ROUTE_URL.adminDashboard, { replace: true });
-      }else if (res.data.user_type.toLowerCase() === "rbi") {
+      } else if (res.data.user_type.toLowerCase() === "rbi") {
         navigate(ROUTE_URL.rbiDashboard, { replace: true });
-      }else if (res.data.user_type.toLowerCase() === "sub_admin") {
+      } else if (res.data.user_type.toLowerCase() === "sub_admin") {
         navigate(ROUTE_URL.subAdminDashboard, { replace: true });
       } else {
         navigate(ROUTE_URL.dashboard, { replace: true });
