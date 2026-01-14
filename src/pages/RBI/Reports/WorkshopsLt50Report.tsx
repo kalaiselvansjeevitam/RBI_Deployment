@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
+import { useGetDistrictParams } from "../../../app/core/api/Admin";
 import type { ViewLt50Row } from "../../../app/core/api/RBIReports";
 import {
   useDownloadCitizenCountLessThan50Report,
   useViewCitizenCountLessThan50Report,
 } from "../../../app/core/api/RBIReports";
 import ReportDownloadCard from "./shared/ReportDownloadCard";
-import { useGetDistrictParams } from "../../../app/core/api/Admin";
 
 const PAGE_SIZE = 10;
 const PREVIEW_COUNT = 5;
