@@ -262,6 +262,13 @@ export const ViewManageSession = () => {
       {value || "Select Date"}
     </button>
   ));
+  const normalizeDate = (date: Date | null) => {
+  if (!date) return undefined;
+  const d = new Date(date);
+  d.setHours(12, 0, 0, 0);
+  return d;
+};
+
 
   return (
     <Layout headerTitle="View Workshop">
@@ -275,7 +282,7 @@ export const ViewManageSession = () => {
           <ReactDatePicker
             dateFormat={"dd/MM/yyyy"}
             selected={startDate}
-            onChange={(date: any) => setStartDate(date || undefined)}
+            onChange={(date: any) => setStartDate(normalizeDate(date || undefined))}
             placeholderText="Select Start Date"
             className="border border-gray-700 rounded-md p-1 text-sm w-[140px]"
             popperClassName="z-50"
@@ -288,7 +295,7 @@ export const ViewManageSession = () => {
           <ReactDatePicker
             dateFormat={"dd/MM/yyyy"}
             selected={endDate}
-            onChange={(date: any) => setEndDate(date || undefined)}
+            onChange={(date: any) => setEndDate(normalizeDate(date || undefined))}
             placeholderText="Select End Date"
             className="border border-gray-700 rounded-md p-1 text-sm w-[140px]"
             minDate={startDate}

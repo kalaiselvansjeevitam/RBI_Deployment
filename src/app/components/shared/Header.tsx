@@ -32,9 +32,7 @@ const Header: React.FC<HeaderProps> = ({ headerTitle, css, toolbar }) => {
 
   return (
     <>
-      <div
-        className={`flex p-4 bg-white w-auto md:w-full justify-between items-center fixed fill-available z-10`}
-      >
+      <div className="flex p-4 bg-white w-auto md:w-full justify-between items-center fixed fill-available z-50">
         <h1
           className={`${!isDesktop ? "relative left-[68px] mt-1 w-[80%]" : ""} text-xl font-bold font-dmSans ${css} 2xl:pl-5`}
         >

@@ -2,15 +2,19 @@ import Layout from "../../../app/components/Layout/Layout";
 import { useEffect, useMemo, useState } from "react";
 import { BadgeCheck, Clock, Loader } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useGetViewTestimony } from "../../../app/core/api/Admin";
+import {
+  useDeleteTestimony,
+  useGetViewTestimony,
+} from "../../../app/core/api/Admin";
 import type { ViewTestimonytype } from "../../../app/lib/types";
 import Swal from "sweetalert2";
-import jsPDF from "jspdf";
+// import jsPDF from "jspdf";
 
 export const ViewTestimony = () => {
   const [searchParams] = useSearchParams();
   const workshopId = searchParams.get("workshop_id");
   const { mutateAsync: getSchoolDashboradData } = useGetViewTestimony();
+  const { mutateAsync: deleteTestimony } = useDeleteTestimony();
   const [data, setData] = useState<ViewTestimonytype[]>([]);
   const [loading, setLoading] = useState(false);
   // 🔁 Replace sampleData with API response
@@ -37,6 +41,38 @@ export const ViewTestimony = () => {
 
     fetchData();
   }, [workshopId]);
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This testimony will be permanently deleted",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await deleteTestimony({ testimony_id: id });
+
+      // ✅ Show API response message only
+      await Swal.fire(
+        "Deleted",
+        res?.message || "Deleted successfully",
+        "success",
+      );
+
+      // ✅ Reload page after delete
+      window.location.reload();
+    } catch (error: any) {
+      Swal.fire(
+        "Error",
+        error?.response?.data?.message || "Failed to delete testimony",
+        "error",
+      );
+    }
+  };
 
   /* ---------- SPLIT MEDIA ---------- */
   const images = useMemo(
@@ -56,70 +92,92 @@ export const ViewTestimony = () => {
       <Loader className="w-6 h-6 animate-spin text-blue-600" />
     </div>
   );
-  const loadImage = (url: string): Promise<HTMLImageElement> =>
-    new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = url;
-    });
+  // const loadImageAsBase64 = (url: string): Promise<string> =>
+  // new Promise((resolve, reject) => {
+  //   const img = new Image();
+  //   img.crossOrigin = "anonymous";
 
-  const downloadImagesPDF = async () => {
-    if (!images.length) {
-      Swal.fire("No Images", "No images available to download", "info");
-      return;
-    }
+  //   img.onload = () => {
+  //     try {
+  //       const canvas = document.createElement("canvas");
+  //       canvas.width = img.width;
+  //       canvas.height = img.height;
 
-    try {
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+  //       const ctx = canvas.getContext("2d");
+  //       if (!ctx) {
+  //         reject("Canvas context not available");
+  //         return;
+  //       }
 
-      let y = 15;
+  //       ctx.drawImage(img, 0, 0);
 
-      pdf.setFontSize(14);
-      pdf.text("Workshop Testimony Images", 14, y);
-      pdf.setFontSize(10);
-      pdf.text(`Workshop ID: ${workshopId}`, 14, y + 6);
+  //       // Convert image to Base64 JPEG
+  //       const dataURL = canvas.toDataURL("image/jpeg", 0.95);
+  //       resolve(dataURL);
+  //     } catch (err) {
+  //       reject(err);
+  //     }
+  //   };
 
-      y += 15;
+  //   img.onerror = () => reject("Failed to load image");
+  //   img.src = url;
+  // });
 
-      for (let i = 0; i < images.length; i++) {
-        const img = images[i];
+  //   const downloadImagesPDF = async () => {
+  //   if (!images.length) {
+  //     Swal.fire("No Images", "No images available to download", "info");
+  //     return;
+  //   }
 
-        let image: HTMLImageElement;
+  //   try {
+  //     const pdf = new jsPDF("p", "mm", "a4");
+  //     const pageWidth = pdf.internal.pageSize.getWidth();
+  //     const pageHeight = pdf.internal.pageSize.getHeight();
 
-        try {
-          image = await loadImage(img.filepath);
-        } catch {
-          throw new Error(`Failed to load image`);
-        }
+  //     let y = 15;
 
-        const imgWidth = pageWidth - 28;
-        const imgHeight = (image.height * imgWidth) / image.width;
+  //     // Header
+  //     pdf.setFontSize(14);
+  //     pdf.text("Workshop Testimony Images", 14, y);
+  //     pdf.setFontSize(10);
+  //     pdf.text(`Workshop ID: ${workshopId}`, 14, y + 6);
 
-        if (y + imgHeight > pageHeight - 20) {
-          pdf.addPage();
-          y = 15;
-        }
+  //     y += 15;
 
-        pdf.addImage(image, "JPEG", 14, y, imgWidth, imgHeight);
-        y += imgHeight + 10;
-      }
+  //     for (let i = 0; i < images.length; i++) {
+  //       const img = images[i];
 
-      pdf.save(`Workshop_${workshopId}_Images.pdf`);
-    } catch (error) {
-      console.error("PDF download error:", error);
+  //       // Load image as base64
+  //       const base64Image = await loadImageAsBase64(img.filepath);
 
-      Swal.fire({
-        title: "Download Failed",
-        text: "Failed to download images. Please try again later.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    }
-  };
+  //       // Calculate image size
+  //       const imgProps = pdf.getImageProperties(base64Image);
+  //       const imgWidth = pageWidth - 28;
+  //       const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+  //       // Add new page if needed
+  //       if (y + imgHeight > pageHeight - 20) {
+  //         pdf.addPage();
+  //         y = 15;
+  //       }
+
+  //       // Add image to PDF
+  //       pdf.addImage(base64Image, "JPEG", 14, y, imgWidth, imgHeight);
+  //       y += imgHeight + 10;
+  //     }
+
+  //     pdf.save(`Workshop_${workshopId}_Images.pdf`);
+  //   } catch (error) {
+  //     console.error("PDF download error:", error);
+
+  //     Swal.fire({
+  //       title: "Download Failed",
+  //       text: "Failed to download images. Please try again later.",
+  //       icon: "error",
+  //       confirmButtonText: "OK",
+  //     });
+  //   }
+  // };
 
   return (
     <Layout headerTitle="View Testimony">
@@ -141,7 +199,13 @@ export const ViewTestimony = () => {
             <Section title="Images">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {images.length > 0 ? (
-                  images.map((item) => <MediaCard key={item.id} item={item} />)
+                  images.map((item) => (
+                    <MediaCard
+                      key={item.id}
+                      item={item}
+                      onDelete={handleDelete}
+                    />
+                  ))
                 ) : (
                   <EmptyState text="No images available" />
                 )}
@@ -152,13 +216,20 @@ export const ViewTestimony = () => {
             <Section title="Videos">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {videos.length > 0 ? (
-                  videos.map((item) => <MediaCard key={item.id} item={item} />)
+                  videos.map((item) => (
+                    <MediaCard
+                      key={item.id}
+                      item={item}
+                      onDelete={handleDelete}
+                    />
+                  ))
                 ) : (
                   <EmptyState text="No videos available" />
                 )}
               </div>
             </Section>
-            {images.length > 0 && (
+
+            {/* {images.length > 0 && (
               <div className="flex justify-end mb-4">
                 <button
                   onClick={downloadImagesPDF}
@@ -167,7 +238,7 @@ export const ViewTestimony = () => {
                   Download Images PDF
                 </button>
               </div>
-            )}
+            )} */}
           </>
         )}
       </div>
@@ -192,13 +263,21 @@ const Section = ({
   </div>
 );
 
-const MediaCard = ({ item }: { item: ViewTestimonytype }) => {
-  const approved = item.is_approved === "1";
+const MediaCard = ({
+  item,
+  onDelete,
+}: {
+  item: ViewTestimonytype;
+  onDelete: (id: string) => void;
+}) => {
+  const approved = item.is_approved.toLowerCase() === "approved";
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
       {/* MEDIA */}
-      <div className="h-48 bg-gray-100">
+      <div className="h-48 bg-gray-100 relative">
+        {/* DELETE BUTTON */}
+
         {item.media_type === "image" ? (
           <img
             src={item.filepath}
@@ -231,6 +310,16 @@ const MediaCard = ({ item }: { item: ViewTestimonytype }) => {
             <span className="font-semibold">{item.approved_by_name}</span>
           </p>
         )}
+
+        {/* DELETE BUTTON */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => onDelete(item.id)}
+            className="bg-red-600 text-white text-xs px-3 py-1 rounded hover:bg-red-700"
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -88,7 +88,7 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
         title: "Error",
         text: error?.response.data.message || "Password Update Failed",
         icon: "error",
-        timer: 1500,
+        timer: 2000,
         allowOutsideClick: false,
         showConfirmButton: false,
       });

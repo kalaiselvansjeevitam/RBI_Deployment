@@ -116,6 +116,12 @@ export const CitizenReport = () => {
       {value || "Select Date"}
     </button>
   ));
+   const normalizeDate = (date: Date | null) => {
+  if (!date) return undefined;
+  const d = new Date(date);
+  d.setHours(12, 0, 0, 0);
+  return d;
+};
 
   return (
     <Layout headerTitle="Citizen Report">
@@ -132,8 +138,8 @@ export const CitizenReport = () => {
               <ReactDatePicker
                 dateFormat="dd/MM/yyyy"
                 selected={startDate}
-                onChange={(date: Date | null) =>
-                  setStartDate(date || undefined)
+                onChange={(date: any) =>
+                  setStartDate(normalizeDate(date || undefined))
                 }
                 placeholderText="Select Start Date"
                 popperClassName="z-50"
@@ -146,7 +152,7 @@ export const CitizenReport = () => {
               <ReactDatePicker
                 dateFormat="dd/MM/yyyy"
                 selected={endDate}
-                onChange={(date: Date | null) => setEndDate(date || undefined)}
+                onChange={(date: any) => setEndDate(normalizeDate(date || undefined))}
                 placeholderText="Select End Date"
                 minDate={startDate}
                 popperClassName="z-50"

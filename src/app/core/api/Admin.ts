@@ -619,3 +619,13 @@ export const useGetdistrictWiseWorkshopBarGraphParams = () =>
       });
     },
   });
+
+export const useDeleteTestimony = () =>
+  useMutation({
+    mutationFn: (data: { testimony_id: string }) => {
+      return POST<GetResponse>({
+        url: API_URL.deleteTestimony,
+        data,
+      });
+    },
+  });

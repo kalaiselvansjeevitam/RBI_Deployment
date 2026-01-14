@@ -1,19 +1,86 @@
 import Layout from "../../../../app/components/Layout/Layout";
-import { Loader } from "lucide-react"; // Added ArrowLeft icon
+import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
-import { useLocation, useNavigate } from "react-router-dom"; // import useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   useGetTestimoniesByWorkshop,
   useApproveTestimony,
 } from "../../../../app/core/api/Admin";
 import type { Testimony } from "../../../../app/lib/types";
 
+/* ---------------- STATUS DROPDOWN ---------------- */
+const StatusDropdown = ({
+  status,
+  onApprove,
+  onReject,
+}: {
+  status: string;
+  onApprove: () => void;
+  onReject: () => void;
+}) => {
+  const [open, setOpen] = useState(false);
+
+  const statusStyle =
+    status === "Approved"
+      ? "bg-green-600"
+      : status === "Rejected"
+        ? "bg-red-600"
+        : "bg-yellow-500";
+
+  return (
+    <div className="relative z-50" onClick={(e) => e.stopPropagation()}>
+      {/* Label */}
+      <div className="text-[10px] text-gray-500 mb-1 text-right">
+        Update Status
+      </div>
+
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen(!open)}
+        className={`${statusStyle} text-white px-3 py-1.5 text-xs rounded-md shadow-md hover:opacity-90`}
+      >
+        {status} ▾
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-xl">
+          {status !== "Approved" && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                onApprove();
+              }}
+              className="w-full px-4 py-2 text-sm text-left hover:bg-green-50 text-green-700"
+            >
+              ✅ Approve
+            </button>
+          )}
+
+          {status !== "Rejected" && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                onReject();
+              }}
+              className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-700"
+            >
+              ❌ Reject
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ---------------- MAIN COMPONENT ---------------- */
 const TestimonyByWorkshop = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // initialize navigate
-  const searchParams = new URLSearchParams(location.search);
-  const workshopId = searchParams.get("workshop_id");
+  const navigate = useNavigate();
+  const workshopId = new URLSearchParams(location.search).get("workshop_id");
+
   const [loader, setLoader] = useState(false);
   const [testimonies, setTestimonies] = useState<Testimony[]>([]);
   const [modalImage, setModalImage] = useState<string | null>(null);
@@ -27,8 +94,7 @@ const TestimonyByWorkshop = () => {
       setLoader(true);
       const res = await getTestimonies({ workshop_id: workshopId });
       setTestimonies(res?.data ?? []);
-    } catch (error) {
-      console.error(error);
+    } catch {
       Swal.fire("Error", "Failed to fetch testimonies", "error");
     } finally {
       setLoader(false);
@@ -40,43 +106,31 @@ const TestimonyByWorkshop = () => {
   }, [workshopId]);
 
   const handleApprove = async (id: string) => {
-    try {
-      const res = await approveTestimony({
-        testimony_id: Number(id),
-        approve_status: "Approved",
-        rejected_reason: "",
-      });
-      Swal.fire("Success", res.message, "success");
-      fetchTestimonies();
-    } catch (error :any) {
-      Swal.fire("Error", error?.response?.data?.message, "error");
-    }
+    await approveTestimony({
+      testimony_id: Number(id),
+      approve_status: "Approved",
+      rejected_reason: "",
+    });
+    fetchTestimonies();
   };
 
   const handleReject = async (id: string) => {
     const { value: reason } = await Swal.fire({
       title: "Reject Testimony",
       input: "text",
-      inputLabel: "Reason for rejection",
-      inputPlaceholder: "Enter reason",
+      inputLabel: "Reason",
       showCancelButton: true,
-      inputValidator: (value) => (!value ? "You must enter a reason!" : null),
+      inputValidator: (v) => (!v ? "Reason required" : null),
     });
+
     if (!reason) return;
-    try {
-      setLoader(true);
-      await approveTestimony({
-        testimony_id: Number(id),
-        approve_status: "Rejected",
-        rejected_reason: reason,
-      });
-      Swal.fire("Success", "Testimony rejected", "success");
-      fetchTestimonies();
-    } catch (error: any) {
-      Swal.fire("Error", error?.message ?? "Reject failed", "error");
-    } finally {
-      setLoader(false);
-    }
+
+    await approveTestimony({
+      testimony_id: Number(id),
+      approve_status: "Rejected",
+      rejected_reason: reason,
+    });
+    fetchTestimonies();
   };
 
   const images = testimonies.filter((t) => t.media_type === "image");
@@ -85,12 +139,11 @@ const TestimonyByWorkshop = () => {
   return (
     <Layout headerTitle="Testimonies By Workshop">
       <div className="px-4 py-3">
-        {/* Back button */}
         <button
           onClick={() => navigate(-1)}
-          className="px-3 py-1.5 text-sm font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700"
+          className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white"
         >
-          <div className="text-white-600 font-bold">← Back</div>
+          ← Back
         </button>
 
         {loader && (
@@ -99,52 +152,44 @@ const TestimonyByWorkshop = () => {
           </div>
         )}
 
-        {/* Images Section */}
+        {/* IMAGES */}
         {images.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-10">
             <h2 className="text-xl font-semibold mb-4">Images</h2>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {images.map((img) => (
                 <div
                   key={img.testimony_id}
-                  className="border rounded-lg overflow-hidden shadow-lg cursor-pointer"
-                  onClick={() => setModalImage(img.filepath)}
+                  className="border rounded-xl shadow-xl overflow-visible min-h-[420px]"
                 >
+                  {/* IMAGE ONLY opens modal */}
                   <img
                     src={img.filepath}
-                    alt="testimony"
-                    className="w-full h-64 object-cover"
+                    className="w-full h-64 object-cover cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalImage(img.filepath);
+                    }}
                   />
-                  <div className="p-4 flex flex-col gap-2">
-                    <p className="text-gray-800 text-sm">
+
+                  <div className="p-5 flex flex-col justify-between h-[160px]">
+                    <p className="text-sm text-gray-800 line-clamp-3">
                       {img.testimony_note}
                     </p>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-500">{img.is_approved}</span>
-                      <div className="flex gap-2">
-                        {img.is_approved !== "Approved" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleApprove(img.testimony_id);
-                            }}
-                            className="bg-green-600 px-2 py-1 rounded text-white text-xs"
-                          >
-                            Approve
-                          </button>
-                        )}
-                        {img.is_approved !== "Rejected" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReject(img.testimony_id);
-                            }}
-                            className="bg-red-600 px-2 py-1 rounded text-white text-xs"
-                          >
-                            Reject
-                          </button>
-                        )}
-                      </div>
+
+                    <div className="flex justify-between items-end mt-4">
+                      <span className="text-xs text-gray-500">
+                        Current Status
+                        <br />
+                        <strong>{img.is_approved}</strong>
+                      </span>
+
+                      <StatusDropdown
+                        status={img.is_approved}
+                        onApprove={() => handleApprove(img.testimony_id)}
+                        onReject={() => handleReject(img.testimony_id)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -153,45 +198,40 @@ const TestimonyByWorkshop = () => {
           </div>
         )}
 
-        {/* Videos Section */}
+        {/* VIDEOS */}
         {videos.length > 0 && (
           <div>
             <h2 className="text-xl font-semibold mb-4">Videos</h2>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {videos.map((vid) => (
                 <div
                   key={vid.testimony_id}
-                  className="border rounded-lg overflow-hidden shadow-lg"
+                  className="border rounded-xl shadow-xl min-h-[420px]"
                 >
                   <video
                     src={vid.filepath}
                     controls
                     className="w-full h-56 object-cover"
                   />
-                  <div className="p-4 flex flex-col gap-2">
-                    <p className="text-gray-800 text-sm">
+
+                  <div className="p-5 flex flex-col justify-between h-[160px]">
+                    <p className="text-sm text-gray-800 line-clamp-3">
                       {vid.testimony_note}
                     </p>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-gray-500">{vid.is_approved}</span>
-                      <div className="flex gap-2">
-                        {vid.is_approved !== "Approved" && (
-                          <button
-                            onClick={() => handleApprove(vid.testimony_id)}
-                            className="bg-green-600 px-2 py-1 rounded text-white text-xs"
-                          >
-                            Approve
-                          </button>
-                        )}
-                        {vid.is_approved !== "Rejected" && (
-                          <button
-                            onClick={() => handleReject(vid.testimony_id)}
-                            className="bg-red-600 px-2 py-1 rounded text-white text-xs"
-                          >
-                            Reject
-                          </button>
-                        )}
-                      </div>
+
+                    <div className="flex justify-between items-end mt-4">
+                      <span className="text-xs text-gray-500">
+                        Current Status
+                        <br />
+                        <strong>{vid.is_approved}</strong>
+                      </span>
+
+                      <StatusDropdown
+                        status={vid.is_approved}
+                        onApprove={() => handleApprove(vid.testimony_id)}
+                        onReject={() => handleReject(vid.testimony_id)}
+                      />
                     </div>
                   </div>
                 </div>
@@ -200,34 +240,13 @@ const TestimonyByWorkshop = () => {
           </div>
         )}
 
-        {/* Image Modal */}
+        {/* IMAGE MODAL */}
         {modalImage && (
-          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-            <div className="relative max-w-4xl w-full">
-              <button
-                onClick={() => setModalImage(null)}
-                className="absolute top-2 right-2 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-80 transition"
-              >
-                ×
-              </button>
-              <img
-                src={modalImage}
-                alt="enlarged"
-                className="w-full max-h-[80vh] object-contain rounded-lg shadow-lg"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* No testimonies */}
-        {images.length === 0 && videos.length === 0 && !loader && (
-          <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-2">
-            <h1 className="text-2xl font-semibold text-gray-700">
-              No testimonies found
-            </h1>
-            <p className="text-gray-600 text-sm">
-              Once testimonies are submitted, they will appear here.
-            </p>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+            onClick={() => setModalImage(null)}
+          >
+            <img src={modalImage} className="max-h-[80vh] rounded-lg" />
           </div>
         )}
       </div>

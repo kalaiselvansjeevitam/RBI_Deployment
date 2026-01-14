@@ -59,6 +59,21 @@ const CreateUser = () => {
     >,
   ) => {
     const { name, value } = e.target;
+    if (name === "first_name") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
+      return;
+    }
+    if (name === "last_name") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
+      return;
+    }
+    if (name === "sub_district") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 

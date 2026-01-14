@@ -82,6 +82,7 @@ export const API_URL = {
   downloadCitizen: "/download-citizen-report",
   downloadWorkshop: "/download-workshop-report",
   allStatusCounters: "/allStatusCounters",
+  deleteTestimony: "/delete-testimony",
 
   // RBI Reports (DOWNLOAD)
   downloadDistrictWiseWorkshopReport: "/download-district-wise-workshop-report",
