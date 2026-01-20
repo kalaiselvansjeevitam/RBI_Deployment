@@ -3,7 +3,6 @@ import {
   LogOut,
   Home,
   User,
-  type LucideIcon,
   View,
   Upload,
   ClipboardList,
@@ -12,18 +11,18 @@ import {
   Locate,
   File,
   FileText,
-  // Calendar,
   BarChart3,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "../ui/button";
-
 import { useLocation, useNavigate } from "react-router-dom";
 import useWindowSize from "../../core/hooks/windowResize";
 import { ROUTE_URL } from "../../core/constants/coreUrl";
-// import useWindowSize from '@/app/core/hooks/windowResize';
-// import { ROUTE_URL } from '@/app/core/constants/coreUrl';
-import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import { Sheet, SheetContent } from "../ui/sheet";
 import logo from "@/assets/images/csc-logo.svg";
+
+/* ---------------- TYPES ---------------- */
+
 type SidebarItemType = {
   icon: LucideIcon;
   label: string;
@@ -31,19 +30,30 @@ type SidebarItemType = {
   children?: SidebarItemType[];
 };
 
-const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
+interface SidebarProps {
+  open?: boolean; // desktop
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  mobileOpen?: boolean; // mobile
+  setMobileOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+/* ---------------- COMPONENT ---------------- */
+
+const Sidebar: React.FC<SidebarProps> = ({
+  open = true,
+  setOpen,
+  mobileOpen,
+  setMobileOpen,
+}) => {
   const user_type = sessionStorage.getItem("user_type");
   const isDesktop = useWindowSize();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const sidebarItems: SidebarItemType[] = [
-    // {
-    //   icon: Home,
-    //   label: "Dashboard",
-    //   href: ROUTE_URL.dashboard,
-    // },
-  ];
+  /* ---------------- MENU CONFIG ---------------- */
+
+  const sidebarItems: SidebarItemType[] = [];
+
   if (user_type?.toLowerCase() === "admin") {
     sidebarItems.splice(1, 0, {
       icon: Home,
@@ -213,7 +223,7 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
           icon: View,
         },
         {
-          label: "Pending vs Complete",
+          label: "Pending vs Completed",
           href: ROUTE_URL.rbiReportDistrictPendingComplete,
           icon: View,
         },
@@ -256,7 +266,7 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
           icon: View,
         },
         {
-          label: "Pending vs Complete",
+          label: "Pending vs Completed",
           href: ROUTE_URL.rbiReportDistrictPendingComplete,
           icon: View,
         },
@@ -269,74 +279,48 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
     });
   }
 
+  /* ---------------- HELPERS ---------------- */
+
   const handleNavigation = (path: string) => {
     navigate(path);
+    if (!isDesktop) setMobileOpen?.(false);
   };
 
-  // const getSecondUrlSegment = (url: string) => {
-  //   const pathParts = url.split("/");
-  //   return pathParts.length > 2 ? pathParts[2] : "";
-  // };
+  /* ---------------- ITEM ---------------- */
 
   const SidebarItem = ({ item }: { item: SidebarItemType }) => {
-    // const secondUrlSegment = getSecondUrlSegment(location.pathname);
-    const isSelected = location.pathname === item.href;
-    const isParentSelected = item.children?.some(
-      (child: any) => location.pathname === child.href,
-    );
+    const isActive =
+      location.pathname === item.href ||
+      item.children?.some((c) => c.href === location.pathname);
 
     return (
-      <div key={item.label}>
+      <div>
         <Button
           variant="ghost"
-          className={`justify-start w-full flex items-center ${
-            isSelected || isParentSelected
-              ? "text-purple rounded-tr-lg rounded-br-lg border-purple"
-              : "text-gray-700"
+          className={`w-full justify-start ${
+            isActive ? "text-purple" : "text-gray-700"
           }`}
           onClick={() => handleNavigation(item.href)}
         >
-          <item.icon
-            className={`mr-2 h-4 w-4 ${
-              isSelected || isParentSelected ? "text-purple" : "text-black"
-            }`}
-          />
+          <item.icon className="mr-2 h-4 w-4" />
           {isDesktop ? open && item.label : item.label}
         </Button>
 
-        {/* Always-visible submenu if children exist
-        {item.children && (
-          <div className="pl-6 flex flex-col gap-1 mt-1">
-            {item.children.map((child: any) => (
+        {/* CHILDREN */}
+        {item.children && (!isDesktop || open) && (
+          <div className="ml-6 mt-1 flex flex-col gap-1">
+            {item.children.map((child) => (
               <Button
                 key={child.label}
                 variant="ghost"
-                className={`justify-start w-full text-sm ${
-                  location.pathname === child.href
-                    ? 'text-purple  bg-gray-100'
-                    : 'text-gray-600'
-                }`}
-                onClick={() => handleNavigation(child.href)}
-              >
-                {child.label}
-              </Button>
-            ))}
-          </div>
-        )} */}
-        {item.children && isDesktop && open && (
-          <div className="pl-6 flex flex-col gap-1 mt-1">
-            {item.children.map((child: any) => (
-              <Button
-                key={child.label}
-                variant="ghost"
-                className={`justify-start w-full text-sm ${
+                className={`justify-start text-sm ${
                   location.pathname === child.href
                     ? "text-purple bg-gray-100"
                     : "text-gray-600"
                 }`}
                 onClick={() => handleNavigation(child.href)}
               >
-                {child.icon && <child.icon className="w-4 h-4" />}
+                <child.icon className="mr-2 h-3 w-3" />
                 {child.label}
               </Button>
             ))}
@@ -346,87 +330,66 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
     );
   };
 
+  /* ---------------- CONTENT ---------------- */
+
   const SidebarContent = () => (
     <div
-      className={`h-full ${
-        isDesktop
-          ? open
-            ? "w-[12.5rem]"
-            : "w-16"
-          : "absolute w-auto left-0 top-0 bg-transparent shadow-none"
-      } bg-white transition-all flex flex-col justify-between overflow-y-auto`}
+      className={`flex flex-col justify-between bg-white transition-all
+        ${isDesktop ? "h-full" : "h-screen"}
+        ${isDesktop ? (open ? "w-56" : "w-16") : "w-full"}
+      `}
     >
-      <div>
-        <div className="h-[82px] flex items-center justify-center border-b border-lightBlue">
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => setOpen(!open)}
-          >
-            {isDesktop ? (
-              open ? (
-                <>
-                  <img
-                    src={logo}
-                    alt="Jeevitam Logo"
-                    className="h-15 w-auto pt-1"
-                  />
-                  {/* <span className="font-bold text-lg">Jeevitam</span> */}
-                </>
-              ) : (
-                <Menu strokeWidth={3} />
-              )
-            ) : (
-              <>
-                <img
-                  src={logo}
-                  alt="Jeevitam Logo"
-                  className="h-15 w-auto pt-1"
-                />
-                {/* <span className="font-bold text-lg ml-2">akjds</span> */}
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-col space-y-2 pl-1 pt-6">
-          {sidebarItems.map((item) => (
-            <SidebarItem item={item} key={item.label} />
-          ))}
-        </div>
+      {/* TOP */}
+      <div
+        className={`h-16 flex items-center ${open ? "justify-start pl-4" : "justify-center"} border-b cursor-pointer`}
+        onClick={() => isDesktop && setOpen?.(!open)}
+      >
+        {isDesktop ? (
+          <img
+            src={logo}
+            alt="CSC Logo"
+            className={`h-8 w-auto transition-all duration-200 ${open ? "opacity-100" : "opacity-0"}`}
+          />
+        ) : (
+          <img src={logo} alt="CSC Logo" className="h-8 w-auto" />
+        )}
+        {isDesktop && !open && <Menu className="h-6 w-6 absolute left-3" />}
       </div>
 
+      {/* MENU */}
+      <div className="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
+        {sidebarItems.map((item) => (
+          <SidebarItem key={item.label} item={item} />
+        ))}
+      </div>
+
+      {/* MOBILE LOGOUT */}
       {!isDesktop && (
-        <div>
-          <Button
-            variant="ghost"
-            className="justify-start w-full bg-purple text-white hover:bg-purple hover:text-white rounded-[0px]"
-            onClick={() => navigate(ROUTE_URL.login)}
-          >
-            <p className="flex gap-3 align-middle justify-center w-full">
-              <LogOut strokeWidth={3} /> {isDesktop && open ? "Logout" : ""}
-            </p>
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          className="bg-purple text-white rounded-none"
+          onClick={() => navigate(ROUTE_URL.login)}
+        >
+          <LogOut className="mr-2" />
+          Logout
+        </Button>
       )}
     </div>
   );
 
-  return isDesktop ? (
-    <div
-      className={`fixed left-0 top-0 z-10 h-screen bg-white border-r transition-all ${
-        open ? "w-48" : "w-16"
-      }`}
-    >
-      <SidebarContent />
-    </div>
-  ) : (
-    <Sheet>
-      <SheetTrigger asChild className=" fixed">
-        <Button size="icon" className="m-4 bg-none border-none">
-          <Menu strokeWidth={3} />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className=" w-[50%]">
+  /* ---------------- RENDER ---------------- */
+
+  if (isDesktop) {
+    return (
+      <div className="fixed left-0 top-0 h-screen border-r bg-white z-30">
+        <SidebarContent />
+      </div>
+    );
+  }
+
+  return (
+    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+      <SheetContent side="left" className="p-0 w-[75%] max-w-xs">
         <SidebarContent />
       </SheetContent>
     </Sheet>

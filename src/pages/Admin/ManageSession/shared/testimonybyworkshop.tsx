@@ -12,10 +12,12 @@ import type { Testimony } from "../../../../app/lib/types";
 /* ---------------- STATUS DROPDOWN ---------------- */
 const StatusDropdown = ({
   status,
+  loading,
   onApprove,
   onReject,
 }: {
   status: string;
+  loading: boolean;
   onApprove: () => void;
   onReject: () => void;
 }) => {
@@ -30,21 +32,27 @@ const StatusDropdown = ({
 
   return (
     <div className="relative z-50" onClick={(e) => e.stopPropagation()}>
-      {/* Label */}
       <div className="text-[10px] text-gray-500 mb-1 text-right">
         Update Status
       </div>
 
-      {/* Trigger */}
       <button
+        disabled={loading}
         onClick={() => setOpen(!open)}
-        className={`${statusStyle} text-white px-3 py-1.5 text-xs rounded-md shadow-md hover:opacity-90`}
+        className={`${statusStyle} text-white px-3 py-1.5 text-xs rounded-md shadow-md
+          ${loading ? "opacity-60 cursor-not-allowed" : "hover:opacity-90"}`}
       >
-        {status} ▾
+        {loading ? (
+          <span className="flex items-center gap-1">
+            <Loader className="w-3 h-3 animate-spin" />
+            Updating
+          </span>
+        ) : (
+          `${status} ▾`
+        )}
       </button>
 
-      {/* Dropdown */}
-      {open && (
+      {open && !loading && (
         <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-xl">
           {status !== "Approved" && (
             <button
@@ -87,6 +95,7 @@ const TestimonyByWorkshop = () => {
 
   const { mutateAsync: getTestimonies } = useGetTestimoniesByWorkshop();
   const { mutateAsync: approveTestimony } = useApproveTestimony();
+  const [statusLoadingId, setStatusLoadingId] = useState<number | null>(null);
 
   const fetchTestimonies = async () => {
     if (!workshopId) return;
@@ -106,12 +115,21 @@ const TestimonyByWorkshop = () => {
   }, [workshopId]);
 
   const handleApprove = async (id: string) => {
-    await approveTestimony({
-      testimony_id: Number(id),
-      approve_status: "Approved",
-      rejected_reason: "",
-    });
-    fetchTestimonies();
+    try {
+      setStatusLoadingId(Number(id));
+      await approveTestimony({
+        testimony_id: Number(id),
+        approve_status: "Approved",
+        rejected_reason: "",
+      });
+      await fetchTestimonies();
+      setStatusLoadingId(null);
+    } catch {
+      Swal.fire("Error", "Failed to approve testimony", "error");
+      setStatusLoadingId(null);
+    } finally {
+      setStatusLoadingId(null);
+    }
   };
 
   const handleReject = async (id: string) => {
@@ -125,12 +143,19 @@ const TestimonyByWorkshop = () => {
 
     if (!reason) return;
 
-    await approveTestimony({
-      testimony_id: Number(id),
-      approve_status: "Rejected",
-      rejected_reason: reason,
-    });
-    fetchTestimonies();
+    try {
+      setStatusLoadingId(Number(id));
+      await approveTestimony({
+        testimony_id: Number(id),
+        approve_status: "Rejected",
+        rejected_reason: reason,
+      });
+      await fetchTestimonies();
+    } catch {
+      Swal.fire("Error", "Failed to reject testimony", "error");
+    } finally {
+      setStatusLoadingId(null);
+    }
   };
 
   const images = testimonies.filter((t) => t.media_type === "image");
@@ -153,24 +178,26 @@ const TestimonyByWorkshop = () => {
         )}
 
         {/* IMAGES */}
-        {images.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-xl font-semibold mb-4">Images</h2>
+        {/* IMAGES */}
+        <div className="mb-10">
+          <h2 className="text-xl font-semibold mb-4">Images</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {images.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">No images found</p>
+          ) : (
+            <div className="flex gap-6 overflow-x-auto pb-4">
               {images.map((img) => (
                 <div
                   key={img.testimony_id}
-                  className="border rounded-xl shadow-xl overflow-visible min-h-[420px]"
+                  className="border rounded-xl shadow-xl min-w-[320px] overflow-visible"
                 >
-                  {/* IMAGE ONLY opens modal */}
                   <img
                     src={img.filepath}
                     className="w-full h-64 object-cover cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setModalImage(img.filepath);
-                    }}
+                    // onClick={(e) => {
+                    //   e.stopPropagation();
+                    //   setModalImage(img.filepath);
+                    // }}
                   />
 
                   <div className="p-5 flex flex-col justify-between h-[160px]">
@@ -187,6 +214,7 @@ const TestimonyByWorkshop = () => {
 
                       <StatusDropdown
                         status={img.is_approved}
+                        loading={statusLoadingId === Number(img.testimony_id)}
                         onApprove={() => handleApprove(img.testimony_id)}
                         onReject={() => handleReject(img.testimony_id)}
                       />
@@ -195,19 +223,22 @@ const TestimonyByWorkshop = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* VIDEOS */}
-        {videos.length > 0 && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Videos</h2>
+        {/* VIDEOS */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Videos</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {videos.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">No videos found</p>
+          ) : (
+            <div className="flex gap-6 overflow-x-auto pb-4">
               {videos.map((vid) => (
                 <div
                   key={vid.testimony_id}
-                  className="border rounded-xl shadow-xl min-h-[420px]"
+                  className="border rounded-xl shadow-xl min-w-[320px]"
                 >
                   <video
                     src={vid.filepath}
@@ -229,6 +260,7 @@ const TestimonyByWorkshop = () => {
 
                       <StatusDropdown
                         status={vid.is_approved}
+                        loading={statusLoadingId === Number(vid.testimony_id)}
                         onApprove={() => handleApprove(vid.testimony_id)}
                         onReject={() => handleReject(vid.testimony_id)}
                       />
@@ -237,8 +269,8 @@ const TestimonyByWorkshop = () => {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* IMAGE MODAL */}
         {modalImage && (

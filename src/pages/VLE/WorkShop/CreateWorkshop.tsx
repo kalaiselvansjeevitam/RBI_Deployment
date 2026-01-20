@@ -101,6 +101,13 @@ const CreateWorkshop = () => {
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  const getMinDate = () => {
+    const today = new Date();
+    today.setDate(today.getDate() + 3);
+    return today.toISOString().split("T")[0]; // yyyy-mm-dd
+  };
+
+  const MAX_DATE = "2026-03-31";
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -123,9 +130,34 @@ const CreateWorkshop = () => {
     ) {
       newErrors.to_time = "To time must be after From time";
     }
+    if (!formData.from_time) {
+      newErrors.from_time = "From time is required";
+    }
 
+    if (!formData.to_time) {
+      newErrors.to_time = "To time is required";
+    }
+
+    if (formData.from_time && formData.to_time) {
+      const from = new Date(`1970-01-01T${formData.from_time}:00`);
+      const to = new Date(`1970-01-01T${formData.to_time}:00`);
+
+      const startLimit = new Date(`1970-01-01T09:00:00`);
+      const endLimit = new Date(`1970-01-01T21:00:00`);
+
+      const diffHours = (to.getTime() - from.getTime()) / (1000 * 60 * 60);
+
+      if (from < startLimit || to > endLimit) {
+        newErrors.to_time = "Workshop time must be between 9:00 AM and 9:00 PM";
+      } else if (to <= from) {
+        newErrors.to_time = "To time must be after From time";
+      } else if (diffHours < 2) {
+        newErrors.to_time = "Workshop duration must be at least 2 hours";
+      }
+    }
+    if (!formData.location) newErrors.location = "location is required";
     // ✅ district (text only)
-    if (!formData.district) newErrors.location = "district is required";
+    if (!formData.district) newErrors.district = "district is required";
 
     // ✅ Pincode (6-digit numeric)
     if (!formData.pincode) {
@@ -208,6 +240,8 @@ const CreateWorkshop = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
+                min={getMinDate()} // ✅ future + 3 days
+                max={MAX_DATE}
                 className="w-full border rounded-md px-3 py-2"
               />
               {errors.date && (
@@ -225,8 +259,11 @@ const CreateWorkshop = () => {
                 name="from_time"
                 value={formData.from_time}
                 onChange={handleChange}
+                min="09:00"
+                max="19:00" // latest start allowed (so 2 hrs can fit before 9 PM)
                 className="w-full border rounded-md px-3 py-2"
               />
+
               {errors.from_time && (
                 <p className="text-xs text-red-500 mt-1">{errors.from_time}</p>
               )}
@@ -242,6 +279,8 @@ const CreateWorkshop = () => {
                 name="to_time"
                 value={formData.to_time}
                 onChange={handleChange}
+                min="11:00" // earliest possible end time
+                max="21:00"
                 className="w-full border rounded-md px-3 py-2"
               />
               {errors.to_time && (

@@ -122,18 +122,17 @@ const VLEDashboard = () => {
         {/* ---------- STAT CARDS ---------- */}
         <div className="flex flex-wrap gap-6">
           <SchoolCardStatus
-            title="Total Citizens"
-            total={dashboardData?.total_citizens_count ?? 0}
+            title="Total Sessions"
+            total={dashboardData?.total_sessions_count ?? 0}
           />
 
           <SchoolCardStatus
             title="Approved Sessions"
             total={dashboardData?.workshop_approved_status_count ?? 0}
           />
-
           <SchoolCardStatus
-            title="Total Sessions"
-            total={dashboardData?.total_sessions_count ?? 0}
+            title="Total Citizens"
+            total={dashboardData?.total_citizens_count ?? 0}
           />
         </div>
 

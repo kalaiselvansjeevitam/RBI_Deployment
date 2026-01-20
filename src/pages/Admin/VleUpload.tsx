@@ -94,6 +94,20 @@ const VleUpload = () => {
               Selected: {file.name}
             </p>
           )}
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xs text-gray-500">
+              Only .xls or .xlsx files allowed
+            </p>
+
+            {/* Sample Excel download */}
+            <a
+              href="/rbi-deployment/admin/files/VLE Details - Sample Format.xlsx"
+              download
+              className="text-sm text-blue-600 hover:underline font-medium"
+            >
+              Download Sample Excel
+            </a>
+          </div>
 
           <Button onClick={handleSubmit} disabled={loading} className="w-full">
             {loading ? <Loader className="animate-spin" /> : "Upload"}

@@ -1,100 +1,83 @@
-// import { Bell, LogOut, Search, Settings } from 'lucide-react';
-import { LogOut } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { Button } from "../ui/button";
 import { useNavigate } from "react-router-dom";
 import useWindowSize from "../../core/hooks/windowResize";
 import { ROUTE_URL } from "../../core/constants/coreUrl";
-import Swal, { type DismissReason } from "sweetalert2";
+import Swal from "sweetalert2";
 import { useGetadminUserLogout } from "../../core/api/Dashboard.service";
-// import useWindowSize from '@/app/core/hooks/windowResize';
-// import { ROUTE_URL } from '@/app/core/constants/coreUrl';
-// import { Input } from '../ui/input';
+import logo from "@/assets/images/csc-logo.svg";
 
 interface HeaderProps {
   headerTitle: string;
   css?: string;
-  description?: string;
-  width?: string;
   toolbar?: React.ReactNode;
-}
-export interface SweetAlertResult<T = any> {
-  readonly isConfirmed: boolean;
-  readonly isDenied: boolean;
-  readonly isDismissed: boolean;
-  readonly value?: T;
-  readonly dismiss?: DismissReason;
+  onMenuClick?: () => void;
+  onLogoClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ headerTitle, css, toolbar }) => {
+const Header: React.FC<HeaderProps> = ({
+  headerTitle,
+  css,
+  toolbar,
+  onMenuClick,
+  onLogoClick,
+}) => {
   const isDesktop = useWindowSize();
   const navigate = useNavigate();
   const { mutateAsync: getLogout } = useGetadminUserLogout();
 
   return (
-    <>
-      <div className="flex p-4 bg-white w-auto md:w-full justify-between items-center fixed fill-available z-50">
-        <h1
-          className={`${!isDesktop ? "relative left-[68px] mt-1 w-[80%]" : ""} text-xl font-bold font-dmSans ${css} 2xl:pl-5`}
-        >
-          {headerTitle} {!isDesktop && <br />}
+    <header className="fixed top-0 left-0 right-0 z-50 h-18 bg-white flex items-center justify-between px-8 md:px-12 border-b shadow-sm">
+      {/* LEFT: Menu (mobile) + Logo + Title */}
+      <div className="flex items-center gap-10">
+        {" "}
+        {/* increased gap between logo and title */}
+        {!isDesktop && (
+          <Button size="icon" variant="ghost" onClick={onMenuClick}>
+            <Menu />
+          </Button>
+        )}
+        {/* Logo */}
+        <img
+          src={logo}
+          alt="CSC Logo"
+          className="h-12 w-auto cursor-pointer"
+          onClick={onLogoClick}
+        />
+        {/* Header Title */}
+        <h1 className={`text-xl font-bold font-dmSans ${css}`}>
+          {headerTitle}
         </h1>
-
-        <div className="flex items-center gap-7">
-          {isDesktop && (
-            <>
-              <div className="relative w-full max-w-md">
-                {/* <Search
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={20}
-                /> */}
-                {/* <Input placeholder="Search" className="pl-10" /> */}
-              </div>
-              {/* <Settings size={50} /> */}
-            </>
-          )}
-
-          {/* <Bell size={isDesktop ? 50 : 20} /> */}
-          {toolbar && <div>{toolbar}</div>}
-          {isDesktop && (
-            <Button
-              onClick={() => {
-                Swal.fire({
-                  title: "Are you sure to log out?",
-                  showCancelButton: true,
-                  confirmButtonText: "Log Out",
-                  cancelButtonText: "Cancel",
-                }).then(async (result) => {
-                  if (result.isConfirmed) {
-                    console.log();
-                    await getLogout();
-                    navigate(ROUTE_URL.login);
-                    await sessionStorage.removeItem("session_token");
-                  }
-                });
-              }}
-              className="bg-purple text-white rounded-[10px]"
-            >
-              <span className="flex gap-2 items-center">
-                Sign Out <LogOut />
-              </span>
-            </Button>
-          )}
-        </div>
       </div>
 
-      {/* {description && (
-        <p className={`${css} text-darkGray mb-0`}>{description}</p>
-      )} */}
-    </>
+      {/* RIGHT: Toolbar + Logout */}
+      <div className="flex items-center gap-4">
+        {toolbar}
+
+        {isDesktop && (
+          <Button
+            onClick={() => {
+              Swal.fire({
+                title: "Are you sure to log out?",
+                showCancelButton: true,
+                confirmButtonText: "Log Out",
+              }).then(async (result) => {
+                if (result.isConfirmed) {
+                  await getLogout();
+                  sessionStorage.clear();
+                  navigate(ROUTE_URL.login);
+                }
+              });
+            }}
+            className="bg-purple text-white rounded-lg"
+          >
+            <LogOut className="mr-2" />
+            Sign Out
+          </Button>
+        )}
+      </div>
+    </header>
   );
 };
 
-// import React from 'react'
-
-// export const Header = () => {
-//   return (
-//     // <div>Header</div>
-//     <></>
-//   );
-// }
 export default Header;

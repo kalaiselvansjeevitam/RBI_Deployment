@@ -15,7 +15,7 @@ import type {
 } from "../../../app/lib/types";
 
 const qualifications = ["10th", "12th", "Graduate", "Post Graduate", "Others"];
-const genders = ["Male", "Female", "Other"];
+const genders = ["Male", "Female", "Others"];
 // const districts = ["Madurai", "Chennai", "Coimbatore"];
 // const states = ["Tamil Nadu", "Kerala", "Karnataka"];
 // const pincodes = ["625001", "600001", "641001"];

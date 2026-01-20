@@ -188,7 +188,7 @@ export const ViewUser = () => {
   }, [currentPage]);
 
   return (
-    <Layout headerTitle="View Workshop">
+    <Layout headerTitle="View Users">
       <div className="flex justify-between items-center flex-wrap gap-4 text-sm mt-3 px-4 pt-3">
         {/* Left-aligned count */}
         <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>

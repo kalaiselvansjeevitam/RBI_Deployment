@@ -111,17 +111,17 @@ export const CitizenReport = () => {
     <button
       onClick={onClick}
       ref={ref}
-      className="border border-gray-700 rounded-md p-1 text-sm w-[140px] text-left"
+      className="border border-gray-700 rounded-md p-1 text-sm w-[95px] text-left"
     >
       {value || "Select Date"}
     </button>
   ));
-   const normalizeDate = (date: Date | null) => {
-  if (!date) return undefined;
-  const d = new Date(date);
-  d.setHours(12, 0, 0, 0);
-  return d;
-};
+  const normalizeDate = (date: Date | null) => {
+    if (!date) return undefined;
+    const d = new Date(date);
+    d.setHours(12, 0, 0, 0);
+    return d;
+  };
 
   return (
     <Layout headerTitle="Citizen Report">
@@ -132,7 +132,7 @@ export const CitizenReport = () => {
           </h2>
 
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-10">
             <label className="flex items-center space-x-2 font-bold">
               <span>From:</span>
               <ReactDatePicker
@@ -152,7 +152,9 @@ export const CitizenReport = () => {
               <ReactDatePicker
                 dateFormat="dd/MM/yyyy"
                 selected={endDate}
-                onChange={(date: any) => setEndDate(normalizeDate(date || undefined))}
+                onChange={(date: any) =>
+                  setEndDate(normalizeDate(date || undefined))
+                }
                 placeholderText="Select End Date"
                 minDate={startDate}
                 popperClassName="z-50"

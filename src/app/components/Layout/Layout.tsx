@@ -1,67 +1,62 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import useWindowSize from "../../core/hooks/windowResize";
-// import Header from '../shared/Header';
-// import { useLocation } from 'react-router-dom';
 import Sidebar from "../shared/Sidebar";
 import Header from "../shared/Header";
+import { Toaster } from "sonner";
 
-let sidebarOpen = true;
-// const getSecondUrlSegment = (url: string) => {
-//   const pathParts = url.split('/');
-//   return pathParts.length > 2 ? pathParts[3] : '';
-// };
 const Layout = ({
   children,
   headerTitle = "Dashboard",
   css,
-  description,
   toolbar,
 }: {
   children?: React.ReactNode;
   headerTitle?: string;
   css?: string;
-  description?: string;
-  backNavigateUrl?: string;
   toolbar?: React.ReactNode;
 }) => {
   const isDesktop = useWindowSize();
-  // const location = useLocation();
-  const [open, setOpen] = useState(sidebarOpen);
-  // const [selectedPage, setSelectedPage] = useState('');
-  // useEffect(() => {
-  //   const locationName = getSecondUrlSegment(location.pathname);
 
-  //   setSelectedPage(locationName);
-  // });
-  useEffect(() => {
-    sidebarOpen = open;
-  }, [open]);
+  const [desktopOpen, setDesktopOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex h-screen">
-      <aside
-        className={`h-full ${isDesktop ? (open ? "w-52" : "w-16") : "absolute w-auto left-0 top-0 bg-transparent shadow-none z-20"}`}
-      >
-        <Sidebar setOpen={setOpen} open={open} />
-      </aside>
+    <>
+      <Toaster position="top-center" richColors />
+      <div className="flex h-screen">
+        {/* DESKTOP SIDEBAR */}
+        {isDesktop && (
+          <aside className={`transition-all ${desktopOpen ? "w-52" : "w-16"}`}>
+            <Sidebar open={desktopOpen} setOpen={setDesktopOpen} />
+          </aside>
+        )}
 
-      <main className="flex flex-col flex-1 min-w-0">
-        <Header
-          headerTitle={headerTitle}
-          css={css}
-          description={description}
-          toolbar={toolbar}
-        />
-        {/* {toolbar && (
-          <div className="sticky top-[20px] right-40 z-10 ml-auto mr-10">{toolbar}</div> */}
-        {/* )} */}
-        <div
-          className={`p-4 flex-1 bg-lightBlue ${css} 2xl:pl-5 font-dmSans mt-[80px]`}
-        >
-          {children}
-        </div>
-      </main>
-    </div>
+        {/* MAIN */}
+        <main className="flex flex-col flex-1 min-w-0 overflow-auto">
+          <Header
+            headerTitle={headerTitle}
+            css={css}
+            toolbar={toolbar}
+            onMenuClick={() => setMobileOpen(true)}
+            onLogoClick={() => setDesktopOpen((prev) => !prev)} // toggle sidebar
+          />
+
+          <div className="flex-1 bg-lightBlue p-4 pt-[64px] font-dmSans">
+            {children}
+          </div>
+        </main>
+
+        {/* MOBILE SIDEBAR */}
+        {!isDesktop && (
+          <Sidebar
+            mobileOpen={mobileOpen}
+            setMobileOpen={setMobileOpen}
+            open={undefined} // explicitly allow desktop props undefined
+            setOpen={undefined} // explicitly allow desktop props undefined
+          />
+        )}
+      </div>
+    </>
   );
 };
 

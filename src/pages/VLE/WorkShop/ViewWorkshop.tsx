@@ -169,6 +169,7 @@ export const ViewWorkshop = () => {
     const [loading, setLoading] = useState(false);
 
     const { mutateAsync: updateWorkshopStatus } = useGetupdateWorkshopStatus();
+    const isApproved = row.work_shop_status?.toLowerCase() === "approved";
 
     const openStatusPopup = async () => {
       const { value } = await Swal.fire({
@@ -286,9 +287,18 @@ export const ViewWorkshop = () => {
 
     return (
       <button
-        disabled={loading}
+        disabled={loading || isApproved}
         onClick={openStatusPopup}
-        className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+        className={`px-3 py-1 text-xs font-semibold rounded-md
+      ${
+        isApproved
+          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+          : "bg-blue-600 text-white hover:bg-blue-700"
+      }
+      disabled:opacity-50`}
+        title={
+          isApproved ? "Approved sessions cannot be updated" : "Update Status"
+        }
       >
         Update
       </button>
@@ -362,12 +372,14 @@ export const ViewWorkshop = () => {
       {value || "Select Date"}
     </button>
   ));
-const normalizeDate = (date: Date | null) => {
-  if (!date) return undefined;
-  const d = new Date(date);
-  d.setHours(12, 0, 0, 0);
-  return d;
-};
+  const normalizeDate = (date: Date | null) => {
+    if (!date) return undefined;
+    const d = new Date(date);
+    d.setHours(12, 0, 0, 0);
+    return d;
+  };
+  const PROJECT_START_DATE = new Date(2025, 11, 1); // Dec = 11
+  const PROJECT_END_DATE = new Date(2026, 2, 31); // Mar = 2
 
   return (
     <Layout headerTitle="View Workshop">
@@ -382,8 +394,12 @@ const normalizeDate = (date: Date | null) => {
             <ReactDatePicker
               dateFormat={"dd/MM/yyyy"}
               selected={startDate}
-              onChange={(date: any) => setStartDate(normalizeDate(date || undefined))}
+              onChange={(date: any) =>
+                setStartDate(normalizeDate(date || undefined))
+              }
               placeholderText="Select Start Date"
+              minDate={PROJECT_START_DATE}
+              maxDate={PROJECT_END_DATE}
               className="border border-gray-700 rounded-md p-1 text-sm w-[140px]"
               popperClassName="z-50"
               customInput={<CustomInput />}
@@ -395,10 +411,13 @@ const normalizeDate = (date: Date | null) => {
             <ReactDatePicker
               dateFormat={"dd/MM/yyyy"}
               selected={endDate}
-              onChange={(date: any) => setEndDate(normalizeDate(date || undefined))}
+              onChange={(date: any) =>
+                setEndDate(normalizeDate(date || undefined))
+              }
+              minDate={startDate || PROJECT_START_DATE}
+              maxDate={PROJECT_END_DATE}
               placeholderText="Select End Date"
               className="border border-gray-700 rounded-md p-1 text-sm w-[140px]"
-              minDate={startDate}
               popperClassName="z-50"
               customInput={<CustomInput />}
             />
@@ -417,7 +436,7 @@ const normalizeDate = (date: Date | null) => {
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
               <option value="Cancelled">Cancelled</option>
-              <option value="SendingForApproval">SendingForApproval</option>
+              <option value="PendingforApproval">Pending for Approval</option>
             </select>
           </label>
 

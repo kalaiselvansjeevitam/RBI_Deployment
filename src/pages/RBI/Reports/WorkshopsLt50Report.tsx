@@ -12,8 +12,7 @@ import {
 } from "../../../app/core/api/RBIReports";
 import ReportDownloadCard from "./shared/ReportDownloadCard";
 
-const PAGE_SIZE = 10;
-const PREVIEW_COUNT = 5;
+const PAGE_SIZE = 8;
 
 export default function WorkshopsLt50Report() {
   const { mutateAsync: fetchLt50 } = useViewCitizenCountLessThan50Report();
@@ -29,15 +28,9 @@ export default function WorkshopsLt50Report() {
   const [offset, setOffset] = useState(0);
   const [total, setTotal] = useState(0);
   const [rows, setRows] = useState<ViewLt50Row[]>([]);
-  const [expanded, setExpanded] = useState(false);
 
   const canDownload = Boolean(downloadDistrict);
   const hasNext = useMemo(() => offset + PAGE_SIZE < total, [offset, total]);
-
-  const shownRows = useMemo(() => {
-    if (expanded) return rows;
-    return rows.slice(0, PREVIEW_COUNT);
-  }, [rows, expanded]);
 
   const fetchPage = async (nextOffset: number) => {
     try {
@@ -46,23 +39,24 @@ export default function WorkshopsLt50Report() {
       const res = await fetchLt50({ offset: nextOffset });
       console.log("LT50 raw response:", res);
 
-      const status = String(res?.status ?? res?.result ?? "").toLowerCase();
-
+      // API returns "result": "success" not "status": "Success"
+      const status = String(res?.result ?? "").toLowerCase();
       const isSuccess = status === "success";
 
-      const dataList = Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.list)
-          ? res.list
+      // API returns "list" not "data"
+      const dataList = Array.isArray(res?.list)
+        ? res.list
+        : Array.isArray(res?.data)
+          ? res.data
           : [];
 
-      const totalCount = Number(res?.count ?? res?.total ?? 0);
+      // API returns "total" not "count"
+      const totalCount = Number(res?.total ?? res?.count ?? 0);
 
       if (isSuccess) {
         setRows(dataList);
         setTotal(totalCount);
         setOffset(nextOffset);
-        setExpanded(false);
       } else {
         console.error("LT50 API error:", res?.message);
         setRows([]);
@@ -198,11 +192,6 @@ export default function WorkshopsLt50Report() {
               end_date: downloadEndDate || undefined,
             });
           }}
-          // onClear={() => {
-          //   setDownloadDistrict("");
-          //   setDownloadStartDate("");
-          //   setDownloadEndDate("");
-          // }}
         />
 
         {/* Table Section */}
@@ -261,8 +250,11 @@ export default function WorkshopsLt50Report() {
                     </td>
                   </tr>
                 ) : (
-                  shownRows.map((r, idx) => (
-                    <tr className="border-b hover:bg-gray-50">
+                  rows.map((r, idx) => (
+                    <tr
+                      key={`${r.vle_name}-${r.district}-${idx}`}
+                      className="border-b hover:bg-gray-50"
+                    >
                       <td className="py-3 px-4">{offset + idx + 1}</td>
                       <td className="py-3 px-4">{r.vle_name}</td>
                       <td className="py-3 px-4">{r.district}</td>
@@ -277,21 +269,6 @@ export default function WorkshopsLt50Report() {
               </tbody>
             </table>
           </div>
-
-          {/* View more / View less */}
-          {rows.length > PREVIEW_COUNT && (
-            <div className="mt-4 flex items-center justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setExpanded((v) => !v)}
-                disabled={loading}
-              >
-                {expanded
-                  ? "View less"
-                  : `View more (${rows.length - PREVIEW_COUNT})`}
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </Layout>

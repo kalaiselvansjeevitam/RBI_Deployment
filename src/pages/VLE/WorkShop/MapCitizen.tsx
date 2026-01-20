@@ -179,7 +179,7 @@ const MapCitizen = () => {
 
               {/* Sample Excel download */}
               <a
-                href="/rbi-deployment/admin/files/sample.xlsx"
+                href="/rbi-deployment/admin/files/Citizen Details - Sample Format.xlsx"
                 download
                 className="text-sm text-blue-600 hover:underline font-medium"
               >
