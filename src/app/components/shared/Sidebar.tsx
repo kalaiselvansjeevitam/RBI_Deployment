@@ -1,29 +1,31 @@
+/* eslint-disable react-hooks/static-components */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  Menu,
-  LogOut,
-  Home,
-  User,
-  type LucideIcon,
-  View,
-  Upload,
-  ClipboardList,
-  UserPlus,
-  Eye,
-  Locate,
-  File,
-  FileText,
   // Calendar,
   BarChart3,
+  ClipboardList,
+  Eye,
+  File,
+  FileText,
+  Home,
+  Locate,
+  LogOut,
+  Menu,
+  Upload,
+  User,
+  UserPlus,
+  View,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import useWindowSize from "../../core/hooks/windowResize";
 import { ROUTE_URL } from "../../core/constants/coreUrl";
+import useWindowSize from "../../core/hooks/windowResize";
 // import useWindowSize from '@/app/core/hooks/windowResize';
 // import { ROUTE_URL } from '@/app/core/constants/coreUrl';
-import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import logo from "@/assets/images/csc-logo.svg";
+import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 type SidebarItemType = {
   icon: LucideIcon;
   label: string;
@@ -213,7 +215,7 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
           icon: View,
         },
         {
-          label: "Pending vs Complete",
+          label: "Pending vs Completed",
           href: ROUTE_URL.rbiReportDistrictPendingComplete,
           icon: View,
         },
@@ -256,7 +258,7 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
           icon: View,
         },
         {
-          label: "Pending vs Complete",
+          label: "Pending vs Completed",
           href: ROUTE_URL.rbiReportDistrictPendingComplete,
           icon: View,
         },
@@ -289,7 +291,7 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
       <div key={item.label}>
         <Button
           variant="ghost"
-          className={`justify-start w-full flex items-center ${
+          className={`justify-start w-full flex items-start gap-2 h-auto py-2 text-left whitespace-normal break-words ${
             isSelected || isParentSelected
               ? "text-purple rounded-tr-lg rounded-br-lg border-purple"
               : "text-gray-700"
@@ -297,11 +299,13 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
           onClick={() => handleNavigation(item.href)}
         >
           <item.icon
-            className={`mr-2 h-4 w-4 ${
+            className={`mt-0.5 h-4 w-4 shrink-0 ${
               isSelected || isParentSelected ? "text-purple" : "text-black"
             }`}
           />
-          {isDesktop ? open && item.label : item.label}
+          <span className="leading-snug">
+            {isDesktop ? (open ? item.label : "") : item.label}
+          </span>
         </Button>
 
         {/* Always-visible submenu if children exist
@@ -329,15 +333,17 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
               <Button
                 key={child.label}
                 variant="ghost"
-                className={`justify-start w-full text-sm ${
+                className={`justify-start w-full flex items-start gap-2 h-auto py-2 text-left text-sm whitespace-normal wrap-break-word cursor-pointer ${
                   location.pathname === child.href
                     ? "text-purple bg-gray-100"
                     : "text-gray-600"
                 }`}
                 onClick={() => handleNavigation(child.href)}
               >
-                {child.icon && <child.icon className="w-4 h-4" />}
-                {child.label}
+                {child.icon && (
+                  <child.icon className="mt-0.5 w-4 h-4 shrink-0" />
+                )}
+                <span className="leading-snug">{child.label}</span>
               </Button>
             ))}
           </div>

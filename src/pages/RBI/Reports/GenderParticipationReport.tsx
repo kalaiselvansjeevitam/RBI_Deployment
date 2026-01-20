@@ -5,13 +5,13 @@ import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
 
+import { useGetDistrictParams } from "../../../app/core/api/Admin";
 import {
   useDownloadGenderWiseWorkshopReport,
   useViewGenderWiseWorkshopReport,
   type GenderWorkshopRow,
 } from "../../../app/core/api/RBIReports";
 import ReportDownloadCard from "./shared/ReportDownloadCard";
-import { useGetDistrictParams } from "../../../app/core/api/Admin";
 
 const PAGE_SIZE = 10;
 
@@ -229,7 +229,7 @@ export default function GenderParticipationReport() {
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    S.No
+                    SR.No
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     District

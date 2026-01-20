@@ -265,7 +265,7 @@ export default function RBIMonthView() {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-600 border-b">
-                  <th className="py-2 pr-4">S.No</th>
+                  <th className="py-2 pr-4">SR.No</th>
                   <th className="py-2 pr-4">District</th>
                   <th className="py-2 pr-4">Scheduled</th>
                   <th className="py-2 pr-4">Completed</th>

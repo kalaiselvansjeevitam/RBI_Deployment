@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "../../../../app/components/ui/button";
 
 type ApiRes = {
   result?: any;
+  status?: any;
   message?: any;
   data?: any;
   // sometimes APIs return different keys
@@ -39,10 +41,30 @@ function extractUrl(res: ApiRes): string {
 }
 
 function isSuccess(res: ApiRes): boolean {
-  const r = String(res?.result ?? "")
+  const v = String(res?.result ?? res?.status ?? "")
     .trim()
     .toLowerCase();
-  return r === "success";
+  return v === "success";
+}
+
+function isNoData(res: ApiRes): boolean {
+  // if backend returns an empty list/object, interpret as no data
+  if (Array.isArray(res?.data) && res.data.length === 0) return true;
+
+  const msg = String(res?.message ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (!msg) return false;
+
+  return (
+    msg.includes("no data") ||
+    msg.includes("data not found") ||
+    msg.includes("no records") ||
+    msg.includes("record not found") ||
+    msg.includes("not found") ||
+    msg.includes("empty")
+  );
 }
 
 export default function ReportDownloadCard({
@@ -53,43 +75,36 @@ export default function ReportDownloadCard({
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState("");
-  const [error, setError] = useState("");
-  const [serverMsg, setServerMsg] = useState("");
-  const [raw, setRaw] = useState<any>(null);
 
   const handleGenerate = async () => {
     try {
-      setError("");
-      setServerMsg("");
       setDownloadUrl("");
-      setRaw(null);
       setLoading(true);
 
       const res = await onGenerate();
-      setRaw(res);
-
-      const msg = String(res?.message ?? "").trim();
-      if (msg) setServerMsg(msg);
-
       const url = extractUrl(res);
 
-      // If backend says success but doesn't give a URL, show it clearly
       if (isSuccess(res)) {
+        // Success but no URL: likely empty dataset for selected filters
         if (!url) {
-          setError(
-            msg ||
-              "Report generated but server did not return a download link.",
-          );
+          if (isNoData(res)) {
+            toast.info("No data available for the selected filters.");
+          } else {
+            toast.error("Report generated but no download link was provided");
+          }
           return;
         }
+
         setDownloadUrl(url);
+        toast.success("Report generated successfully");
         return;
       }
 
       // Non-success (often still 200 OK)
-      setError(msg || "Failed to generate report.");
+      const msg = String(res?.message ?? "").trim();
+      toast.error(msg || "Failed to generate report");
     } catch (e: any) {
-      setError(e?.message || "Failed to generate report.");
+      toast.error(e?.message || "Failed to generate report");
     } finally {
       setLoading(false);
     }
@@ -98,6 +113,7 @@ export default function ReportDownloadCard({
   const handleDownload = () => {
     if (!downloadUrl) return;
     window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    toast.success("Report downloaded");
   };
 
   return (
@@ -110,7 +126,11 @@ export default function ReportDownloadCard({
       {filtersSlot && <div className="mt-4">{filtersSlot}</div>}
 
       <div className="mt-5 flex items-center gap-3">
-        <Button onClick={handleGenerate} disabled={loading}>
+        <Button
+          onClick={handleGenerate}
+          disabled={loading}
+          className="cursor-pointer"
+        >
           {loading ? (
             <span className="flex items-center gap-2">
               <Loader className="w-4 h-4 animate-spin" />
@@ -142,19 +162,6 @@ export default function ReportDownloadCard({
             {downloadUrl}
           </a>
         </div>
-      )}
-
-      {serverMsg && (
-        <div className="mt-4 text-sm text-gray-600">Server: {serverMsg}</div>
-      )}
-
-      {error && <div className="mt-4 text-sm text-red-600">{error}</div>}
-
-      {/* Debug (safe): shows what server returned so you can spot wrong keys fast */}
-      {raw && (
-        <pre className="mt-4 text-xs bg-gray-100 p-3 rounded-lg overflow-auto">
-          {JSON.stringify(raw, null, 2)}
-        </pre>
       )}
     </div>
   );

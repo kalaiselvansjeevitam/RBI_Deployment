@@ -6,17 +6,19 @@ import { POST } from "./axiosInstance";
 export type DownloadReportResponse = {
   result: string; // "Success" | "Error"
   message: string;
-  data: string; // download URL
+  data: string; // Download URL for the generated Excel file
 };
 
 export type ReportTableResponse<T> = {
-  status: string; // "Success"
+  status: string; // "Success" | "Error"
   message: string;
-  count: number;
-  data: T[];
+  count: number; // Total number of records
+  data: T[]; // Array of records
 };
 
-// 1) District-wise workshop report (district optional)
+// DOWNLOAD REPORT HOOKS
+
+// 1) District-wise Workshop Report (Download)
 export const useDownloadDistrictWiseWorkshopReport = () =>
   useMutation({
     mutationFn: (data?: { district?: string }) => {
@@ -29,7 +31,7 @@ export const useDownloadDistrictWiseWorkshopReport = () =>
     },
   });
 
-// 2) Gender-wise workshop report (district optional)
+// 2) Gender-wise Workshop Report (Download)
 export const useDownloadGenderWiseWorkshopReport = () =>
   useMutation({
     mutationFn: (data?: { district?: string }) => {
@@ -42,13 +44,13 @@ export const useDownloadGenderWiseWorkshopReport = () =>
     },
   });
 
-// 3) Citizen data by district (district + start/end required per doc)
+// 3) Citizen Data by District Report (Download)
 export const useDownloadCitizenDataByDistrictReport = () =>
   useMutation({
     mutationFn: (data: {
       district: string;
-      start_date: string; // YYYY-MM-DD
-      end_date: string; // YYYY-MM-DD
+      start_date: string;
+      end_date: string;
     }) => {
       return POST<DownloadReportResponse>({
         url: API_URL.downloadCitizenDataByDistrictReport,
@@ -57,7 +59,7 @@ export const useDownloadCitizenDataByDistrictReport = () =>
     },
   });
 
-// 4) Location-manager-wise workshop report (district required, dates optional)
+// 4) Location Manager-wise Workshop Report (Download)
 export const useDownloadLocationManagerWiseWorkshopReport = () =>
   useMutation({
     mutationFn: (data: {
@@ -76,7 +78,7 @@ export const useDownloadLocationManagerWiseWorkshopReport = () =>
     },
   });
 
-// 5) District-wise by status workshop report (no filters)
+// 5) District-wise by Status Workshop Report (Download)
 export const useDownloadDistrictWiseByStatusWorkshopReport = () =>
   useMutation({
     mutationFn: () => {
@@ -86,7 +88,7 @@ export const useDownloadDistrictWiseByStatusWorkshopReport = () =>
     },
   });
 
-// 6) Workshops < 50 report (district required, dates optional)
+// 6) Workshops with < 50 Citizens Report (Download)
 export const useDownloadCitizenCountLessThan50Report = () =>
   useMutation({
     mutationFn: (data: {
@@ -105,7 +107,9 @@ export const useDownloadCitizenCountLessThan50Report = () =>
     },
   });
 
-// 7) District-wise Workshop Report (VIEW)
+//  VIEW/TABLE REPORT HOOKS
+
+// 7) District-wise Workshop Report (View)
 export type DistrictWorkshopRow = {
   district: string;
   pending_count: string;
@@ -125,7 +129,7 @@ export const useViewDistrictWiseWorkshopReport = () =>
       }),
   });
 
-// 8) Gender-wise Workshop Report (VIEW)
+//8) Gender-wise Workshop Report (View)
 export type GenderWorkshopRow = {
   district: string;
   location: string;
@@ -144,7 +148,7 @@ export const useViewGenderWiseWorkshopReport = () =>
       }),
   });
 
-// 9) Citizen Data by District (VIEW)
+// 9) Citizen Data by District Report (View)
 export type CitizenRow = {
   vle_id: string;
   vle_name: string;
@@ -171,30 +175,68 @@ export const useViewCitizenDataByDistrictReport = () =>
   useMutation({
     mutationFn: (payload: {
       district: string;
+      start_date: string;
+      end_date: string;
       offset: number;
+    }) => {
+      return POST<ViewCitizenResponse>({
+        url: API_URL.viewCitizenDataByDistrictReport,
+        data: {
+          district: payload.district,
+          start_date: payload.start_date,
+          end_date: payload.end_date,
+          offset: payload.offset,
+        },
+      });
+    },
+  });
+
+// 10) Location Manager-wise Workshop Report (View)
+export type LocationManagerWorkshopRow = {
+  center_name: string;
+  center_address: string;
+  workshop_name: string;
+  workshop_date: string;
+  workshop_from_time: string;
+  workshop_to_time: string;
+  district: string;
+  created_at: string;
+  workshop_status: string;
+  vle_id: string;
+  vle_name: string;
+};
+
+export type ViewLocationManagerResponse = {
+  status: "Success" | "Error";
+  message: string;
+  count: number;
+  data: LocationManagerWorkshopRow[];
+};
+
+export const useViewLocationManagerWiseWorkshopReport = () =>
+  useMutation({
+    mutationFn: (payload: {
+      district: string;
       start_date?: string;
       end_date?: string;
+      offset: number;
     }) => {
-      // Build the data object - district and offset are required
       const data: any = {
         district: payload.district,
         offset: payload.offset,
       };
 
-      // Add optional date fields if provided
       if (payload.start_date) data.start_date = payload.start_date;
       if (payload.end_date) data.end_date = payload.end_date;
 
-      // NOTE: session_token and user_id should be automatically added
-      // by your POST utility or axios interceptor
-      return POST<ViewCitizenResponse>({
-        url: API_URL.viewCitizenDataByDistrictReport,
+      return POST<ViewLocationManagerResponse>({
+        url: API_URL.viewLocationManagerWiseWorkshopReport,
         data,
       });
     },
   });
 
-// 10) District-wise by Status Workshop Report (VIEW)
+// 11) District-wise by Status Workshop Report (View)
 export type DistrictStatusRow = {
   district: string;
   vle_name: string;
@@ -216,7 +258,7 @@ export const useViewDistrictWiseByStatusWorkshopReport = () =>
       }),
   });
 
-// 11) Workshops with Citizen Count Less Than 50 (VIEW)
+//12) Workshops with Citizen Count < 50 (View)
 export type ViewLt50Row = {
   district: string;
   location: string;
@@ -226,9 +268,9 @@ export type ViewLt50Row = {
 };
 
 export type ViewLt50Response = {
-  status: string; // "Success"
+  status: string; // "Success" | "Error"
   message: string;
-  count: number; // total rows
+  count: number;
   data: ViewLt50Row[];
 };
 
@@ -238,17 +280,17 @@ export const useViewCitizenCountLessThan50Report = () =>
       district?: string;
       start_date?: string;
       end_date?: string;
-      offset?: number;
+      offset: number;
     }) => {
       const data: Record<string, any> = {
-        offset: payload.offset ?? 0,
+        offset: payload.offset,
       };
 
       if (payload.district) data.district = payload.district;
       if (payload.start_date) data.start_date = payload.start_date;
       if (payload.end_date) data.end_date = payload.end_date;
 
-      return POST<any>({
+      return POST<ViewLt50Response>({
         url: API_URL.viewCitizenCountLessThan50Report,
         data,
       });

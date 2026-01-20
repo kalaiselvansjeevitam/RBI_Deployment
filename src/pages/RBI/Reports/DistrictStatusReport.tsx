@@ -7,7 +7,7 @@ import { Input } from "../../../app/components/ui/input";
 import { useGetDistrictParams } from "../../../app/core/api/Admin";
 import {
   useDownloadDistrictWiseWorkshopReport,
-  useViewDistrictWiseByStatusWorkshopReport,
+  useViewDistrictWiseWorkshopReport,
   type DistrictStatusRow,
 } from "../../../app/core/api/RBIReports";
 import ReportDownloadCard from "./shared/ReportDownloadCard";
@@ -20,12 +20,11 @@ function isSuccess(x: any) {
   );
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 export default function DistrictStatusReport() {
   const { mutateAsync: getDistricts } = useGetDistrictParams();
-  const { mutateAsync: viewReport } =
-    useViewDistrictWiseByStatusWorkshopReport();
+  const { mutateAsync: viewReport } = useViewDistrictWiseWorkshopReport();
   const { mutateAsync: download } = useDownloadDistrictWiseWorkshopReport();
 
   // Separate state for download card
@@ -35,13 +34,9 @@ export default function DistrictStatusReport() {
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [tableDistrict, setTableDistrict] = useState<string>("");
 
-  const [offset, setOffset] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const [rows, setRows] = useState<DistrictStatusRow[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [allRows, setAllRows] = useState<DistrictStatusRow[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const [hasNext, setHasNext] = useState(false);
 
   // load districts list once
   useEffect(() => {
@@ -66,37 +61,26 @@ export default function DistrictStatusReport() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchPage = async (nextOffset: number, reset = false) => {
+  const fetchData = async () => {
     try {
       setLoading(true);
+      setCurrentPage(0);
 
       const res = await viewReport({
         district: tableDistrict.trim() ? tableDistrict.trim() : "",
-        offset: nextOffset,
+        offset: 0,
       });
 
       if (isSuccess(res)) {
         const data = Array.isArray(res?.data) ? res.data : [];
-        setRows(data);
-        setTotalCount(Number(res?.count ?? 0));
-
-        // next page exists if backend has more after this offset
-        setHasNext(nextOffset + PAGE_SIZE < Number(res?.count ?? 0));
-
-        if (reset) setOffset(nextOffset);
+        setAllRows(data);
       } else {
         console.error("View report error:", res?.message);
-        setRows([]);
-        setTotalCount(0);
-        setHasNext(false);
-        if (reset) setOffset(nextOffset);
+        setAllRows([]);
       }
     } catch (e) {
       console.error("View report failed:", e);
-      setRows([]);
-      setTotalCount(0);
-      setHasNext(false);
-      if (reset) setOffset(nextOffset);
+      setAllRows([]);
     } finally {
       setLoading(false);
     }
@@ -104,16 +88,27 @@ export default function DistrictStatusReport() {
 
   // initial load
   useEffect(() => {
-    fetchPage(0, true);
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Client-side pagination
+  const paginatedRows = useMemo(() => {
+    const start = currentPage * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    return allRows.slice(start, end);
+  }, [allRows, currentPage]);
+
+  const totalPages = Math.ceil(allRows.length / PAGE_SIZE);
+  const hasNext = currentPage < totalPages - 1;
+  const hasPrev = currentPage > 0;
+
   const showingText = useMemo(() => {
-    if (totalCount === 0) return "Showing 0–0 of 0";
-    const start = offset + 1;
-    const end = Math.min(offset + rows.length, totalCount);
-    return `Showing ${start}–${end} of ${totalCount}`;
-  }, [offset, rows.length, totalCount]);
+    if (allRows.length === 0) return "Showing 0–0 of 0";
+    const start = currentPage * PAGE_SIZE + 1;
+    const end = Math.min((currentPage + 1) * PAGE_SIZE, allRows.length);
+    return `Showing ${start}–${end} of ${allRows.length}`;
+  }, [currentPage, allRows.length]);
 
   return (
     <Layout headerTitle="District-wise Workshop Status Report">
@@ -132,13 +127,7 @@ export default function DistrictStatusReport() {
                 <select
                   className="border rounded-md h-10 px-3 w-full"
                   value={downloadDistrict}
-                  onChange={(e) => {
-                    setDownloadDistrict(e.target.value);
-                    if (e.target.value === "") {
-                      // Add any reset logic here if needed
-                      // For example, clearing the download link state in ReportDownloadCard
-                    }
-                  }}
+                  onChange={(e) => setDownloadDistrict(e.target.value)}
                 >
                   <option value="">All districts</option>
                   {districtList.map((d) => (
@@ -158,6 +147,7 @@ export default function DistrictStatusReport() {
           }
           onGenerate={async () => download({ district: downloadDistrict })}
         />
+
         {/* Table Section */}
         <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
           <h2 className="text-lg font-semibold mb-4">View Report Data</h2>
@@ -193,8 +183,8 @@ export default function DistrictStatusReport() {
 
             <div className="flex gap-3">
               <Button
-                className=" cursor-pointer"
-                onClick={() => fetchPage(0, true)}
+                className="cursor-pointer"
+                onClick={fetchData}
                 disabled={loading}
               >
                 {loading ? (
@@ -208,12 +198,12 @@ export default function DistrictStatusReport() {
               </Button>
 
               <Button
-                className=" cursor-pointer"
+                className="cursor-pointer"
                 variant="outline"
                 onClick={() => {
                   setTableDistrict("");
                   setTimeout(() => {
-                    fetchPage(0, true);
+                    fetchData();
                   }, 0);
                 }}
                 disabled={loading}
@@ -229,26 +219,18 @@ export default function DistrictStatusReport() {
 
             <div className="flex items-center gap-3">
               <Button
-                className=" cursor-pointer"
+                className="cursor-pointer"
                 variant="outline"
-                onClick={() => {
-                  const next = Math.max(0, offset - PAGE_SIZE);
-                  setOffset(next);
-                  fetchPage(next);
-                }}
-                disabled={loading || offset === 0}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                disabled={loading || !hasPrev}
               >
                 Prev
               </Button>
 
               <Button
-                className=" cursor-pointer"
+                className="cursor-pointer"
                 variant="outline"
-                onClick={() => {
-                  const next = offset + PAGE_SIZE;
-                  setOffset(next);
-                  fetchPage(next);
-                }}
+                onClick={() => setCurrentPage((p) => p + 1)}
                 disabled={loading || !hasNext}
               >
                 Next
@@ -263,8 +245,6 @@ export default function DistrictStatusReport() {
                 <tr className="text-left text-gray-600 border-b bg-gray-50">
                   <th className="py-3 px-4">S.No</th>
                   <th className="py-3 px-4">District</th>
-                  <th className="py-3 px-4">VLE</th>
-                  <th className="py-3 px-4">Location</th>
                   <th className="py-3 px-4">Pending</th>
                   <th className="py-3 px-4">Completed</th>
                   <th className="py-3 px-4">Approved</th>
@@ -274,22 +254,22 @@ export default function DistrictStatusReport() {
               </thead>
 
               <tbody>
-                {rows.length === 0 ? (
+                {paginatedRows.length === 0 ? (
                   <tr>
-                    <td className="py-6 text-center text-gray-500" colSpan={9}>
+                    <td className="py-6 text-center text-gray-500" colSpan={7}>
                       {loading ? "Loading..." : "No data found."}
                     </td>
                   </tr>
                 ) : (
-                  rows.map((r, idx) => (
+                  paginatedRows.map((r, idx) => (
                     <tr
-                      key={`${r.district}-${r.vle_id}-${idx}`}
+                      key={`${r.district}-${idx}`}
                       className="border-b hover:bg-gray-50"
                     >
-                      <td className="py-3 px-4">{offset + idx + 1}</td>
+                      <td className="py-3 px-4">
+                        {currentPage * PAGE_SIZE + idx + 1}
+                      </td>
                       <td className="py-3 px-4">{r.district}</td>
-                      <td className="py-3 px-4">{r.vle_name}</td>
-                      <td className="py-3 px-4">{r.location}</td>
                       <td className="py-3 px-4">
                         {Number(r.pending_count ?? 0)}
                       </td>
