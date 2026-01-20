@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
@@ -11,7 +12,6 @@ import {
   useViewCitizenDataByDistrictReport,
   type CitizenRow,
 } from "../../../app/core/api/RBIReports";
-import ReportDownloadCard from "./shared/ReportDownloadCard";
 
 const PAGE_SIZE = 8;
 
@@ -20,23 +20,19 @@ export default function CitizenDataReport() {
   const { mutateAsync: download } = useDownloadCitizenDataByDistrictReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
 
-  // Separate state for download card
-  const [downloadDistrict, setDownloadDistrict] = useState("");
-  const [downloadStartDate, setDownloadStartDate] = useState("");
-  const [downloadEndDate, setDownloadEndDate] = useState("");
-
-  // Separate state for table - all required
-  const [tableDistrict, setTableDistrict] = useState("");
-  const [tableStartDate, setTableStartDate] = useState("");
-  const [tableEndDate, setTableEndDate] = useState("");
-
-  const [allRows, setAllRows] = useState<CitizenRow[]>([]);
+  // Unified state
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [districtList, setDistrictList] = useState<string[]>([]);
+  const [allRows, setAllRows] = useState<CitizenRow[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState("");
   const [error, setError] = useState("");
 
-  const canDownload = downloadDistrict && downloadStartDate && downloadEndDate;
+  const canSubmit = selectedDistrict && startDate && endDate;
 
   // Load districts on mount
   useEffect(() => {
@@ -63,7 +59,7 @@ export default function CitizenDataReport() {
 
   const load = async () => {
     // All fields are required by the API
-    if (!tableDistrict || !tableStartDate || !tableEndDate) {
+    if (!selectedDistrict || !startDate || !endDate) {
       setError("Please select district, start date, and end date");
       setAllRows([]);
       return;
@@ -74,19 +70,14 @@ export default function CitizenDataReport() {
     setCurrentPage(0);
 
     try {
-      // Build the payload - all fields required
-      const payload: any = {
-        district: tableDistrict,
-        start_date: tableStartDate,
-        end_date: tableEndDate,
+      const payload = {
+        district: selectedDistrict,
+        start_date: startDate,
+        end_date: endDate,
         offset: 0,
       };
 
-      console.log("Fetching with payload:", payload);
-
       const res = await fetchView(payload);
-
-      console.log("API Response:", res);
 
       if (res?.status !== "Success") {
         setAllRows([]);
@@ -102,6 +93,73 @@ export default function CitizenDataReport() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownload = async () => {
+    if (!canSubmit) {
+      toast.error("Please select district, start date, and end date");
+      return;
+    }
+
+    try {
+      setDownloadUrl("");
+      setDownloading(true);
+
+      const response = await download({
+        district: selectedDistrict,
+        start_date: startDate,
+        end_date: endDate,
+      });
+
+      // Extract URL from response
+      const url =
+        typeof response?.data === "string" && response.data.trim()
+          ? response.data.trim()
+          : "";
+
+      // Check if successful
+      const isSuccessful =
+        String(response?.result ?? "")
+          .trim()
+          .toLowerCase() === "success";
+
+      if (isSuccessful) {
+        if (!url) {
+          const msg = String(response?.message ?? "")
+            .trim()
+            .toLowerCase();
+          if (
+            msg.includes("no data") ||
+            msg.includes("not found") ||
+            msg.includes("empty")
+          ) {
+            toast.info("No data available for the selected filters.");
+          } else {
+            toast.error("Report generated but no download link was provided");
+          }
+          return;
+        }
+
+        setDownloadUrl(url);
+        toast.success(
+          "Report generated successfully! Click 'Download Excel' to download.",
+        );
+      } else {
+        const msg = String(response?.message ?? "").trim();
+        toast.error(msg || "Failed to generate report");
+      }
+    } catch (e: any) {
+      console.error("Download failed:", e);
+      toast.error(e?.message || "Failed to generate report");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleOpenDownload = () => {
+    if (!downloadUrl) return;
+    window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    toast.success("Download Successful");
   };
 
   // Client-side pagination
@@ -124,89 +182,18 @@ export default function CitizenDataReport() {
 
   return (
     <Layout headerTitle="District-wise Citizen Data Report">
-      <div className="p-6 space-y-6">
-        {/* Download Card */}
-        <ReportDownloadCard
-          title="Download District-wise Citizens Report"
-          description="District + Start Date + End Date are required."
-          filtersSlot={
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm text-gray-600">
-                  District (required)
-                </label>
-                {districtList.length > 0 ? (
-                  <select
-                    className="border rounded-md h-10 px-3 w-full"
-                    value={downloadDistrict}
-                    onChange={(e) => setDownloadDistrict(e.target.value)}
-                  >
-                    <option value="">Select district</option>
-                    {districtList.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    value={downloadDistrict}
-                    onChange={(e) => setDownloadDistrict(e.target.value)}
-                    placeholder="e.g., Springfield"
-                  />
-                )}
-              </div>
-
-              <div>
-                <label className="text-sm text-gray-600">
-                  Start Date (required)
-                </label>
-                <Input
-                  type="date"
-                  value={downloadStartDate}
-                  onChange={(e) => setDownloadStartDate(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm text-gray-600">
-                  End Date (required)
-                </label>
-                <Input
-                  type="date"
-                  value={downloadEndDate}
-                  onChange={(e) => setDownloadEndDate(e.target.value)}
-                />
-              </div>
-
-              {!canDownload && (
-                <div className="md:col-span-3 text-sm text-amber-600">
-                  Please fill district + both dates to generate this report.
-                </div>
-              )}
-            </div>
-          }
-          onGenerate={async () => {
-            if (!canDownload) {
-              return {
-                result: "Error",
-                message: "District, start date, and end date are required",
-                data: "",
-              };
-            }
-            return download({
-              district: downloadDistrict,
-              start_date: downloadStartDate,
-              end_date: downloadEndDate,
-            });
-          }}
-        />
-
-        {/* Table Section */}
+      <div className="p-6">
+        {/* Merged Card */}
         <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
-          <h2 className="text-lg font-semibold mb-4">View Report Data</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            District-wise Citizens Report
+          </h2>
+          <p className="text-sm text-gray-600 mb-6">
+            View report data in the table below and download as Excel. All
+            fields (district, start date, end date) are required.
+          </p>
 
-          {/* Table Filters - All required */}
+          {/* Filters and Actions */}
           <div className="grid md:grid-cols-4 gap-4 items-end mb-6">
             <div>
               <label className="text-sm text-gray-600">
@@ -215,8 +202,8 @@ export default function CitizenDataReport() {
               {districtList.length > 0 ? (
                 <select
                   className="border rounded-md h-10 px-3 w-full"
-                  value={tableDistrict}
-                  onChange={(e) => setTableDistrict(e.target.value)}
+                  value={selectedDistrict}
+                  onChange={(e) => setSelectedDistrict(e.target.value)}
                 >
                   <option value="">Select district</option>
                   {districtList.map((d) => (
@@ -227,38 +214,40 @@ export default function CitizenDataReport() {
                 </select>
               ) : (
                 <Input
-                  value={tableDistrict}
-                  onChange={(e) => setTableDistrict(e.target.value)}
+                  value={selectedDistrict}
+                  onChange={(e) => setSelectedDistrict(e.target.value)}
                   placeholder="e.g., Springfield"
                 />
               )}
             </div>
+
             <div>
               <label className="text-sm text-gray-600">
                 Start Date (required)
               </label>
               <Input
                 type="date"
-                value={tableStartDate}
-                onChange={(e) => setTableStartDate(e.target.value)}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
+
             <div>
               <label className="text-sm text-gray-600">
                 End Date (required)
               </label>
               <Input
                 type="date"
-                value={tableEndDate}
-                onChange={(e) => setTableEndDate(e.target.value)}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
+                className="cursor-pointer"
                 onClick={load}
-                disabled={loading}
-                className=" cursor-pointer"
+                disabled={loading || downloading || !canSubmit}
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -266,16 +255,43 @@ export default function CitizenDataReport() {
                     Loading
                   </span>
                 ) : (
-                  "Apply"
+                  "View Report"
                 )}
               </Button>
+
               <Button
-                className=" cursor-pointer"
+                className="cursor-pointer"
+                onClick={handleDownload}
+                disabled={loading || downloading || !canSubmit}
+              >
+                {downloading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Generating
+                  </span>
+                ) : (
+                  "Generate Excel"
+                )}
+              </Button>
+
+              {downloadUrl && (
+                <Button
+                  className="cursor-pointer"
+                  variant="outline"
+                  onClick={handleOpenDownload}
+                >
+                  Download Excel
+                </Button>
+              )}
+
+              <Button
+                className="cursor-pointer"
                 variant="outline"
                 onClick={() => {
-                  setTableDistrict("");
-                  setTableStartDate("");
-                  setTableEndDate("");
+                  setSelectedDistrict("");
+                  setStartDate("");
+                  setEndDate("");
+                  setDownloadUrl("");
                   setError("");
                   setAllRows([]);
                   setCurrentPage(0);
@@ -285,6 +301,14 @@ export default function CitizenDataReport() {
               </Button>
             </div>
           </div>
+
+          {/* Validation Message */}
+          {!canSubmit && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+              Please fill district, start date, and end date to view or generate
+              this report.
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -318,6 +342,23 @@ export default function CitizenDataReport() {
             </div>
           </div>
 
+          {/* Download Link Display
+          {downloadUrl && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-sm font-medium text-green-800 mb-1">
+                Excel report ready!
+              </div>
+              <a
+                className="text-sm text-blue-600 break-all underline hover:text-blue-800"
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {downloadUrl}
+              </a>
+            </div>
+          )} */}
+
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -342,7 +383,7 @@ export default function CitizenDataReport() {
                       {loading
                         ? "Loading..."
                         : error ||
-                          "No data found. Please select district, start date, end date and click Apply."}
+                          "No data found. Please select district, start date, end date and click View Report."}
                     </td>
                   </tr>
                 ) : (

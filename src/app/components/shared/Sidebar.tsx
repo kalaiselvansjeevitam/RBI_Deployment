@@ -3,6 +3,8 @@
 import {
   // Calendar,
   BarChart3,
+  ChevronDown,
+  ChevronRight,
   ClipboardList,
   Eye,
   File,
@@ -17,14 +19,14 @@ import {
   View,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "../ui/button";
-
 import { useLocation, useNavigate } from "react-router-dom";
 import { ROUTE_URL } from "../../core/constants/coreUrl";
 import useWindowSize from "../../core/hooks/windowResize";
+import { Button } from "../ui/button";
 // import useWindowSize from '@/app/core/hooks/windowResize';
 // import { ROUTE_URL } from '@/app/core/constants/coreUrl';
 import logo from "@/assets/images/csc-logo.svg";
+import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 type SidebarItemType = {
   icon: LucideIcon;
@@ -38,6 +40,7 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
   const isDesktop = useWindowSize();
   const location = useLocation();
   const navigate = useNavigate();
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const sidebarItems: SidebarItemType[] = [
     // {
@@ -271,7 +274,8 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
     });
   }
 
-  const handleNavigation = (path: string) => {
+  const handleNavigation = (path?: string) => {
+    if (!path) return;
     navigate(path);
   };
 
@@ -281,55 +285,63 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: any }) => {
   // };
 
   const SidebarItem = ({ item }: { item: SidebarItemType }) => {
-    // const secondUrlSegment = getSecondUrlSegment(location.pathname);
-    const isSelected = location.pathname === item.href;
-    const isParentSelected = item.children?.some(
-      (child: any) => location.pathname === child.href,
+    const hasChildren = !!item.children?.length;
+
+    const isChildSelected = item.children?.some(
+      (child) => location.pathname === child.href,
     );
+
+    const isSelected = location.pathname === item.href;
+    const isParentSelected = isChildSelected;
+
+    // auto-expand when a child is selected (so refresh keeps submenu open)
+    const isExpanded = expanded[item.label] ?? isChildSelected;
+
+    const onParentClick = () => {
+      if (hasChildren) {
+        setExpanded((prev) => ({ ...prev, [item.label]: !isExpanded }));
+        return;
+      }
+      handleNavigation(item.href);
+    };
 
     return (
       <div key={item.label}>
         <Button
           variant="ghost"
-          className={`justify-start w-full flex items-start gap-2 h-auto py-2 text-left whitespace-normal break-words ${
+          className={`justify-start w-full flex cursor-pointer items-start gap-2 h-auto py-2 text-left whitespace-normal break-words ${
             isSelected || isParentSelected
               ? "text-purple rounded-tr-lg rounded-br-lg border-purple"
               : "text-gray-700"
           }`}
-          onClick={() => handleNavigation(item.href)}
+          onClick={onParentClick}
         >
           <item.icon
             className={`mt-0.5 h-4 w-4 shrink-0 ${
               isSelected || isParentSelected ? "text-purple" : "text-black"
             }`}
           />
-          <span className="leading-snug">
+
+          <span className="leading-snug flex-1">
             {isDesktop ? (open ? item.label : "") : item.label}
           </span>
+
+          {/* show chevron only when sidebar is open and item has children */}
+          {hasChildren && isDesktop && open && (
+            <span className="mt-0.5">
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </span>
+          )}
         </Button>
 
-        {/* Always-visible submenu if children exist
-        {item.children && (
+        {/* submenu */}
+        {hasChildren && isDesktop && open && isExpanded && (
           <div className="pl-6 flex flex-col gap-1 mt-1">
-            {item.children.map((child: any) => (
-              <Button
-                key={child.label}
-                variant="ghost"
-                className={`justify-start w-full text-sm ${
-                  location.pathname === child.href
-                    ? 'text-purple  bg-gray-100'
-                    : 'text-gray-600'
-                }`}
-                onClick={() => handleNavigation(child.href)}
-              >
-                {child.label}
-              </Button>
-            ))}
-          </div>
-        )} */}
-        {item.children && isDesktop && open && (
-          <div className="pl-6 flex flex-col gap-1 mt-1">
-            {item.children.map((child: any) => (
+            {item.children!.map((child) => (
               <Button
                 key={child.label}
                 variant="ghost"
