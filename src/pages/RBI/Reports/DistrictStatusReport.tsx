@@ -7,7 +7,7 @@ import { Input } from "../../../app/components/ui/input";
 import { useGetDistrictParams } from "../../../app/core/api/Admin";
 import {
   useDownloadDistrictWiseWorkshopReport,
-  useViewDistrictWiseWorkshopReport,
+  useViewDistrictWiseByStatusWorkshopReport,
   type DistrictStatusRow,
 } from "../../../app/core/api/RBIReports";
 import ReportDownloadCard from "./shared/ReportDownloadCard";
@@ -24,7 +24,8 @@ const PAGE_SIZE = 8;
 
 export default function DistrictStatusReport() {
   const { mutateAsync: getDistricts } = useGetDistrictParams();
-  const { mutateAsync: viewReport } = useViewDistrictWiseWorkshopReport();
+  const { mutateAsync: viewReport } =
+    useViewDistrictWiseByStatusWorkshopReport();
   const { mutateAsync: download } = useDownloadDistrictWiseWorkshopReport();
 
   // Separate state for download card
