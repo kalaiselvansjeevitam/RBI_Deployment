@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
@@ -10,82 +11,34 @@ import {
   useDownloadCitizenCountLessThan50Report,
   useViewCitizenCountLessThan50Report,
 } from "../../../app/core/api/RBIReports";
-import ReportDownloadCard from "./shared/ReportDownloadCard";
 
 const PAGE_SIZE = 8;
 
 export default function WorkshopsLt50Report() {
   const { mutateAsync: fetchLt50 } = useViewCitizenCountLessThan50Report();
   const { mutateAsync: download } = useDownloadCitizenCountLessThan50Report();
+  const { mutateAsync: getDistricts } = useGetDistrictParams();
 
-  // Separate state for download card
-  const [downloadDistrict, setDownloadDistrict] = useState("");
-  const [downloadStartDate, setDownloadStartDate] = useState("");
-  const [downloadEndDate, setDownloadEndDate] = useState("");
-
-  // State for table
+  // Unified state
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [districtList, setDistrictList] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState("");
   const [offset, setOffset] = useState(0);
   const [total, setTotal] = useState(0);
   const [rows, setRows] = useState<ViewLt50Row[]>([]);
 
-  const canDownload = Boolean(downloadDistrict);
+  const [appliedDistrict, setAppliedDistrict] = useState("");
+  const [appliedStartDate, setAppliedStartDate] = useState("");
+  const [appliedEndDate, setAppliedEndDate] = useState("");
+
+  const canSubmit = Boolean(selectedDistrict);
   const hasNext = useMemo(() => offset + PAGE_SIZE < total, [offset, total]);
 
-  const fetchPage = async (nextOffset: number) => {
-    try {
-      setLoading(true);
-
-      const res = await fetchLt50({ offset: nextOffset });
-      console.log("LT50 raw response:", res);
-
-      // API returns "result": "success" not "status": "Success"
-      const status = String(res?.result ?? res?.status ?? "").toLowerCase();
-      const isSuccess = status === "success";
-
-      // API returns "list" not "data"
-      const dataList = Array.isArray(res?.list)
-        ? res.list
-        : Array.isArray(res?.data)
-          ? res.data
-          : [];
-
-      // API returns "total" not "count"
-      const totalCount = Number(res?.total ?? res?.count ?? 0);
-
-      if (isSuccess) {
-        setRows(dataList);
-        setTotal(totalCount);
-        setOffset(nextOffset);
-      } else {
-        console.error("LT50 API error:", res?.message);
-        setRows([]);
-        setTotal(0);
-      }
-    } catch (e) {
-      console.error("LT50 fetch failed:", e);
-      setRows([]);
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // initial load
-  useEffect(() => {
-    fetchPage(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const showingText = useMemo(() => {
-    if (total === 0) return "Showing 0–0 of 0";
-    const start = offset + 1;
-    const end = Math.min(offset + rows.length, total);
-    return `Showing ${start}–${end} of ${total}`;
-  }, [offset, rows.length, total]);
-
-  const { mutateAsync: getDistricts } = useGetDistrictParams();
-  const [districtList, setDistrictList] = useState<string[]>([]);
+  // Load districts
   useEffect(() => {
     (async () => {
       try {
@@ -108,101 +61,254 @@ export default function WorkshopsLt50Report() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fetchPage = async (nextOffset: number) => {
+    try {
+      setLoading(true);
+
+      // Note: The view API does not support filtering - it returns all data
+      // Filtering is only available for the download operation
+      const res = await fetchLt50({ offset: nextOffset });
+
+      const status = String(res?.result ?? res?.status ?? "").toLowerCase();
+      const isSuccess = status === "success";
+
+      const dataList = Array.isArray(res?.list)
+        ? res.list
+        : Array.isArray(res?.data)
+          ? res.data
+          : [];
+
+      const totalCount = Number(res?.total ?? res?.count ?? 0);
+
+      if (isSuccess) {
+        setRows(dataList);
+        setTotal(totalCount);
+        setOffset(nextOffset);
+      } else {
+        console.error("LT50 API error:", res?.message);
+        setRows([]);
+        setTotal(0);
+      }
+    } catch (e) {
+      console.error("LT50 fetch failed:", e);
+      setRows([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!canSubmit) {
+      toast.error("Please select a district");
+      return;
+    }
+
+    try {
+      setDownloadUrl("");
+      setDownloading(true);
+
+      const response = await download({
+        district: selectedDistrict,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+      });
+
+      // Extract URL from response
+      const url =
+        typeof response?.data === "string" && response.data.trim()
+          ? response.data.trim()
+          : "";
+
+      // Check if successful
+      const isSuccessful =
+        String(response?.result ?? "")
+          .trim()
+          .toLowerCase() === "success";
+
+      if (isSuccessful) {
+        if (!url) {
+          const msg = String(response?.message ?? "")
+            .trim()
+            .toLowerCase();
+          if (
+            msg.includes("no data") ||
+            msg.includes("not found") ||
+            msg.includes("empty")
+          ) {
+            toast.info("No data available for the selected filters.");
+          } else {
+            toast.error("Report generated but no download link was provided");
+          }
+          return;
+        }
+
+        setDownloadUrl(url);
+        toast.success(
+          "Report generated successfully! Click 'Open Excel' to download.",
+        );
+      } else {
+        const msg = String(response?.message ?? "").trim();
+        toast.error(msg || "Failed to generate report");
+      }
+    } catch (e: any) {
+      console.error("Download failed:", e);
+      toast.error(e?.message || "Failed to generate report");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleOpenDownload = () => {
+    if (!downloadUrl) return;
+    window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    toast.success("Opening download link");
+  };
+
+  const handleViewReport = () => {
+    // Save the current filter values as "applied" filters
+    setAppliedDistrict(selectedDistrict);
+    setAppliedStartDate(startDate);
+    setAppliedEndDate(endDate);
+    // Fetch with offset 0
+    fetchPage(0);
+  };
+
+  // Initial load - without filters
+  useEffect(() => {
+    fetchPage(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appliedDistrict, appliedStartDate, appliedEndDate]);
+
+  const showingText = useMemo(() => {
+    if (total === 0) return "Showing 0–0 of 0";
+    const start = offset + 1;
+    const end = Math.min(offset + rows.length, total);
+    return `Showing ${start}–${end} of ${total}`;
+  }, [offset, rows.length, total]);
+
   return (
     <Layout headerTitle="Workshops < 50 Attendees Report">
-      <div className="p-6 space-y-6">
-        {/* Download Card */}
-        <ReportDownloadCard
-          title="Download Workshop < 50 Citizens Report"
-          description="District is required. Date filters are optional."
-          filtersSlot={
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm text-gray-600">
-                  District (required)
-                </label>
-                {districtList.length > 0 ? (
-                  <select
-                    className="border rounded-md h-10 px-3 w-full"
-                    value={downloadDistrict}
-                    onChange={(e) => {
-                      setDownloadDistrict(e.target.value);
-                      if (e.target.value === "") {
-                        // Add any reset logic here if needed
-                        // For example, clearing the download link state in ReportDownloadCard
-                      }
-                    }}
-                  >
-                    <option value="">All districts</option>
-                    {districtList.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    value={downloadDistrict}
-                    onChange={(e) => setDownloadDistrict(e.target.value)}
-                    placeholder="e.g., Springfield"
-                  />
-                )}
-              </div>
+      <div className="p-6">
+        {/* Merged Card */}
+        <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
+          <h2 className="text-lg font-semibold mb-4">
+            Workshops with &lt; 50 Citizens Report
+          </h2>
+          <p className="text-sm text-gray-600 mb-6">
+            View all report data in the table below. To download filtered data
+            by district and date range, use the filters and click "Generate
+            Excel". Note: Table view shows all data, filters only apply to Excel
+            download.
+          </p>
 
-              <div>
-                <label className="text-sm text-gray-600">
-                  Start Date (optional)
-                </label>
+          {/* Filters and Actions */}
+          <div className="grid md:grid-cols-4 gap-4 items-end mb-6">
+            <div>
+              <label className="text-sm text-gray-600">
+                District (required)
+              </label>
+              {districtList.length > 0 ? (
+                <select
+                  className="border rounded-md h-10 px-3 w-full"
+                  value={selectedDistrict}
+                  onChange={(e) => setSelectedDistrict(e.target.value)}
+                >
+                  <option value="">All districts</option>
+                  {districtList.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              ) : (
                 <Input
-                  type="date"
-                  value={downloadStartDate}
-                  onChange={(e) => setDownloadStartDate(e.target.value)}
+                  value={selectedDistrict}
+                  onChange={(e) => setSelectedDistrict(e.target.value)}
+                  placeholder="e.g., Springfield"
                 />
-              </div>
-
-              <div>
-                <label className="text-sm text-gray-600">
-                  End Date (optional)
-                </label>
-                <Input
-                  type="date"
-                  value={downloadEndDate}
-                  onChange={(e) => setDownloadEndDate(e.target.value)}
-                />
-              </div>
-
-              {!canDownload && (
-                <div className="md:col-span-3 text-sm text-amber-600">
-                  Please enter district to generate this report.
-                </div>
               )}
             </div>
-          }
-          onGenerate={async () => {
-            if (!canDownload) {
-              return {
-                result: "Error",
-                message: "District is required",
-                data: "",
-              };
-            }
-            return download({
-              district: downloadDistrict,
-              start_date: downloadStartDate || undefined,
-              end_date: downloadEndDate || undefined,
-            });
-          }}
-        />
 
-        {/* Table Section */}
-        <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
-          <h2 className="text-lg font-semibold mb-4">View Report Data</h2>
+            <div>
+              <label className="text-sm text-gray-600">
+                Start Date (optional)
+              </label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
 
+            <div>
+              <label className="text-sm text-gray-600">
+                End Date (optional)
+              </label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                className="cursor-pointer"
+                onClick={handleDownload}
+                disabled={loading || downloading || !canSubmit}
+              >
+                {downloading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Generating
+                  </span>
+                ) : (
+                  "Generate Excel"
+                )}
+              </Button>
+
+              {downloadUrl && (
+                <Button
+                  className="cursor-pointer"
+                  variant="outline"
+                  onClick={handleOpenDownload}
+                >
+                  Open Excel
+                </Button>
+              )}
+
+              <Button
+                className="cursor-pointer"
+                variant="outline"
+                onClick={() => {
+                  setSelectedDistrict("");
+                  setStartDate("");
+                  setEndDate("");
+                  setDownloadUrl("");
+                }}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+
+          {/* Validation Message */}
+          {!canSubmit && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+              💡 The table shows all workshop data. To download a filtered Excel
+              report by district and date range, select filters above and click
+              "Generate Excel".
+            </div>
+          )}
+
+          {/* Pagination */}
           <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
-            <div className="text-sm text-gray-500">{showingText}</div>
+            <div className="text-sm text-gray-600">{showingText}</div>
 
             <div className="flex gap-2">
               <Button
+                className="cursor-pointer"
                 variant="outline"
                 onClick={() => fetchPage(Math.max(0, offset - PAGE_SIZE))}
                 disabled={loading || offset === 0}
@@ -211,6 +317,7 @@ export default function WorkshopsLt50Report() {
               </Button>
 
               <Button
+                className="cursor-pointer"
                 variant="outline"
                 onClick={() => fetchPage(offset + PAGE_SIZE)}
                 disabled={loading || !hasNext}
@@ -220,6 +327,24 @@ export default function WorkshopsLt50Report() {
             </div>
           </div>
 
+          {/* Download Link Display
+          {downloadUrl && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-sm font-medium text-green-800 mb-1">
+                Excel report ready!
+              </div>
+              <a
+                className="text-sm text-blue-600 break-all underline hover:text-blue-800"
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {downloadUrl}
+              </a>
+            </div>
+          )} */}
+
+          {/* Table */}
           <div className="overflow-auto">
             <table className="min-w-full text-sm">
               <thead>
@@ -246,7 +371,8 @@ export default function WorkshopsLt50Report() {
                 ) : rows.length === 0 ? (
                   <tr>
                     <td className="py-6 text-center text-gray-500" colSpan={6}>
-                      No data found.
+                      No data found. Please select a district and click View
+                      Report.
                     </td>
                   </tr>
                 ) : (
