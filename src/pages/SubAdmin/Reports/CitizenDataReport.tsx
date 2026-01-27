@@ -5,19 +5,21 @@ import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
+
 import { useGetDistrictParams } from "../../../app/core/api/Admin";
-import type { ViewLt50Row } from "../../../app/core/api/RBIReports";
 import {
-  useDownloadCitizenCountLessThan50Report,
-  useViewCitizenCountLessThan50Report,
+  useDownloadCitizenDataByDistrictReport,
+  useViewCitizenDataByDistrictReport,
+  type CitizenRow,
 } from "../../../app/core/api/RBIReports";
 import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 8;
 
-export default function WorkshopsLt50Report() {
-  const { mutateAsync: fetchLt50 } = useViewCitizenCountLessThan50Report();
-  const { mutateAsync: download } = useDownloadCitizenCountLessThan50Report();
+export default function SubCitizenDataReport() {
+  const navigate = useNavigate();
+  const { mutateAsync: fetchView } = useViewCitizenDataByDistrictReport();
+  const { mutateAsync: download } = useDownloadCitizenDataByDistrictReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
 
   // Unified state
@@ -25,19 +27,14 @@ export default function WorkshopsLt50Report() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [districtList, setDistrictList] = useState<string[]>([]);
+  const [allRows, setAllRows] = useState<CitizenRow[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [rows, setRows] = useState<ViewLt50Row[]>([]);
+  const [error, setError] = useState("");
 
-  // const [appliedDistrict, setAppliedDistrict] = useState("");
-  // const [appliedStartDate, setAppliedStartDate] = useState("");
-  // const [appliedEndDate, setAppliedEndDate] = useState("");
+  const canSubmit = selectedDistrict && startDate && endDate;
 
-  const canSubmit = Boolean(selectedDistrict);
-  const hasNext = useMemo(() => offset + PAGE_SIZE < total, [offset, total]);
-
-  // Load districts
+  // Load districts on mount
   useEffect(() => {
     (async () => {
       try {
@@ -60,38 +57,39 @@ export default function WorkshopsLt50Report() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchPage = async (nextOffset: number) => {
+  const load = async () => {
+    // All fields are required by the API
+    if (!selectedDistrict || !startDate || !endDate) {
+      setError("Please select district, start date, and end date");
+      setAllRows([]);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setCurrentPage(0);
+
     try {
-      setLoading(true);
+      const payload = {
+        district: selectedDistrict,
+        start_date: startDate,
+        end_date: endDate,
+        offset: 0,
+      };
 
-      // Note: The view API does not support filtering - it returns all data
-      // Filtering is only available for the download operation
-      const res = await fetchLt50({ offset: nextOffset });
+      const res = await fetchView(payload);
 
-      const status = String(res?.result ?? "").toLowerCase();
-      const isSuccess = status === "success";
-
-      const dataList = Array.isArray(res?.list)
-        ? res.list
-        : Array.isArray(res?.data)
-          ? res.data
-          : [];
-
-      const totalCount = Number(res?.total ?? res?.count ?? 0);
-
-      if (isSuccess) {
-        setRows(dataList);
-        setTotal(totalCount);
-        setOffset(nextOffset);
-      } else {
-        console.error("LT50 API error:", res?.message);
-        setRows([]);
-        setTotal(0);
+      if (res?.status !== "Success") {
+        setAllRows([]);
+        setError(res?.message || "Failed to fetch data");
+        return;
       }
-    } catch (e) {
-      console.error("LT50 fetch failed:", e);
-      setRows([]);
-      setTotal(0);
+
+      setAllRows(res.data ?? []);
+    } catch (err: any) {
+      console.error("Error fetching data:", err);
+      setError(err?.message || "An error occurred while fetching data");
+      setAllRows([]);
     } finally {
       setLoading(false);
     }
@@ -99,7 +97,7 @@ export default function WorkshopsLt50Report() {
 
   const handleDownload = async () => {
     if (!canSubmit) {
-      toast.error("Please select a district");
+      toast.error("Please select district, start date, and end date");
       return;
     }
 
@@ -108,8 +106,8 @@ export default function WorkshopsLt50Report() {
 
       const response = await download({
         district: selectedDistrict,
-        start_date: startDate || undefined,
-        end_date: endDate || undefined,
+        start_date: startDate,
+        end_date: endDate,
       });
 
       const url =
@@ -127,7 +125,7 @@ export default function WorkshopsLt50Report() {
         return;
       }
 
-      // ✅ DIRECT DOWNLOAD
+      // 🔥 DIRECT DOWNLOAD
       window.open(url, "_blank", "noopener,noreferrer");
       toast.success("Excel report downloaded successfully");
     } catch (e: any) {
@@ -138,37 +136,38 @@ export default function WorkshopsLt50Report() {
     }
   };
 
-  // const handleViewReport = () => {
-  //   // Save the current filter values as "applied" filters
-  //   setAppliedDistrict(selectedDistrict);
-  //   setAppliedStartDate(startDate);
-  //   setAppliedEndDate(endDate);
-  //   // Fetch with offset 0
-  //   fetchPage(0);
+  // const handleOpenDownload = () => {
+  //   if (!downloadUrl) return;
+  //   window.open(downloadUrl, "_blank", "noopener,noreferrer");
+  //   toast.success("Download Successful");
   // };
 
-  // Initial load - without filters
-  // useEffect(() => {
-  //   fetchPage(0);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [appliedDistrict, appliedStartDate, appliedEndDate]);
+  // Client-side pagination
+  const paginatedRows = useMemo(() => {
+    const start = currentPage * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    return allRows.slice(start, end);
+  }, [allRows, currentPage]);
+
+  const totalPages = Math.ceil(allRows.length / PAGE_SIZE);
+  const hasNext = currentPage < totalPages - 1;
+  const hasPrev = currentPage > 0;
 
   const showingText = useMemo(() => {
-    if (total === 0) return "Showing 0–0 of 0";
-    const start = offset + 1;
-    const end = Math.min(offset + rows.length, total);
-    return `Showing ${start}–${end} of ${total}`;
-  }, [offset, rows.length, total]);
-  const navigate = useNavigate();
+    if (allRows.length === 0) return "Showing 0–0 of 0";
+    const start = currentPage * PAGE_SIZE + 1;
+    const end = Math.min((currentPage + 1) * PAGE_SIZE, allRows.length);
+    return `Showing ${start}–${end} of ${allRows.length}`;
+  }, [currentPage, allRows.length]);
 
   return (
-    <Layout headerTitle="Workshops < 50 Attendees Report">
+    <Layout headerTitle="District-wise Citizen Data Report">
       <div className="p-6">
         {/* Merged Card */}
         <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">
-              Workshops with &lt; 50 Citizens Report
+              District-wise Citizens Report
             </h2>
 
             <Button
@@ -178,13 +177,6 @@ export default function WorkshopsLt50Report() {
               Back
             </Button>
           </div>
-
-          <p className="text-sm text-gray-600 mb-6">
-            View all report data in the table below. To download filtered data
-            by district and date range, use the filters and click "Generate
-            Excel". Note: Table view shows all data, filters only apply to Excel
-            download.
-          </p>
 
           {/* Filters and Actions */}
           <div className="grid md:grid-cols-4 gap-4 items-end mb-6">
@@ -198,7 +190,7 @@ export default function WorkshopsLt50Report() {
                   value={selectedDistrict}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
                 >
-                  <option value="">All districts</option>
+                  <option value="">Select district</option>
                   {districtList.map((d) => (
                     <option key={d} value={d}>
                       {d}
@@ -216,27 +208,44 @@ export default function WorkshopsLt50Report() {
 
             <div>
               <label className="text-sm text-gray-600">
-                Start Date (optional)
+                Start Date (required)
               </label>
               <Input
                 type="date"
                 value={startDate}
+                max="2026-03-31"
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
 
             <div>
               <label className="text-sm text-gray-600">
-                End Date (optional)
+                End Date (required)
               </label>
               <Input
                 type="date"
                 value={endDate}
+                max="2026-03-31"
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
 
             <div className="flex gap-2 flex-wrap">
+              <Button
+                className="cursor-pointer"
+                onClick={load}
+                disabled={loading || !canSubmit}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Loading
+                  </span>
+                ) : (
+                  "View Report"
+                )}
+              </Button>
+
               <Button
                 className="cursor-pointer"
                 onClick={handleDownload}
@@ -259,6 +268,9 @@ export default function WorkshopsLt50Report() {
                   setSelectedDistrict("");
                   setStartDate("");
                   setEndDate("");
+                  setError("");
+                  setAllRows([]);
+                  setCurrentPage(0);
                 }}
               >
                 Clear
@@ -268,23 +280,29 @@ export default function WorkshopsLt50Report() {
 
           {/* Validation Message */}
           {!canSubmit && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
-              💡 The table shows all workshop data. To download a filtered Excel
-              report by district and date range, select filters above and click
-              "Download Excel".
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+              Please fill district, start date, and end date to view or generate
+              this report.
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
             </div>
           )}
 
           {/* Pagination */}
-          <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div className="text-sm text-gray-600">{showingText}</div>
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
               <Button
                 className="cursor-pointer"
                 variant="outline"
-                onClick={() => fetchPage(Math.max(0, offset - PAGE_SIZE))}
-                disabled={loading || offset === 0}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                disabled={loading || !hasPrev}
               >
                 Prev
               </Button>
@@ -292,7 +310,7 @@ export default function WorkshopsLt50Report() {
               <Button
                 className="cursor-pointer"
                 variant="outline"
-                onClick={() => fetchPage(offset + PAGE_SIZE)}
+                onClick={() => setCurrentPage((p) => p + 1)}
                 disabled={loading || !hasNext}
               >
                 Next
@@ -318,50 +336,47 @@ export default function WorkshopsLt50Report() {
           )} */}
 
           {/* Table */}
-          <div className="overflow-auto">
+          <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-600 border-b bg-gray-50">
-                  <th className="py-3 px-4">S.No</th>
-                  <th className="py-3 px-4">VLE Name</th>
-                  <th className="py-3 px-4">District</th>
-                  <th className="py-3 px-4">Location</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Citizens Count</th>
+              <thead className="border-b bg-gray-50">
+                <tr className="text-left text-gray-600">
+                  <th className="px-4 py-3">SR.No</th>
+                  <th className="px-4 py-3">District</th>
+                  <th className="px-4 py-3">VLE Name</th>
+                  <th className="px-4 py-3">Citizen Name</th>
+                  <th className="px-4 py-3">Mobile</th>
+                  <th className="px-4 py-3">Gender</th>
+                  <th className="px-4 py-3">Age</th>
+                  <th className="px-4 py-3">Program</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Address</th>
                 </tr>
               </thead>
-
               <tbody>
-                {loading ? (
+                {paginatedRows.length === 0 ? (
                   <tr>
-                    <td className="py-6 text-center text-gray-500" colSpan={6}>
-                      <span className="inline-flex items-center gap-2">
-                        <Loader className="w-4 h-4 animate-spin" />
-                        Loading...
-                      </span>
-                    </td>
-                  </tr>
-                ) : rows.length === 0 ? (
-                  <tr>
-                    <td className="py-6 text-center text-gray-500" colSpan={6}>
-                      No data found. Please select a district and click View
-                      Report.
+                    <td colSpan={10} className="py-6 text-center text-gray-500">
+                      {loading
+                        ? "Loading..."
+                        : error ||
+                          "No data found. Please select district, start date, end date and click View Report."}
                     </td>
                   </tr>
                 ) : (
-                  rows.map((r, idx) => (
-                    <tr
-                      key={`${r.vle_name}-${r.district}-${idx}`}
-                      className="border-b hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4">{offset + idx + 1}</td>
-                      <td className="py-3 px-4">{r.vle_name}</td>
-                      <td className="py-3 px-4">{r.district}</td>
-                      <td className="py-3 px-4">{r.location}</td>
-                      <td className="py-3 px-4">{r.date}</td>
-                      <td className="py-3 px-4">
-                        {Number(r.citizens_count ?? 0)}
+                  paginatedRows.map((r, i) => (
+                    <tr key={i} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        {currentPage * PAGE_SIZE + i + 1}
                       </td>
+                      <td className="px-4 py-3">{r.district}</td>
+                      <td className="px-4 py-3">{r.vle_name}</td>
+                      <td className="px-4 py-3">{r.citizen_name}</td>
+                      <td className="px-4 py-3">{r.mobile_number}</td>
+                      <td className="px-4 py-3">{r.gender}</td>
+                      <td className="px-4 py-3">{r.age}</td>
+                      <td className="px-4 py-3">{r.program_name}</td>
+                      <td className="px-4 py-3">{r.date}</td>
+                      <td className="px-4 py-3">{r.address}</td>
                     </tr>
                   ))
                 )}

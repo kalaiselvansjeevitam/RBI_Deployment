@@ -225,17 +225,15 @@ const SchoolSheet = ({ open, workshopId, openClose }: StudentSheetProps) => {
       y += 6;
 
       doc.setFontSize(10);
-
       const citizenText = `
 Name: ${citizen.name}
 Mobile Number: ${citizen.mobile_number}
-Email: ${citizen.email_id}
 Age: ${citizen.age}
 Gender: ${citizen.gender}
-Qualification: ${citizen.qualification}
-Father Name: ${citizen.father_name}
-Mother Name: ${citizen.mother_name}
-Address: ${citizen.address}
+Occupation: ${citizen.occupation_name}
+Gram Panchayat: ${citizen.gram_panchayat}
+Block Panchayat: ${citizen.block_panchayat}
+District: ${citizen.district}
 Registered On: ${citizen.created_at}
 `;
 

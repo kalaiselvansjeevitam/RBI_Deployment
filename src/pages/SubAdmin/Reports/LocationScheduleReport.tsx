@@ -5,21 +5,34 @@ import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
-
 import { useGetDistrictParams } from "../../../app/core/api/Admin";
 import {
-  useDownloadCitizenDataByDistrictReport,
-  useViewCitizenDataByDistrictReport,
-  type CitizenRow,
+  useDownloadLocationManagerWiseWorkshopReport,
+  useViewLocationManagerWiseWorkshopReport,
 } from "../../../app/core/api/RBIReports";
 import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 8;
 
-export default function CitizenDataReport() {
-  const navigate = useNavigate();
-  const { mutateAsync: fetchView } = useViewCitizenDataByDistrictReport();
-  const { mutateAsync: download } = useDownloadCitizenDataByDistrictReport();
+type LocationRow = {
+  center_name: string;
+  center_address: string;
+  workshop_name: string;
+  workshop_date: string;
+  workshop_from_time: string;
+  workshop_to_time: string;
+  district: string;
+  created_at: string;
+  workshop_status: string;
+  vle_id: string;
+  vle_name: string;
+};
+
+export default function SubLocationScheduleReport() {
+  const { mutateAsync: download } =
+    useDownloadLocationManagerWiseWorkshopReport();
+  const { mutateAsync: viewReport } =
+    useViewLocationManagerWiseWorkshopReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
 
   // Unified state
@@ -27,12 +40,12 @@ export default function CitizenDataReport() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [districtList, setDistrictList] = useState<string[]>([]);
-  const [allRows, setAllRows] = useState<CitizenRow[]>([]);
+  const [allRows, setAllRows] = useState<LocationRow[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const canSubmit = selectedDistrict && startDate && endDate;
+  const canSubmit = Boolean(selectedDistrict);
 
   // Load districts on mount
   useEffect(() => {
@@ -57,10 +70,10 @@ export default function CitizenDataReport() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const load = async () => {
-    // All fields are required by the API
-    if (!selectedDistrict || !startDate || !endDate) {
-      setError("Please select district, start date, and end date");
+  const fetchData = async () => {
+    // District is required
+    if (!selectedDistrict) {
+      setError("Please select a district to view data");
       setAllRows([]);
       return;
     }
@@ -70,14 +83,19 @@ export default function CitizenDataReport() {
     setCurrentPage(0);
 
     try {
-      const payload = {
+      const payload: any = {
         district: selectedDistrict,
-        start_date: startDate,
-        end_date: endDate,
         offset: 0,
       };
 
-      const res = await fetchView(payload);
+      if (startDate) {
+        payload.start_date = startDate;
+      }
+      if (endDate) {
+        payload.end_date = endDate;
+      }
+
+      const res = await viewReport(payload);
 
       if (res?.status !== "Success") {
         setAllRows([]);
@@ -94,34 +112,27 @@ export default function CitizenDataReport() {
       setLoading(false);
     }
   };
-
   const handleDownload = async () => {
-    if (!canSubmit) {
-      toast.error("Please select district, start date, and end date");
-      return;
-    }
-
     try {
       setLoading(true);
 
-      const response = await download({
+      // No filters required for this download
+      const res = await download({
         district: selectedDistrict,
-        start_date: startDate,
-        end_date: endDate,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
       });
 
       const url =
-        typeof response?.data === "string" && response.data.trim()
-          ? response.data.trim()
-          : "";
+        typeof res?.data === "string" && res.data.trim() ? res.data.trim() : "";
 
       const isSuccessful =
-        String(response?.result ?? "")
+        String(res?.result ?? "")
           .trim()
           .toLowerCase() === "success";
 
       if (!isSuccessful || !url) {
-        toast.error(response?.message || "Failed to download report");
+        toast.error(res?.message || "Failed to download report");
         return;
       }
 
@@ -135,12 +146,6 @@ export default function CitizenDataReport() {
       setLoading(false);
     }
   };
-
-  // const handleOpenDownload = () => {
-  //   if (!downloadUrl) return;
-  //   window.open(downloadUrl, "_blank", "noopener,noreferrer");
-  //   toast.success("Download Successful");
-  // };
 
   // Client-side pagination
   const paginatedRows = useMemo(() => {
@@ -159,16 +164,16 @@ export default function CitizenDataReport() {
     const end = Math.min((currentPage + 1) * PAGE_SIZE, allRows.length);
     return `Showing ${start}–${end} of ${allRows.length}`;
   }, [currentPage, allRows.length]);
-  // const max="2026-03-31"
+  const navigate = useNavigate();
 
   return (
-    <Layout headerTitle="District-wise Citizen Data Report">
+    <Layout headerTitle="Location-wise Workshop Schedule Report">
       <div className="p-6">
         {/* Merged Card */}
-        <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
+        <div className="bg-white rounded-2xl shadow p-6 bg-linear-to-br from-white to-gray-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">
-              District-wise Citizens Report
+              Location (Center)-Wise Workshop Schedule Report
             </h2>
 
             <Button
@@ -178,6 +183,11 @@ export default function CitizenDataReport() {
               Back
             </Button>
           </div>
+
+          <p className="text-sm text-gray-600 mb-6">
+            View report data in the table below and download as Excel. District
+            is required, date filters are required.
+          </p>
 
           {/* Filters and Actions */}
           <div className="grid md:grid-cols-4 gap-4 items-end mb-6">
@@ -214,11 +224,7 @@ export default function CitizenDataReport() {
               <Input
                 type="date"
                 value={startDate}
-                max="2026-03-31"
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setEndDate(""); // optional: reset end date
-                }}
+                onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
 
@@ -229,17 +235,14 @@ export default function CitizenDataReport() {
               <Input
                 type="date"
                 value={endDate}
-                min={startDate} // 👈 THIS is the key line
-                max="2026-03-31"
                 onChange={(e) => setEndDate(e.target.value)}
-                disabled={!startDate} // optional UX improvement
               />
             </div>
 
             <div className="flex gap-2 flex-wrap">
               <Button
                 className="cursor-pointer"
-                onClick={load}
+                onClick={fetchData}
                 disabled={loading || !canSubmit}
               >
                 {loading ? (
@@ -287,8 +290,8 @@ export default function CitizenDataReport() {
           {/* Validation Message */}
           {!canSubmit && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
-              Please fill district, start date, and end date to view or generate
-              this report.
+              Please select a district and date filters to view or generate this
+              report.
             </div>
           )}
 
@@ -343,29 +346,30 @@ export default function CitizenDataReport() {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border-collapse">
+            <table className="min-w-full text-sm">
               <thead className="border-b bg-gray-50">
                 <tr className="text-left text-gray-600">
                   <th className="px-4 py-3">SR.No</th>
+                  <th className="px-4 py-3">Center Name</th>
+                  <th className="px-4 py-3">Center Address</th>
+                  <th className="px-4 py-3">Workshop Name</th>
+                  <th className="px-4 py-3">Workshop Date</th>
+                  <th className="px-4 py-3">From Time</th>
+                  <th className="px-4 py-3">To Time</th>
                   <th className="px-4 py-3">District</th>
-                  <th className="px-4 py-3">Block Panchayat</th>
-                  <th className="px-4 py-3">Gram Panchayat</th>
-                  <th className="px-4 py-3">Citizen Name</th>
-                  <th className="px-4 py-3">Mobile</th>
-                  <th className="px-4 py-3">Gender</th>
-                  <th className="px-4 py-3">Age</th>
-                  <th className="px-4 py-3">Created Date</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">VLE Name</th>
+                  <th className="px-4 py-3">Created At</th>
                 </tr>
               </thead>
-
               <tbody>
                 {paginatedRows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-6 text-center text-gray-500">
+                    <td colSpan={11} className="py-6 text-center text-gray-500">
                       {loading
                         ? "Loading..."
                         : error ||
-                          "No data found. Please select district, start date, end date and click View Report."}
+                          "No data found. Please select a district and click View Report."}
                     </td>
                   </tr>
                 ) : (
@@ -374,14 +378,28 @@ export default function CitizenDataReport() {
                       <td className="px-4 py-3">
                         {currentPage * PAGE_SIZE + i + 1}
                       </td>
+                      <td className="px-4 py-3">{r.center_name}</td>
+                      <td className="px-4 py-3">{r.center_address}</td>
+                      <td className="px-4 py-3">{r.workshop_name}</td>
+                      <td className="px-4 py-3">{r.workshop_date}</td>
+                      <td className="px-4 py-3">{r.workshop_from_time}</td>
+                      <td className="px-4 py-3">{r.workshop_to_time}</td>
                       <td className="px-4 py-3">{r.district}</td>
-                      <td className="px-4 py-3">{r.block_panchayat}</td>
-                      <td className="px-4 py-3">{r.gram_panchayat}</td>
-                      <td className="px-4 py-3">{r.citizen_name}</td>
-                      <td className="px-4 py-3">{r.mobile_number}</td>
-                      <td className="px-4 py-3">{r.gender}</td>
-                      <td className="px-4 py-3">{r.age}</td>
-                      <td className="px-4 py-3">{r.date}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${
+                            r.workshop_status === "Pending"
+                              ? "bg-amber-100 text-amber-800"
+                              : r.workshop_status === "Completed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {r.workshop_status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">{r.vle_name}</td>
+                      <td className="px-4 py-3">{r.created_at}</td>
                     </tr>
                   ))
                 )}

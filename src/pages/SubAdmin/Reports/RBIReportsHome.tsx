@@ -3,7 +3,7 @@ import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { ROUTE_URL } from "../../../app/core/constants/coreUrl";
 
-const SubRBIReportsHome = () => {
+const RBIReportsHome = () => {
   const navigate = useNavigate();
 
   const items = [
@@ -50,4 +50,4 @@ const SubRBIReportsHome = () => {
   );
 };
 
-export default SubRBIReportsHome;
+export default RBIReportsHome;

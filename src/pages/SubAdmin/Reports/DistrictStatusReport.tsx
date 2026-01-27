@@ -23,7 +23,7 @@ function isSuccess(x: any) {
 
 const PAGE_SIZE = 8;
 
-export default function DistrictStatusReport() {
+export default function SubDistrictStatusReport() {
   const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: viewReport } =
     useViewDistrictWiseByStatusWorkshopReport();
@@ -268,7 +268,7 @@ export default function DistrictStatusReport() {
                   <th className="py-3 px-4">Completed</th>
                   <th className="py-3 px-4">Approved</th>
                   <th className="py-3 px-4">Rejected</th>
-                  {/* <th className="py-3 px-4">&lt; 50 Citizens</th> */}
+                  <th className="py-3 px-4">&lt; 50 Citizens</th>
                 </tr>
               </thead>
               <tbody>
@@ -300,9 +300,9 @@ export default function DistrictStatusReport() {
                       <td className="py-3 px-4">
                         {Number(r.rejected_count ?? 0)}
                       </td>
-                      {/* <td className="py-3 px-4">
+                      <td className="py-3 px-4">
                         {Number(r.citizens_count_lessthan_50 ?? 0)}
-                      </td> */}
+                      </td>
                     </tr>
                   ))
                 )}

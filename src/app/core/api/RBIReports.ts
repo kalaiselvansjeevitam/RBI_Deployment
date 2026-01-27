@@ -132,6 +132,8 @@ export const useViewDistrictWiseWorkshopReport = () =>
 //8) Gender-wise Workshop Report (View)
 export type GenderWorkshopRow = {
   district: string;
+  gram_panchayat: string;
+  block_panchayat: string;
   location: string;
   topic: string;
   male_count: string;
@@ -152,12 +154,14 @@ export const useViewGenderWiseWorkshopReport = () =>
 export type CitizenRow = {
   vle_id: string;
   vle_name: string;
+  block_panchayat: string;
+  gram_panchayat: string;
   district: string;
   citizen_name: string;
   mobile_number: string;
   program_name: string;
   gender: string;
-  program_date: string;
+  date: string;
   father_name: string;
   mother_name: string;
   age: string;

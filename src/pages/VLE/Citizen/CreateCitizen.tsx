@@ -3,18 +3,23 @@ import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import Swal from "sweetalert2";
 import {
+  useGetBlockPanchayat,
   useGetCreateCitizenParams,
   useGetDistrictParams,
+  useGetGramPanchayat,
+  usegetOccupations,
   useGetWorkshopParams,
 } from "../../../app/core/api/Admin";
 import { Loader } from "lucide-react";
 import type {
+  BlockPanchayatRes,
   District,
   GetDistrictListRes,
   GetWorkshopRes,
+  GramPanchayatRes,
+  occupationRes,
+  occupationResponse,
 } from "../../../app/lib/types";
-
-const qualifications = ["10th", "12th", "Graduate", "Post Graduate", "Others"];
 const genders = ["Male", "Female", "Others"];
 // const districts = ["Madurai", "Chennai", "Coimbatore"];
 // const states = ["Tamil Nadu", "Kerala", "Karnataka"];
@@ -40,7 +45,18 @@ const CreateCitizen = () => {
   const [workshops, setWorkshops] = useState<WorkshopOption[]>([]);
   const { mutateAsync: Workshop } = useGetWorkshopParams();
   const [districts, setDistricts] = useState<District[]>([]);
+  const [occupation, setoccupation] = useState<occupationRes[]>([]);
   const { mutateAsync: getDistricts } = useGetDistrictParams();
+  const { mutateAsync: getBlockPanchayat } = useGetBlockPanchayat();
+  const { mutateAsync: getOccupations } = usegetOccupations();
+  const { mutateAsync: getGramPanchayat } = useGetGramPanchayat();
+  const [blockPanchayats, setBlockPanchayats] = useState<BlockPanchayatRes[]>(
+    [],
+  );
+  const [gramPanchayats, setGramPanchayats] = useState<GramPanchayatRes[]>([]);
+  const [loadingdist, setLoadingdist] = useState(false);
+  const [loadingbp, setLoadingbp] = useState(false);
+
   useEffect(() => {
     const fetchWorkshops = async () => {
       try {
@@ -66,6 +82,10 @@ const CreateCitizen = () => {
         if (res?.result === "success") {
           setDistricts(res.list);
         }
+        const responseoccupdation: occupationResponse = await getOccupations();
+        if (res?.result === "success") {
+          setoccupation(responseoccupdation.list);
+        }
       } catch (error) {
         console.error("Failed to fetch workshops", error);
       }
@@ -77,30 +97,26 @@ const CreateCitizen = () => {
   const [formData, setFormData] = useState({
     name: "",
     mobile_number: "",
-    email_id: "",
-    qualification: "",
     age: 0,
     gender: "",
+    occupation: "",
     work_shop_id: "",
-    father_name: "",
-    mother_name: "",
     district: "",
-    state: "",
-    pincode: "",
+    block_panchayat_name: "",
+    gram_panchayat_name: "",
+    gram_panchayat_code: "",
   });
   function reSetAll() {
     ((formData.name = ""),
-      (formData.father_name = ""),
-      (formData.mother_name = ""),
       (formData.mobile_number = ""),
       (formData.work_shop_id = ""),
-      (formData.email_id = ""),
-      (formData.qualification = ""),
       (formData.age = 0),
       (formData.gender = ""),
+      (formData.occupation = ""),
       (formData.district = ""),
-      (formData.state = ""),
-      (formData.pincode = ""));
+      (formData.block_panchayat_name = ""),
+      (formData.gram_panchayat_name = ""),
+      (formData.gram_panchayat_code = ""));
   }
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -139,8 +155,6 @@ const CreateCitizen = () => {
     if (!formData.name.trim()) newErrors.name = "Required";
     if (!/^\d{10}$/.test(formData.mobile_number))
       newErrors.mobile_number = "Enter valid 10 digit number";
-    if (!/^\S+@\S+\.\S+$/.test(formData.email_id))
-      newErrors.email_id = "Invalid email";
     if (!formData.age) {
       newErrors.age = "Age is required";
     } else {
@@ -153,8 +167,12 @@ const CreateCitizen = () => {
 
     if (!formData.work_shop_id) newErrors.work_shop_id = "Required";
     if (!formData.gender) newErrors.gender = "Required";
-    if (!formData.father_name.trim()) newErrors.father_name = "Required";
-    if (!formData.mother_name.trim()) newErrors.mother_name = "Required";
+    if (!formData.district) newErrors.district = "Required";
+    if (!formData.block_panchayat_name)
+      newErrors.block_panchayat_name = "Required";
+    if (!formData.gram_panchayat_name)
+      newErrors.gram_panchayat_name = "Required";
+    if (!formData.occupation) newErrors.occupation = "Required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -188,6 +206,74 @@ const CreateCitizen = () => {
       setLoading(false);
     }
   };
+
+  async function handleLocationChange(districtName: string): Promise<void> {
+    setLoadingdist(true);
+    // set district in form
+    setFormData((prev) => ({
+      ...prev,
+      district: districtName,
+      block_panchayat_name: "", // reset dependent field
+    }));
+
+    if (!districtName) {
+      setBlockPanchayats([]);
+      setLoadingdist(false);
+      return;
+    }
+
+    try {
+      const response = await getBlockPanchayat({
+        district: districtName, // 👈 passing district name
+      });
+
+      if (response?.result === "success") {
+        setBlockPanchayats(response.list);
+      } else {
+        setBlockPanchayats([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch block panchayat", error);
+      setBlockPanchayats([]);
+    } finally {
+      setLoadingdist(false);
+    }
+  }
+  async function handleGramPanchayatChange(
+    blockPanchayatName: string,
+  ): Promise<void> {
+    setLoadingbp(true);
+
+    // set selected block panchayat in form
+    setFormData((prev) => ({
+      ...prev,
+      block_panchayat_name: blockPanchayatName,
+      gram_panchayat_name: "", // reset dependent field
+    }));
+
+    if (!blockPanchayatName) {
+      setGramPanchayats([]);
+      setLoadingbp(false);
+      return;
+    }
+
+    try {
+      const response = await getGramPanchayat({
+        block_panchayat_name: blockPanchayatName,
+      });
+
+      if (response?.result === "success") {
+        setGramPanchayats(response.list);
+      } else {
+        setGramPanchayats([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch gram panchayat", error);
+      setGramPanchayats([]);
+    } finally {
+      setLoadingbp(false);
+    }
+  }
 
   return (
     <Layout headerTitle="Create Citizen">
@@ -242,45 +328,6 @@ const CreateCitizen = () => {
                 <p className="text-xs text-red-500">{errors.mobile_number}</p>
               )}
             </div>
-
-            {/* Email */}
-            <div>
-              <label className="text-sm font-medium">
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                placeholder="Enter Valid Email"
-                name="email_id"
-                value={formData.email_id}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              />
-              {errors.email_id && (
-                <p className="text-xs text-red-500">{errors.email_id}</p>
-              )}
-            </div>
-
-            {/* Qualification */}
-            <div>
-              <label className="text-sm font-medium">Qualification</label>
-              <select
-                name="qualification"
-                value={formData.qualification}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              >
-                <option value="">Select</option>
-                {qualifications.map((q) => (
-                  <option key={q} value={q}>
-                    {q}
-                  </option>
-                ))}
-              </select>
-              {errors.qualification && (
-                <p className="text-xs text-red-500">{errors.qualification}</p>
-              )}
-            </div>
-
             {/* Age */}
             <div>
               <label className="text-sm font-medium">
@@ -314,36 +361,8 @@ const CreateCitizen = () => {
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">
-                Father Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                placeholder="Enter Father Name"
-                name="father_name"
-                value={formData.father_name}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              />
-              {errors.father_name && (
-                <p className="text-xs text-red-500">{errors.father_name}</p>
-              )}
-            </div>
-            <div>
-              <label className="text-sm font-medium">
-                Mother Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                placeholder="Enter Mother Name"
-                name="mother_name"
-                value={formData.mother_name}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              />
-              {errors.mother_name && (
-                <p className="text-xs text-red-500">{errors.mother_name}</p>
+              {errors.work_shop_id && (
+                <p className="text-xs text-red-500">{errors.work_shop_id}</p>
               )}
             </div>
             {/* Gender */}
@@ -368,15 +387,45 @@ const CreateCitizen = () => {
                 <p className="text-xs text-red-500">{errors.gender}</p>
               )}
             </div>
+            <div>
+              <label className="text-sm font-medium">
+                Occupation <span className="text-red-500">*</span>
+              </label>
+
+              <select
+                name="occupation"
+                value={formData.occupation}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    occupation: e.target.value, // 👈 ID stored
+                  }))
+                }
+                className="w-full border rounded-md px-3 py-2"
+              >
+                <option value="">Select Occupation</option>
+
+                {occupation.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.occupation} {/* 👈 shown to user */}
+                  </option>
+                ))}
+              </select>
+              {errors.occupation && (
+                <p className="text-xs text-red-500">{errors.occupation}</p>
+              )}
+            </div>
 
             {/* District */}
             <div>
-              <label className="text-sm font-medium">District</label>
+              <label className="text-sm font-medium">
+                District <span className="text-red-500">*</span>
+              </label>
 
               <select
                 name="district"
                 value={formData.district}
-                onChange={handleChange}
+                onChange={(e) => handleLocationChange(e.target.value)}
                 className="w-full border rounded-md px-3 py-2"
               >
                 <option value="">Select District</option>
@@ -386,48 +435,91 @@ const CreateCitizen = () => {
                   </option>
                 ))}
               </select>
+              {loadingdist && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Fetching data...
+                </div>
+              )}
 
               {errors.district && (
                 <p className="text-xs text-red-500">{errors.district}</p>
               )}
             </div>
-
-            {/* State */}
             <div>
-              <label className="text-sm font-medium">State</label>
-              <input
-                type="text"
-                name="state"
-                value={formData.state}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-                  setFormData((prev) => ({ ...prev, state: value }));
-                }}
+              <label className="text-sm font-medium">
+                Block Panchayat <span className="text-red-500">*</span>
+              </label>
+
+              <select
+                name="block_panchayat_name"
+                value={formData.block_panchayat_name}
+                onChange={(e) => handleGramPanchayatChange(e.target.value)}
                 className="w-full border rounded-md px-3 py-2"
-                placeholder="Enter State"
-              />
-              {errors.state && (
-                <p className="text-xs text-red-500">{errors.state}</p>
+                disabled={!blockPanchayats.length}
+              >
+                <option value="">Select Block Panchayat</option>
+
+                {blockPanchayats.map((bp) => (
+                  <option
+                    key={bp.block_panchayat_name}
+                    value={bp.block_panchayat_name}
+                  >
+                    {bp.block_panchayat_name}
+                  </option>
+                ))}
+              </select>
+              {loadingbp && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Fetching data...
+                </div>
+              )}
+              {errors.block_panchayat_name && (
+                <p className="text-xs text-red-500">
+                  {errors.block_panchayat_name}
+                </p>
               )}
             </div>
-
-            {/* Pincode */}
             <div>
-              <label className="text-sm font-medium">Pincode</label>
-              <input
-                type="text"
-                name="pincode"
-                value={formData.pincode}
+              <label className="text-sm font-medium">
+                Gram Panchayat <span className="text-red-500">*</span>
+              </label>
+
+              <select
+                name="gram_panchayat_name"
+                value={formData.gram_panchayat_name}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-                  setFormData((prev) => ({ ...prev, pincode: value }));
+                  const selectedGP = gramPanchayats.find(
+                    (gp) => gp.gram_panchayat_name === e.target.value,
+                  );
+
+                  setFormData((prev) => ({
+                    ...prev,
+                    gram_panchayat_name: selectedGP?.gram_panchayat_name || "",
+                    gram_panchayat_code: selectedGP?.gram_panchayat_code || "",
+                  }));
                 }}
                 className="w-full border rounded-md px-3 py-2"
-                placeholder="Enter 6-digit Pincode"
-                inputMode="numeric"
-              />
-              {errors.pincode && (
-                <p className="text-xs text-red-500">{errors.pincode}</p>
+                disabled={!gramPanchayats.length || loadingdist}
+              >
+                <option value="">
+                  {loadingdist ? "Loading..." : "Select Gram Panchayat"}
+                </option>
+
+                {gramPanchayats.map((gp) => (
+                  <option
+                    key={gp.gram_panchayat_name}
+                    value={gp.gram_panchayat_name}
+                  >
+                    {gp.gram_panchayat_code} - {gp.gram_panchayat_name}
+                  </option>
+                ))}
+              </select>
+              {errors.gram_panchayat_name && (
+                <p className="text-xs text-red-500">
+                  {errors.gram_panchayat_name}
+                </p>
               )}
             </div>
           </div>

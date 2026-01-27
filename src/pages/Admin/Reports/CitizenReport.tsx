@@ -172,8 +172,10 @@ export const CitizenReport = () => {
               className="w-full border p-2 rounded"
             >
               <option value="">Select</option>
+              <option value="All">All</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
+              <option value="Others">Others</option>
             </select>
           </div>
 

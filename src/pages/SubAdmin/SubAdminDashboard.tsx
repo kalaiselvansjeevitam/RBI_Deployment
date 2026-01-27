@@ -199,7 +199,7 @@ const DashboardSubAdmin = () => {
             Gender-wise Distribution
           </h2>
 
-          {loadingDistrictData ? (
+          {loadingCards ? (
             <div className="flex justify-center py-6">
               <Loader className="w-6 h-6 animate-spin text-blue-600" />
             </div>
@@ -217,9 +217,9 @@ const DashboardSubAdmin = () => {
 /* -------------------- CARD COMPONENT -------------------- */
 
 const Card = ({ title, value }: { title: string; value: string }) => (
-  <div className="bg-white rounded-2xl shadow p-5 text-center">
-    <p className="text-sm font-semibold text-gray-600">{title}</p>
-    <p className="text-2xl font-bold mt-2">{value}</p>
+  <div className="bg-gradient-to-br from-sky-300 to-blue-400 rounded-2xl shadow p-5 text-center">
+    <p className="text-sm font-semibold text-white/90">{title}</p>
+    <p className="text-2xl font-bold mt-2 text-white">{value}</p>
   </div>
 );
 

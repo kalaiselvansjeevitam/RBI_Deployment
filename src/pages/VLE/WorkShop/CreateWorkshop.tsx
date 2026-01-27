@@ -3,14 +3,15 @@ import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import {
   useGetCreateWorkshopParams,
-  useGetDistrictParams,
+  useGetDistrictByLocation,
+  // useGetDistrictParams,
   useGetLocationManagerParams,
 } from "../../../app/core/api/Admin";
 import Swal from "sweetalert2";
 import { Loader } from "lucide-react";
 import type {
-  District,
-  GetDistrictListRes,
+  // District,
+  // GetDistrictListRes,
   LocationType,
 } from "../../../app/lib/types";
 
@@ -26,7 +27,9 @@ const CreateWorkshop = () => {
     vle_id: "",
     location: "",
     district: "",
-    pincode: "",
+    block_panchayat: "",
+    gram_panchayat: "",
+    gram_panchayat_code: "",
   });
   useEffect(() => {
     setFormData((prev) => ({
@@ -44,28 +47,56 @@ const CreateWorkshop = () => {
       vle_id: "",
       location: "",
       district: "",
-      pincode: "",
+      gram_panchayat: "",
+      block_panchayat: "",
+      gram_panchayat_code: "",
     });
   }
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const { mutateAsync: getDistricts } = useGetDistrictParams();
-  useEffect(() => {
-    const fetchDistricts = async () => {
-      try {
-        const res: GetDistrictListRes = await getDistricts();
-        if (res?.result === "success") {
-          setDistricts(res.list);
-        }
-      } catch (error) {
-        console.error("Failed to fetch districts", error);
-      }
-    };
+  // const [districts, setDistricts] = useState<District[]>([]);
+  // const { mutateAsync: getDistricts } = useGetDistrictParams();
+  const { mutateAsync: getDistrictByLocation } = useGetDistrictByLocation();
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
-    fetchDistricts();
-  }, [getDistricts]);
+  const handleLocationChange = async (locationId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      location: locationId,
+      district: "",
+      block_panchayat: "",
+      gram_panchayat: "",
+    }));
+    setLocationError("");
+
+    if (!locationId) return;
+
+    try {
+      setLocationLoading(true);
+
+      const res = await getDistrictByLocation({
+        location_id: Number(locationId), // ✅ IMPORTANT
+      });
+
+      if (res?.result === "success" && res.list?.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          district: res.list[0].district,
+          gram_panchayat: res.list[0].gram_panchayat,
+          block_panchayat: res.list[0].block_panchayat,
+          gram_panchayat_code: res.list[0].gram_panchayat_code,
+        }));
+      } else {
+        setLocationError("No district found for this location");
+      }
+    } catch {
+      setLocationError("Failed to fetch district details");
+    } finally {
+      setLocationLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchLocations();
@@ -92,11 +123,6 @@ const CreateWorkshop = () => {
     if (name === "workshop_name") {
       const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
       setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
-      return;
-    }
-    if (name === "pincode") {
-      const digitsOnly = value.replace(/\D/g, "").slice(0, 6);
-      setFormData((prev) => ({ ...prev, [name]: digitsOnly }));
       return;
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -158,14 +184,6 @@ const CreateWorkshop = () => {
     if (!formData.location) newErrors.location = "location is required";
     // ✅ district (text only)
     if (!formData.district) newErrors.district = "district is required";
-
-    // ✅ Pincode (6-digit numeric)
-    if (!formData.pincode) {
-      newErrors.pincode = "Pincode is required";
-    } else if (!/^\d{6}$/.test(formData.pincode)) {
-      newErrors.pincode = "Pincode must be 6 digits";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -295,12 +313,7 @@ const CreateWorkshop = () => {
                 <select
                   name="location"
                   value={formData.location}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      location: e.target.value,
-                    }))
-                  }
+                  onChange={(e) => handleLocationChange(e.target.value)}
                   className="w-full border rounded-md px-3 py-2"
                 >
                   <option value="">Select Location</option>
@@ -317,25 +330,29 @@ const CreateWorkshop = () => {
                 )}
               </div>
             </div>
+            {locationLoading && (
+              <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                <Loader className="w-4 h-4 animate-spin" />
+                Fetching data...
+              </div>
+            )}
+
+            {locationError && (
+              <p className="text-xs text-red-500 mt-1">{locationError}</p>
+            )}
+
             <div>
               <label className="text-sm font-medium">
                 District <span className="text-red-500">*</span>
               </label>
 
-              <select
-                name="district" // 👈 stays "district"
+              <input
+                name="district"
                 value={formData.district}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
-              >
-                <option value="">Select District</option>
-
-                {districts.map((d) => (
-                  <option key={d.id} value={d.district}>
-                    {d.district}
-                  </option>
-                ))}
-              </select>
+                readOnly
+                className="w-full border rounded-md px-3 py-2 bg-gray-100"
+                placeholder="Auto-filled Based On Selecting Location"
+              />
 
               {errors.district && (
                 <p className="text-xs text-red-500">{errors.district}</p>
@@ -344,19 +361,38 @@ const CreateWorkshop = () => {
 
             <div>
               <label className="text-sm font-medium">
-                Pincode <span className="text-red-500">*</span>
+                Block Panchayat <span className="text-red-500">*</span>
               </label>
               <input
-                name="pincode"
-                value={formData.pincode}
-                onChange={handleChange}
-                maxLength={6}
-                inputMode="numeric"
-                className="w-full border rounded-md px-3 py-2"
-                placeholder="6 digit pincode"
+                name="block_panchayat"
+                value={formData.block_panchayat}
+                readOnly
+                className="w-full border rounded-md px-3 py-2 bg-gray-100"
+                placeholder="Auto-filled Based On Selecting Location"
               />
-              {errors.pincode && (
-                <p className="text-xs text-red-500 mt-1">{errors.pincode}</p>
+
+              {errors.block_panchayat && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.block_panchayat}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">
+                Gram Panchayat <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="gram_panchayat"
+                value={formData.gram_panchayat}
+                readOnly
+                className="w-full border rounded-md px-3 py-2 bg-gray-100"
+                placeholder="Auto-filled Based On Selecting Location"
+              />
+
+              {errors.gram_panchayat && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.gram_panchayat}
+                </p>
               )}
             </div>
           </div>

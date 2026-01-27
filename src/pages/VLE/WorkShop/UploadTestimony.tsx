@@ -33,6 +33,7 @@ const UploadTestimony = () => {
   const [loading, setLoading] = useState(false);
   const [fileProcessing, setFileProcessing] = useState(false);
   const [countLoading, setCountLoading] = useState(false);
+  const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
 
   // ✅ existing uploaded count
   const [existingCount, setExistingCount] = useState({
@@ -157,6 +158,10 @@ const UploadTestimony = () => {
   /* ---------------- Submit ---------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedDisclaimer) {
+      setError("Please accept the disclaimer before uploading testimony");
+      return;
+    }
 
     if (!selectedWorkshop || !fileType || files.length === 0) {
       setError("Please select workshop, file type and upload files");
@@ -302,7 +307,8 @@ const UploadTestimony = () => {
           />
 
           {/* ================= Upload Box ================= */}
-          <div className="border-2 border-dashed rounded p-4">
+          {/* ================= Upload Box ================= */}
+          <div className="border-2 border-dashed rounded p-4 space-y-1">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">
                 {fileType === "image" &&
@@ -328,6 +334,15 @@ const UploadTestimony = () => {
               </Button>
             </div>
 
+            {/* File size hint */}
+            {fileType && (
+              <p className="text-xs text-gray-600">
+                {fileType === "image"
+                  ? "Only image files up to 5 MB are allowed."
+                  : "Only MP4 video files up to 20 MB are allowed."}
+              </p>
+            )}
+
             {/* Selected Files */}
             {files.map((f, i) => (
               <div
@@ -349,7 +364,7 @@ const UploadTestimony = () => {
           </div>
 
           {/* ================= Notes ================= */}
-          <div>
+          {/* <div>
             <label className="text-sm font-medium">Notes</label>
             <textarea
               value={notes}
@@ -357,12 +372,40 @@ const UploadTestimony = () => {
               className="w-full border rounded px-3 py-2 mt-1"
               placeholder="Notes (optional)"
             />
-          </div>
+          </div> */}
 
           {/* ================= Error ================= */}
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           {/* ================= Submit ================= */}
+          {/* ================= Disclaimer ================= */}
+          <div className="border border-yellow-400 bg-yellow-50 rounded p-4 text-sm space-y-2">
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={acceptedDisclaimer}
+                onChange={(e) => setAcceptedDisclaimer(e.target.checked)}
+                className="mt-1"
+              />
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold text-yellow-800">
+                  Disclaimer:
+                </span>{" "}
+                I confirm that the uploaded data has been shared with valid
+                consent and is in compliance with the{" "}
+                <a
+                  href="https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9f04e6fb4f8fef35e82c42aa5.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  Digital Personal Data Protection (DPDP) Act, 2023
+                </a>
+                . *
+              </p>
+            </div>
+          </div>
+
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? <Loader className="animate-spin" /> : "Upload"}
           </Button>

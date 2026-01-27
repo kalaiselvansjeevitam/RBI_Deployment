@@ -17,8 +17,10 @@ import { useEffect, useState } from "react";
 import React from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useNavigate } from "react-router-dom";
-import { ROUTE_URL } from "../../../app/core/constants/coreUrl";
+// import { useNavigate } from "react-router-dom";
+// import { ROUTE_URL } from "../../../app/core/constants/coreUrl";
+import AdminViewSheet from "./shared/AdminViewSheet";
+import { Button } from "../../../app/components/ui/button";
 
 export const ViewManageSession = () => {
   const [loader, setLoader] = useState(false);
@@ -33,6 +35,9 @@ export const ViewManageSession = () => {
   const { mutateAsync: getWorkshopStatuses } = useGetWorkShopParams();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: getVles } = useGetVleParams();
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(
+    null,
+  );
 
   const clearFilters = () => {
     setDistrictFilter("");
@@ -70,6 +75,7 @@ export const ViewManageSession = () => {
   const [vleIdfilter, setVleIdFilter] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const [open, setOpen] = useState(false);
   const formatDate = (date?: Date) => {
     if (!date) return "";
     return date.toISOString().split("T")[0]; // YYYY-MM-DD
@@ -183,12 +189,12 @@ export const ViewManageSession = () => {
     }
   };
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-  const handleViewTestimony = (workshopId: string) => {
-    // Navigate to the testimony page and pass workshop_id
-    navigate(`${ROUTE_URL.testimonyByWorkshop}?workshop_id=${workshopId}`);
-  };
+  // const handleViewTestimony = (workshopId: string) => {
+  //   // Navigate to the testimony page and pass workshop_id
+  //   navigate(`${ROUTE_URL.testimonyByWorkshop}?workshop_id=${workshopId}`);
+  // };
   const tableContents: Column[] = [
     { key: "workshop_id", label: "Workshop ID", align: "center" },
     { key: "workshop_name", label: "Workshop Name", align: "center" },
@@ -208,16 +214,19 @@ export const ViewManageSession = () => {
     { key: "vle_mobile_number", label: "VLE Mobile Number", align: "center" },
     { key: "vle_name", label: "VLE Name", align: "center" },
     {
-      key: "view_testimony",
-      label: "View Testimony",
+      key: "view",
+      label: "View",
       align: "center",
-      render: (_: any, row: Workshop) => (
-        <button
-          onClick={() => handleViewTestimony(row.workshop_id)}
-          className="bg-blue-600 text-white px-2 py-1 rounded-md text-sm"
+      render: (_value, row: Workshop) => (
+        <Button
+          size="sm"
+          onClick={() => {
+            setSelectedWorkshopId(row.workshop_id);
+            setOpen(true);
+          }}
         >
           View
-        </button>
+        </Button>
       ),
     },
     {
@@ -257,7 +266,9 @@ export const ViewManageSession = () => {
     <button
       onClick={onClick}
       ref={ref}
-      className="border border-gray-700 rounded-md p-1 text-sm w-[140px] text-left"
+      className={`border border-gray-700 rounded-md px-3 py-2 text-sm w-[180px] text-left
+        ${value ? "text-black font-bold" : "text-gray-400 font-normal"}
+      `}
     >
       {value || "Select Date"}
     </button>
@@ -271,105 +282,118 @@ export const ViewManageSession = () => {
 
   return (
     <Layout headerTitle="View Session">
+      <div className="mt-4 px-4 space-y-4 w-full">
+        {/* Row 1: All Filters */}
+        <div className="flex items-end justify-between w-full pl-10">
+          <div className="flex flex-col w-[180px] text-black">
+            <span className="text-sm font-semibold text-black-900 mb-1">
+              From
+            </span>
+            <ReactDatePicker
+              selected={startDate}
+              onChange={(date: any) =>
+                setStartDate(normalizeDate(date || undefined))
+              }
+              dateFormat="dd/MM/yyyy"
+              customInput={<CustomInput />}
+              popperClassName="z-50"
+            />
+          </div>
+
+          <div className="flex flex-col w-[180px]">
+            <span className="text-sm font-semibold text-black-900 mb-1">
+              To
+            </span>
+            <ReactDatePicker
+              selected={endDate}
+              onChange={(date: any) =>
+                setEndDate(normalizeDate(date || undefined))
+              }
+              dateFormat="dd/MM/yyyy"
+              minDate={startDate}
+              customInput={<CustomInput />}
+              popperClassName="z-50"
+            />
+          </div>
+
+          <div className="flex flex-col w-[200px]">
+            <span className="text-sm font-semibold mb-1">Status</span>
+            <select
+              value={workshopStatusfilter}
+              onChange={(e) => setWorkshopStatusFilter(e.target.value)}
+              className={`border border-gray-700 rounded-md px-2 py-2 text-sm
+          ${workshopStatusfilter ? "text-black-900 font-bold" : "text-black-100"}
+        `}
+            >
+              <option value="">Select Status</option>
+              {statusList.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col w-[200px]">
+            <span className="text-sm font-semibold mb-1">District</span>
+            <select
+              value={districtfilter}
+              onChange={(e) => setDistrictFilter(e.target.value)}
+              className={`border border-gray-700 rounded-md px-2 py-2 text-sm
+          ${districtfilter ? "text-black-900 font-bold" : "text-black-100"}
+        `}
+            >
+              <option value="">Select District</option>
+              {districtList.map((d: any) => (
+                <option key={d.id} value={d.district}>
+                  {d.district}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col w-[220px]">
+            <span className="text-sm font-semibold mb-1">VLE</span>
+            <select
+              value={vleIdfilter}
+              onChange={(e) => setVleIdFilter(e.target.value)}
+              className={`border border-gray-700 rounded-md px-2 py-2 text-sm
+          ${vleIdfilter ? "text-black-900 font-bold" : "text-black-100"}
+        `}
+            >
+              <option value="">Select VLE</option>
+              {vleList.map((v: any) => (
+                <option key={v.unique_user_id} value={v.unique_user_id}>
+                  {v.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Row 2: Buttons only */}
+        <div className="flex justify-end gap-4 w-full">
+          <button
+            onClick={() => {
+              setCurrentPage(0);
+              fetchData();
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-semibold"
+          >
+            Apply
+          </button>
+
+          <button
+            onClick={clearFilters}
+            className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-md text-sm font-semibold"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
       <div className="flex justify-between items-center flex-wrap gap-4 text-sm mt-3 px-4 pt-3">
         {/* Left-aligned count */}
         <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>
-      </div>
-      <div className="flex justify-center items-center gap-4 mx-auto">
-        <label className="flex items-center space-x-2 font-bold">
-          <span>From:</span>
-          <ReactDatePicker
-            dateFormat={"dd/MM/yyyy"}
-            selected={startDate}
-            onChange={(date: any) =>
-              setStartDate(normalizeDate(date || undefined))
-            }
-            placeholderText="Select Start Date"
-            className="border border-gray-700 rounded-md p-1 text-sm w-[140px]"
-            popperClassName="z-50"
-            customInput={<CustomInput />}
-          />
-        </label>
-
-        <label className="flex items-center space-x-2 font-bold">
-          <span>To:</span>
-          <ReactDatePicker
-            dateFormat={"dd/MM/yyyy"}
-            selected={endDate}
-            onChange={(date: any) =>
-              setEndDate(normalizeDate(date || undefined))
-            }
-            placeholderText="Select End Date"
-            className="border border-gray-700 rounded-md p-1 text-sm w-[140px]"
-            minDate={startDate}
-            popperClassName="z-50"
-            customInput={<CustomInput />}
-          />
-        </label>
-
-        <label className="flex items-center space-x-2 font-bold">
-          <span>Status:</span>
-          <select
-            value={workshopStatusfilter}
-            onChange={(e) => setWorkshopStatusFilter(e.target.value)}
-            className="border border-gray-700 rounded-md p-1 text-sm w-[150px]"
-          >
-            <option value="">Select Status</option>
-            {statusList.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex items-center space-x-2 font-bold">
-          <span>District:</span>
-          <select
-            value={districtfilter}
-            onChange={(e) => setDistrictFilter(e.target.value)}
-            className="border border-gray-700 rounded-md p-1 text-sm w-[150px]"
-          >
-            <option value="">Select District</option>
-            {districtList.map((d: any) => (
-              <option key={d.id} value={d.district}>
-                {d.district}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="flex items-center space-x-2 font-bold">
-          <span>VLE:</span>
-          <select
-            value={vleIdfilter}
-            onChange={(e) => setVleIdFilter(e.target.value)}
-            className="border border-gray-700 rounded-md p-1 text-sm w-[150px]"
-          >
-            <option value="">Select VLE</option>
-            {vleList.map((v: any) => (
-              <option key={v.unique_user_id} value={v.unique_user_id}>
-                {v.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button
-          onClick={() => {
-            setCurrentPage(0);
-            fetchData();
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
-        >
-          Apply Filters
-        </button>
-        <button
-          onClick={clearFilters}
-          className="bg-gray-400 text-white px-4 py-2 rounded-md text-sm"
-        >
-          Clear Filters
-        </button>
       </div>
 
       <div className="mt-3">
@@ -388,6 +412,11 @@ export const ViewManageSession = () => {
           />
         )}
       </div>
+      <AdminViewSheet
+        open={open}
+        workshopId={selectedWorkshopId}
+        openClose={() => setOpen(false)}
+      />
     </Layout>
   );
 };

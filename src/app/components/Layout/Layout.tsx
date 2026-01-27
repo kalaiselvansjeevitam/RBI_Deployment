@@ -38,7 +38,7 @@ const Layout = ({
             css={css}
             toolbar={toolbar}
             onMenuClick={() => setMobileOpen(true)}
-            onLogoClick={() => setDesktopOpen((prev) => !prev)} // toggle sidebar
+            // onLogoClick={() => setDesktopOpen((prev) => !prev)} // toggle sidebar
           />
 
           <div className="flex-1 bg-lightBlue p-4 pt-[64px] font-dmSans">

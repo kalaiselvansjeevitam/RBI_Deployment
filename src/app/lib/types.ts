@@ -46,6 +46,11 @@ export interface WorkshopByFiltersData {
   to_time: string;
   vle_name: string;
   work_shop_status: string;
+  district: string;
+  block_panchayat: string;
+  gram_panchayat: string;
+  gram_panchayat_code: string;
+  location: string;
   checklist: string;
   total_citizens: string;
   videos_count: string;
@@ -144,13 +149,12 @@ export interface GetCitizenbyCardRes {
     {
       name: string;
       mobile_number: string;
-      email_id: string;
-      qualification: string;
       age: string;
       gender: string;
-      father_name: string;
-      mother_name: string;
-      address: string;
+      occupation_name: string;
+      gram_panchayat: string;
+      block_panchayat: string;
+      district: string;
       created_at: string;
     },
   ];
@@ -218,7 +222,9 @@ export interface LocationType {
   center_name: string;
   center_address: string;
   district: string;
-  pincode: string;
+  block_panchayat: string;
+  gram_panchayat: string;
+  gram_panchayat_code: string;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -355,4 +361,48 @@ export interface districtWiseWorkshopBarGraphRes {
   result: string;
   message: string;
   list: districtWiseWorkshopBarGraph[];
+}
+
+export interface districtByLocationResponse {
+  result: string;
+  message: string;
+  list: districtByLocation[];
+}
+export interface districtByLocation {
+  district: string;
+  gram_panchayat: string;
+  block_panchayat: string;
+  gram_panchayat_code: string;
+}
+
+export interface BlockPanchayatRes {
+  block_panchayat_name: string;
+}
+
+export interface BlockPanchayatResponse {
+  result: string;
+  message: string;
+  list: BlockPanchayatRes[];
+}
+
+export interface GramPanchayatRes {
+  gram_panchayat_code: string;
+  gram_panchayat_name: string;
+}
+
+export interface GramPanchayatResponse {
+  result: string;
+  message: string;
+  list: GramPanchayatRes[];
+}
+
+export interface occupationRes {
+  id: string;
+  occupation: string;
+}
+
+export interface occupationResponse {
+  result: string;
+  message: string;
+  list: occupationRes[];
 }

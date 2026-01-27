@@ -55,21 +55,26 @@ const ViewCitizenByCard = () => {
   const columns: Column[] = [
     { key: "id", label: "ID", align: "center" },
     { key: "name", label: "Name", align: "left" },
-    { key: "mobile_number", label: "Phone", align: "center" },
-    { key: "email_id", label: "Email", align: "left" },
-    { key: "qualification", label: "Qualification", align: "left" },
-    { key: "gender", label: "Gender", align: "center" },
+    { key: "mobile_number", label: "Mobile", align: "center" },
     { key: "age", label: "Age", align: "left" },
-    { key: "father_name", label: "Father Name", align: "left" },
-    { key: "mother_name", label: "Mother Name", align: "left" },
-    { key: "address", label: "Address", align: "left" },
+    { key: "gender", label: "Gender", align: "center" },
+    { key: "district", label: "District", align: "center" },
+    { key: "occupation_name", label: "Occupation", align: "center" },
+    {
+      key: "gram_panchayat_",
+      label: "Gram Panchayat",
+      align: "center",
+      render: (_value, row) =>
+        `${row.gram_panchayat_code} - ${row.gram_panchayat}`,
+    },
+    { key: "block_panchayat", label: "Block Panchayat", align: "center" },
     { key: "created_at", label: "Registered On", align: "center" },
   ];
 
   const navigate = useNavigate();
   return (
     <Layout headerTitle="View Citizen Details">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between pt-10 pl-10 pr-10">
         {/* Total count */}
         <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>
 

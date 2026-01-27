@@ -10,8 +10,15 @@ import {
   useUpdateLocationManager,
   useDeleteLocationManager,
   useGetDistrictParams,
+  useGetBlockPanchayat,
+  useGetGramPanchayat,
 } from "../../../app/core/api/Admin";
-import type { District, LocationType } from "../../../app/lib/types";
+import type {
+  BlockPanchayatRes,
+  District,
+  GramPanchayatRes,
+  LocationType,
+} from "../../../app/lib/types";
 
 export const ViewLocationManagerPage = () => {
   const { mutateAsync: getLocations } = useGetLocationManagerParams();
@@ -26,6 +33,14 @@ export const ViewLocationManagerPage = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 10;
   const [districtList, setDistrictList] = useState<District[]>([]);
+  const { mutateAsync: getBlockPanchayat } = useGetBlockPanchayat();
+  const { mutateAsync: getGramPanchayat } = useGetGramPanchayat();
+  const [blockPanchayats, setBlockPanchayats] = useState<BlockPanchayatRes[]>(
+    [],
+  );
+  const [gramPanchayats, setGramPanchayats] = useState<GramPanchayatRes[]>([]);
+  const [loadingdist, setLoadingdist] = useState(false);
+  const [loadingbp, setLoadingbp] = useState(false);
   useEffect(() => {
     const loadDistricts = async () => {
       try {
@@ -74,9 +89,69 @@ export const ViewLocationManagerPage = () => {
   }, [currentPage]);
 
   // ---------- Edit ----------
-  const handleEdit = (row: LocationType) => {
+  const handleEdit = async (row: LocationType) => {
     setSelectedLocation(row);
     setIsEditOpen(true);
+
+    // preload block panchayats
+    if (row.district) {
+      setLoadingbp(true);
+      const bpRes = await getBlockPanchayat({ district: row.district });
+      setBlockPanchayats(bpRes?.list ?? []);
+      setLoadingbp(false);
+    }
+
+    // preload gram panchayats
+    if (row.block_panchayat) {
+      setLoadingdist(true);
+      const gpRes = await getGramPanchayat({
+        block_panchayat_name: row.block_panchayat,
+      });
+      setGramPanchayats(gpRes?.list ?? []);
+      setLoadingdist(false);
+    }
+  };
+  const handleEditDistrictChange = async (district: string) => {
+    if (!selectedLocation) return;
+
+    setSelectedLocation({
+      ...selectedLocation,
+      district,
+      block_panchayat: "",
+      gram_panchayat: "",
+    });
+
+    if (!district) {
+      setBlockPanchayats([]);
+      setGramPanchayats([]);
+      return;
+    }
+
+    setLoadingbp(true);
+    const res = await getBlockPanchayat({ district });
+    setBlockPanchayats(res?.list ?? []);
+    setLoadingbp(false);
+  };
+  const handleEditBlockChange = async (block: string) => {
+    if (!selectedLocation) return;
+
+    setSelectedLocation({
+      ...selectedLocation,
+      block_panchayat: block,
+      gram_panchayat: "",
+    });
+
+    if (!block) {
+      setGramPanchayats([]);
+      return;
+    }
+
+    setLoadingdist(true);
+    const res = await getGramPanchayat({
+      block_panchayat_name: block,
+    });
+    setGramPanchayats(res?.list ?? []);
+    setLoadingdist(false);
   };
 
   // ---------- Delete ----------
@@ -111,7 +186,14 @@ export const ViewLocationManagerPage = () => {
     { key: "center_name", label: "Center Name", align: "left" },
     { key: "center_address", label: "Address", align: "left" },
     { key: "district", label: "District", align: "center" },
-    { key: "pincode", label: "Pincode", align: "center" },
+    {
+      key: "gram_panchayat_",
+      label: "Gram Panchayat",
+      align: "center",
+      render: (_value, row) =>
+        `${row.gram_panchayat_code} - ${row.gram_panchayat}`,
+    },
+    { key: "block_panchayat", label: "Block Panchayat", align: "center" },
     {
       key: "created_at",
       label: "Created At",
@@ -188,21 +270,6 @@ export const ViewLocationManagerPage = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Pincode</label>
-              <input
-                value={selectedLocation.pincode}
-                onChange={(e) =>
-                  setSelectedLocation({
-                    ...selectedLocation,
-                    pincode: e.target.value.replace(/\D/g, ""),
-                  })
-                }
-                maxLength={6}
-                className="w-full border p-2 rounded"
-              />
-            </div>
-
-            <div>
               <label className="text-sm font-medium">Address</label>
               <textarea
                 value={selectedLocation.center_address}
@@ -220,18 +287,70 @@ export const ViewLocationManagerPage = () => {
               <label className="text-sm font-medium">District</label>
               <select
                 value={selectedLocation.district}
-                onChange={(e) =>
-                  setSelectedLocation({
-                    ...selectedLocation,
-                    district: e.target.value,
-                  })
-                }
+                onChange={(e) => handleEditDistrictChange(e.target.value)}
                 className="w-full border p-2 rounded"
               >
                 <option value="">Select District</option>
                 {districtList.map((d) => (
                   <option key={d.id} value={d.district}>
                     {d.district}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Block Panchayat</label>
+              <select
+                value={selectedLocation.block_panchayat}
+                onChange={(e) => handleEditBlockChange(e.target.value)}
+                className="w-full border p-2 rounded"
+                disabled={!blockPanchayats.length || loadingbp}
+              >
+                <option value="">
+                  {loadingbp ? "Loading..." : "Select Block Panchayat"}
+                </option>
+                {blockPanchayats.map((bp) => (
+                  <option
+                    key={bp.block_panchayat_name}
+                    value={bp.block_panchayat_name}
+                  >
+                    {bp.block_panchayat_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Gram Panchayat</label>
+              <select
+                value={selectedLocation.gram_panchayat}
+                onChange={(e) => {
+                  const selectedGP = gramPanchayats.find(
+                    (gp) => gp.gram_panchayat_name === e.target.value,
+                  );
+
+                  setSelectedLocation((prev) => {
+                    if (!prev) return prev;
+
+                    return {
+                      ...prev,
+                      gram_panchayat: selectedGP?.gram_panchayat_name ?? "",
+                      gram_panchayat_code:
+                        selectedGP?.gram_panchayat_code ?? "",
+                    };
+                  });
+                }}
+                className="w-full border p-2 rounded"
+                disabled={!gramPanchayats.length || loadingdist}
+              >
+                <option value="">
+                  {loadingdist ? "Loading..." : "Select Gram Panchayat"}
+                </option>
+                {gramPanchayats.map((gp) => (
+                  <option
+                    key={gp.gram_panchayat_name}
+                    value={gp.gram_panchayat_name}
+                  >
+                    {gp.gram_panchayat_code} - {gp.gram_panchayat_name}
                   </option>
                 ))}
               </select>
@@ -252,7 +371,9 @@ export const ViewLocationManagerPage = () => {
                       location_manager_id: Number(selectedLocation.id),
                       center_name: selectedLocation.center_name,
                       district: selectedLocation.district,
-                      pincode: selectedLocation.pincode,
+                      block_panchayat: selectedLocation.block_panchayat,
+                      gram_panchayat: selectedLocation.gram_panchayat,
+                      gram_panchayat_code: selectedLocation.gram_panchayat_code,
                       center_address: selectedLocation.center_address,
                     });
 

@@ -94,12 +94,14 @@ const AdminDashboard = () => {
               {statCards.map((card) => (
                 <div
                   key={card.title}
-                  className="bg-white rounded-2xl shadow p-5 text-center"
+                  className="bg-gradient-to-br from-sky-300 to-blue-400 rounded-2xl shadow p-5 text-center"
                 >
-                  <p className="text-sm font-semibold text-gray-600">
+                  <p className="text-sm font-semibold text-white/90">
                     {card.title}
                   </p>
-                  <p className="text-2xl font-bold mt-2">{card.value}</p>
+                  <p className="text-2xl font-bold mt-2 text-white">
+                    {card.value}
+                  </p>
                 </div>
               ))}
             </div>

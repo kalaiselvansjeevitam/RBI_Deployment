@@ -63,6 +63,11 @@ export const ViewWorkshop = () => {
         to_time: item.to_time || "-",
         vle_name: item.vle_name || "-",
         work_shop_status: item.work_shop_status || "-",
+        district: item.district || "-",
+        block_panchayat: item.block_panchayat || "-",
+        gram_panchayat: item.gram_panchayat || "-",
+        gram_panchayat_code: item.gram_panchayat_code || "-",
+        location: item.location || "-",
         checklist: item.checklist || "",
         total_citizens: item.total_citizens || "0",
         videos_count: item.videos_count || "0",
@@ -115,6 +120,11 @@ export const ViewWorkshop = () => {
         to_time: item.to_time || "-",
         vle_name: item.vle_name || "-",
         work_shop_status: item.work_shop_status || "-",
+        district: item.district || "-",
+        block_panchayat: item.block_panchayat || "-",
+        gram_panchayat: item.gram_panchayat || "-",
+        gram_panchayat_code: item.gram_panchayat_code || "-",
+        location: item.location || "-",
         checklist: item.checklist || "",
         total_citizens: item.total_citizens || "0",
         videos_count: item.videos_count || "0",
@@ -317,6 +327,16 @@ export const ViewWorkshop = () => {
     },
     { key: "vle_name", label: "VLE Name", align: "center" },
     { key: "work_shop_status", label: "Workshop Status", align: "center" },
+    { key: "location", label: "Location", align: "center" },
+    { key: "district", label: "District", align: "center" },
+    { key: "block_panchayat", label: "Block Panchayat", align: "center" },
+    {
+      key: "gram_panchayat_",
+      label: "Gram Panchayat",
+      align: "center",
+      render: (_value, row) =>
+        `${row.gram_panchayat_code} - ${row.gram_panchayat}`,
+    },
     {
       key: "view",
       label: "View",
@@ -436,7 +456,7 @@ export const ViewWorkshop = () => {
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
               <option value="Cancelled">Cancelled</option>
-              <option value="PendingforApproval">Pending for Approval</option>
+              {/* <option value="PendingforApproval">Pending for Approval</option> */}
             </select>
           </label>
 

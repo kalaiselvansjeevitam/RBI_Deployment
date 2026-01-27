@@ -33,10 +33,17 @@ import RBIReportsHome from "../../pages/RBI/Reports/RBIReportsHome";
 import DistrictStatusReport from "../../pages/RBI/Reports/DistrictStatusReport";
 import GenderParticipationReport from "../../pages/RBI/Reports/GenderParticipationReport";
 import CitizenDataReport from "../../pages/RBI/Reports/CitizenDataReport";
-import LocationScheduleReport from "../../pages/RBI/Reports/LocationScheduleReport";
-import DistrictPendingCompleteReport from "../../pages/RBI/Reports/DistrictPendingCompleteReport";
-import WorkshopsLt50Report from "../../pages/RBI/Reports/WorkshopsLt50Report";
+// import LocationScheduleReport from "../../pages/RBI/Reports/LocationScheduleReport";
+// import DistrictPendingCompleteReport from "../../pages/RBI/Reports/DistrictPendingCompleteReport";
+// import WorkshopsLt50Report from "../../pages/RBI/Reports/WorkshopsLt50Report";
 import DashboardSubAdmin from "../../pages/SubAdmin/SubAdminDashboard";
+import SubRBIReportsHome from "../../pages/RBI/Reports/RBIReportsHome";
+import SubDistrictStatusReport from "../../pages/SubAdmin/Reports/DistrictStatusReport";
+import SubGenderParticipationReport from "../../pages/SubAdmin/Reports/GenderParticipationReport";
+import SubCitizenDataReport from "../../pages/SubAdmin/Reports/CitizenDataReport";
+import SubLocationScheduleReport from "../../pages/SubAdmin/Reports/LocationScheduleReport";
+import SubDistrictPendingCompleteReport from "../../pages/SubAdmin/Reports/DistrictPendingCompleteReport";
+import SubWorkshopsLt50Report from "../../pages/SubAdmin/Reports/WorkshopsLt50Report";
 
 export const authProtectedRoutes = [
   {
@@ -204,7 +211,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.viewCitizenByCard,
         element: (
-          <RequireRole allowedRoles={["vle"]}>
+          <RequireRole allowedRoles={["vle", "admin"]}>
             <ViewCitizenByCard />
           </RequireRole>
         ),
@@ -237,7 +244,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReports,
         element: (
-          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
+          <RequireRole allowedRoles={["rbi"]}>
             <RBIReportsHome />
           </RequireRole>
         ),
@@ -245,7 +252,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportDistrictStatus,
         element: (
-          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
+          <RequireRole allowedRoles={["rbi"]}>
             <DistrictStatusReport />
           </RequireRole>
         ),
@@ -253,7 +260,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportGenderParticipation,
         element: (
-          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
+          <RequireRole allowedRoles={["rbi"]}>
             <GenderParticipationReport />
           </RequireRole>
         ),
@@ -261,40 +268,96 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportCitizenData,
         element: (
-          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
+          <RequireRole allowedRoles={["rbi"]}>
             <CitizenDataReport />
           </RequireRole>
         ),
       },
-      {
-        path: ROUTE_URL.rbiReportLocationSchedule,
-        element: (
-          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
-            <LocationScheduleReport />
-          </RequireRole>
-        ),
-      },
-      {
-        path: ROUTE_URL.rbiReportDistrictPendingComplete,
-        element: (
-          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
-            <DistrictPendingCompleteReport />
-          </RequireRole>
-        ),
-      },
-      {
-        path: ROUTE_URL.rbiReportWorkshopsLt50,
-        element: (
-          <RequireRole allowedRoles={["rbi", "sub_admin"]}>
-            <WorkshopsLt50Report />
-          </RequireRole>
-        ),
-      },
+      // {
+      //   path: ROUTE_URL.rbiReportLocationSchedule,
+      //   element: (
+      //     <RequireRole allowedRoles={["rbi"]}>
+      //       <LocationScheduleReport />
+      //     </RequireRole>
+      //   ),
+      // },
+      // {
+      //   path: ROUTE_URL.rbiReportDistrictPendingComplete,
+      //   element: (
+      //     <RequireRole allowedRoles={["rbi"]}>
+      //       <DistrictPendingCompleteReport />
+      //     </RequireRole>
+      //   ),
+      // },
+      // {
+      //   path: ROUTE_URL.rbiReportWorkshopsLt50,
+      //   element: (
+      //     <RequireRole allowedRoles={["rbi"]}>
+      //       <WorkshopsLt50Report />
+      //     </RequireRole>
+      //   ),
+      // },
       {
         path: ROUTE_URL.subAdminDashboard,
         element: (
           <RequireRole allowedRoles={["sub_admin"]}>
             <DashboardSubAdmin />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.subAdminReports,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <SubRBIReportsHome />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.subAdminReportDistrictStatus,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <SubDistrictStatusReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.subAdminReportGenderParticipation,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <SubGenderParticipationReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.subAdminReportCitizenData,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <SubCitizenDataReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.subAdminReportLocationSchedule,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <SubLocationScheduleReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.subAdminReportDistrictPendingComplete,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <SubDistrictPendingCompleteReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.subAdminReportWorkshopsLt50,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <SubWorkshopsLt50Report />
           </RequireRole>
         ),
       },

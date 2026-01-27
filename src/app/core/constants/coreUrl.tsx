@@ -40,6 +40,20 @@ export const ROUTE_URL = {
   rbiReportDistrictPendingComplete:
     "/rbi-deployment/admin/rbiReports/district-pending-complete",
   rbiReportWorkshopsLt50: "/rbi-deployment/admin/rbiReports/workshops-lt-50",
+
+  subAdminReports: "/sub-admin-deployment/admin/rbiReports",
+  subAdminReportDistrictStatus:
+    "/sub-admin-deployment/admin/rbiReports/district-status",
+  subAdminReportGenderParticipation:
+    "/sub-admin-deployment/admin/rbiReports/gender-participation",
+  subAdminReportCitizenData:
+    "/sub-admin-deployment/admin/rbiReports/citizen-data",
+  subAdminReportLocationSchedule:
+    "/sub-admin-deployment/admin/rbiReports/location-schedule",
+  subAdminReportDistrictPendingComplete:
+    "/sub-admin-deployment/admin/rbiReports/district-pending-complete",
+  subAdminReportWorkshopsLt50:
+    "/sub-admin-deployment/admin/rbiReports/workshops-lt-50",
 };
 
 export const API_URL = {
@@ -83,6 +97,10 @@ export const API_URL = {
   downloadWorkshop: "/download-workshop-report",
   allStatusCounters: "/allStatusCounters",
   deleteTestimony: "/delete-testimony",
+  getDistrictByLocation: "/getDistrictByLocation",
+  getBlockPanchayat: "/getBlockPanchayat",
+  getGramPanchayat: "/getGramPanchayat",
+  getOccupations: "/getOccupations",
 
   // RBI Reports (DOWNLOAD)
   downloadDistrictWiseWorkshopReport: "/download-district-wise-workshop-report",

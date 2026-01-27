@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
@@ -9,7 +10,7 @@ import {
   useDownloadLocationManagerWiseWorkshopReport,
   useViewLocationManagerWiseWorkshopReport,
 } from "../../../app/core/api/RBIReports";
-import ReportDownloadCard from "./shared/ReportDownloadCard";
+import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 8;
 
@@ -34,23 +35,17 @@ export default function LocationScheduleReport() {
     useViewLocationManagerWiseWorkshopReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
 
-  // Separate state for download card
-  const [downloadDistrict, setDownloadDistrict] = useState("");
-  const [downloadStartDate, setDownloadStartDate] = useState("");
-  const [downloadEndDate, setDownloadEndDate] = useState("");
-
-  // Separate state for table
-  const [tableDistrict, setTableDistrict] = useState("");
-  const [tableStartDate, setTableStartDate] = useState("");
-  const [tableEndDate, setTableEndDate] = useState("");
-
+  // Unified state
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [allRows, setAllRows] = useState<LocationRow[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const canDownload = Boolean(downloadDistrict);
+  const canSubmit = Boolean(selectedDistrict);
 
   // Load districts on mount
   useEffect(() => {
@@ -77,7 +72,7 @@ export default function LocationScheduleReport() {
 
   const fetchData = async () => {
     // District is required
-    if (!tableDistrict) {
+    if (!selectedDistrict) {
       setError("Please select a district to view data");
       setAllRows([]);
       return;
@@ -89,22 +84,18 @@ export default function LocationScheduleReport() {
 
     try {
       const payload: any = {
-        district: tableDistrict,
+        district: selectedDistrict,
         offset: 0,
       };
 
-      if (tableStartDate) {
-        payload.start_date = tableStartDate;
+      if (startDate) {
+        payload.start_date = startDate;
       }
-      if (tableEndDate) {
-        payload.end_date = tableEndDate;
+      if (endDate) {
+        payload.end_date = endDate;
       }
-
-      console.log("Fetching with payload:", payload);
 
       const res = await viewReport(payload);
-
-      console.log("API Response:", res);
 
       if (res?.status !== "Success") {
         setAllRows([]);
@@ -117,6 +108,40 @@ export default function LocationScheduleReport() {
       console.error("Error fetching data:", err);
       setError(err?.message || "An error occurred while fetching data");
       setAllRows([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleDownload = async () => {
+    try {
+      setLoading(true);
+
+      // No filters required for this download
+      const res = await download({
+        district: selectedDistrict,
+        start_date: startDate || undefined,
+        end_date: endDate || undefined,
+      });
+
+      const url =
+        typeof res?.data === "string" && res.data.trim() ? res.data.trim() : "";
+
+      const isSuccessful =
+        String(res?.result ?? "")
+          .trim()
+          .toLowerCase() === "success";
+
+      if (!isSuccessful || !url) {
+        toast.error(res?.message || "Failed to download report");
+        return;
+      }
+
+      // 🔥 DIRECT DOWNLOAD
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.success("Excel report downloaded successfully");
+    } catch (e: any) {
+      console.error("Download failed:", e);
+      toast.error(e?.message || "Failed to download report");
     } finally {
       setLoading(false);
     }
@@ -139,92 +164,32 @@ export default function LocationScheduleReport() {
     const end = Math.min((currentPage + 1) * PAGE_SIZE, allRows.length);
     return `Showing ${start}–${end} of ${allRows.length}`;
   }, [currentPage, allRows.length]);
+  const navigate = useNavigate();
 
   return (
     <Layout headerTitle="Location-wise Workshop Schedule Report">
-      <div className="p-6 space-y-6">
-        {/* Download Card */}
-        <ReportDownloadCard
-          title="Download Location(Center)-Wise Workshop [Scheduled/Pending] Report"
-          description="District is required. Date filters are required."
-          filtersSlot={
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm text-gray-600">
-                  District (required)
-                </label>
-                {districtList.length > 0 ? (
-                  <select
-                    className="border rounded-md h-10 px-3 w-full"
-                    value={downloadDistrict}
-                    onChange={(e) => setDownloadDistrict(e.target.value)}
-                  >
-                    <option value="">Select district</option>
-                    {districtList.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    value={downloadDistrict}
-                    onChange={(e) => setDownloadDistrict(e.target.value)}
-                    placeholder="e.g., Springfield"
-                  />
-                )}
-              </div>
+      <div className="p-6">
+        {/* Merged Card */}
+        <div className="bg-white rounded-2xl shadow p-6 bg-linear-to-br from-white to-gray-50 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">
+              Location (Center)-Wise Workshop Schedule Report
+            </h2>
 
-              <div>
-                <label className="text-sm text-gray-600">
-                  Start Date (required)
-                </label>
-                <Input
-                  type="date"
-                  value={downloadStartDate}
-                  onChange={(e) => setDownloadStartDate(e.target.value)}
-                />
-              </div>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              onClick={() => navigate(-1)}
+            >
+              Back
+            </Button>
+          </div>
 
-              <div>
-                <label className="text-sm text-gray-600">
-                  End Date (required)
-                </label>
-                <Input
-                  type="date"
-                  value={downloadEndDate}
-                  onChange={(e) => setDownloadEndDate(e.target.value)}
-                />
-              </div>
+          <p className="text-sm text-gray-600 mb-6">
+            View report data in the table below and download as Excel. District
+            is required, date filters are required.
+          </p>
 
-              {!canDownload && (
-                <div className="md:col-span-3 text-sm text-amber-600">
-                  Please select district to generate this report.
-                </div>
-              )}
-            </div>
-          }
-          onGenerate={async () => {
-            if (!canDownload) {
-              return {
-                result: "Error",
-                message: "District is required",
-                data: "",
-              };
-            }
-            return download({
-              district: downloadDistrict,
-              start_date: downloadStartDate || undefined,
-              end_date: downloadEndDate || undefined,
-            });
-          }}
-        />
-
-        {/* Table Section */}
-        <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
-          <h2 className="text-lg font-semibold mb-4">View Report Data</h2>
-
-          {/* Table Filters */}
+          {/* Filters and Actions */}
           <div className="grid md:grid-cols-4 gap-4 items-end mb-6">
             <div>
               <label className="text-sm text-gray-600">
@@ -233,8 +198,8 @@ export default function LocationScheduleReport() {
               {districtList.length > 0 ? (
                 <select
                   className="border rounded-md h-10 px-3 w-full"
-                  value={tableDistrict}
-                  onChange={(e) => setTableDistrict(e.target.value)}
+                  value={selectedDistrict}
+                  onChange={(e) => setSelectedDistrict(e.target.value)}
                 >
                   <option value="">Select district</option>
                   {districtList.map((d) => (
@@ -245,38 +210,40 @@ export default function LocationScheduleReport() {
                 </select>
               ) : (
                 <Input
-                  value={tableDistrict}
-                  onChange={(e) => setTableDistrict(e.target.value)}
+                  value={selectedDistrict}
+                  onChange={(e) => setSelectedDistrict(e.target.value)}
                   placeholder="e.g., Springfield"
                 />
               )}
             </div>
+
             <div>
               <label className="text-sm text-gray-600">
                 Start Date (required)
               </label>
               <Input
                 type="date"
-                value={tableStartDate}
-                onChange={(e) => setTableStartDate(e.target.value)}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
+
             <div>
               <label className="text-sm text-gray-600">
                 End Date (required)
               </label>
               <Input
                 type="date"
-                value={tableEndDate}
-                onChange={(e) => setTableEndDate(e.target.value)}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
+                className="cursor-pointer"
                 onClick={fetchData}
-                disabled={loading}
-                className=" cursor-pointer"
+                disabled={loading || !canSubmit}
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -284,16 +251,32 @@ export default function LocationScheduleReport() {
                     Loading
                   </span>
                 ) : (
-                  "Apply"
+                  "View Report"
                 )}
               </Button>
+
               <Button
-                className=" cursor-pointer"
+                className="cursor-pointer"
+                onClick={handleDownload}
+                disabled={loading || !canSubmit}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Downloading
+                  </span>
+                ) : (
+                  "Download Excel"
+                )}
+              </Button>
+
+              <Button
+                className="cursor-pointer"
                 variant="outline"
                 onClick={() => {
-                  setTableDistrict("");
-                  setTableStartDate("");
-                  setTableEndDate("");
+                  setSelectedDistrict("");
+                  setStartDate("");
+                  setEndDate("");
                   setError("");
                   setAllRows([]);
                   setCurrentPage(0);
@@ -303,6 +286,14 @@ export default function LocationScheduleReport() {
               </Button>
             </div>
           </div>
+
+          {/* Validation Message */}
+          {!canSubmit && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
+              Please select a district and date filters to view or generate this
+              report.
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -336,6 +327,23 @@ export default function LocationScheduleReport() {
             </div>
           </div>
 
+          {/* Download Link Display
+          {downloadUrl && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-sm font-medium text-green-800 mb-1">
+                Excel report ready!
+              </div>
+              <a
+                className="text-sm text-blue-600 break-all underline hover:text-blue-800"
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {downloadUrl}
+              </a>
+            </div>
+          )} */}
+
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -361,7 +369,7 @@ export default function LocationScheduleReport() {
                       {loading
                         ? "Loading..."
                         : error ||
-                          "No data found. Please select a district, start + end date and click Apply."}
+                          "No data found. Please select a district and click View Report."}
                     </td>
                   </tr>
                 ) : (

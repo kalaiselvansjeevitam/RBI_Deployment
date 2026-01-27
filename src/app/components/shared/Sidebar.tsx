@@ -19,7 +19,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useWindowSize from "../../core/hooks/windowResize";
 import { ROUTE_URL } from "../../core/constants/coreUrl";
 import { Sheet, SheetContent } from "../ui/sheet";
-import logo from "@/assets/images/csc-logo.svg";
+import logo from "@/assets/images/RBI.png";
 
 /* ---------------- TYPES ---------------- */
 
@@ -155,11 +155,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           icon: Eye,
         },
         {
-          label: "Upload Citizen",
-          href: ROUTE_URL.mapCitizen,
-          icon: Upload,
-        },
-        {
           label: "Upload Files",
           href: ROUTE_URL.uploadTestimony,
           icon: Upload,
@@ -175,6 +170,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           label: "Create Citizens",
           href: ROUTE_URL.createCitizens,
           icon: UserPlus,
+        },
+        {
+          label: "Upload Citizens",
+          href: ROUTE_URL.mapCitizen,
+          icon: Upload,
         },
       ],
     });
@@ -200,7 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     sidebarItems.splice(5, 0, {
       icon: FileText,
       label: "Reports",
-      href: ROUTE_URL.rbiReports,
+      href: ROUTE_URL.rbiReportDistrictStatus,
       children: [
         {
           label: "District Status",
@@ -217,21 +217,21 @@ const Sidebar: React.FC<SidebarProps> = ({
           href: ROUTE_URL.rbiReportCitizenData,
           icon: View,
         },
-        {
-          label: "Location Schedule",
-          href: ROUTE_URL.rbiReportLocationSchedule,
-          icon: View,
-        },
-        {
-          label: "Pending vs Completed",
-          href: ROUTE_URL.rbiReportDistrictPendingComplete,
-          icon: View,
-        },
-        {
-          label: "< 50 Attendees",
-          href: ROUTE_URL.rbiReportWorkshopsLt50,
-          icon: View,
-        },
+        // {
+        //   label: "Location Schedule",
+        //   href: ROUTE_URL.rbiReportLocationSchedule,
+        //   icon: View,
+        // },
+        // {
+        //   label: "Pending vs Completed",
+        //   href: ROUTE_URL.rbiReportDistrictPendingComplete,
+        //   icon: View,
+        // },
+        // {
+        //   label: "< 50 Attendees",
+        //   href: ROUTE_URL.rbiReportWorkshopsLt50,
+        //   icon: View,
+        // },
       ],
     });
   } else if (user_type?.toLowerCase() === "sub_admin") {
@@ -243,36 +243,36 @@ const Sidebar: React.FC<SidebarProps> = ({
     sidebarItems.splice(2, 0, {
       icon: FileText,
       label: "Reports",
-      href: ROUTE_URL.rbiReports,
+      href: ROUTE_URL.subAdminReportDistrictStatus,
       children: [
         {
           label: "District Status",
-          href: ROUTE_URL.rbiReportDistrictStatus,
+          href: ROUTE_URL.subAdminReportDistrictStatus,
           icon: View,
         },
         {
           label: "Gender Participation",
-          href: ROUTE_URL.rbiReportGenderParticipation,
+          href: ROUTE_URL.subAdminReportGenderParticipation,
           icon: View,
         },
         {
           label: "Citizen Data",
-          href: ROUTE_URL.rbiReportCitizenData,
+          href: ROUTE_URL.subAdminReportCitizenData,
           icon: View,
         },
         {
           label: "Location Schedule",
-          href: ROUTE_URL.rbiReportLocationSchedule,
+          href: ROUTE_URL.subAdminReportLocationSchedule,
           icon: View,
         },
         {
           label: "Pending vs Completed",
-          href: ROUTE_URL.rbiReportDistrictPendingComplete,
+          href: ROUTE_URL.subAdminReportDistrictPendingComplete,
           icon: View,
         },
         {
           label: "< 50 Attendees",
-          href: ROUTE_URL.rbiReportWorkshopsLt50,
+          href: ROUTE_URL.subAdminReportWorkshopsLt50,
           icon: View,
         },
       ],
@@ -297,8 +297,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div>
         <Button
           variant="ghost"
-          className={`w-full justify-start ${
-            isActive ? "text-purple" : "text-gray-700"
+          className={`w-full justify-start bg-white ${
+            isActive ? "text-blue-600" : "text-gray-700"
           }`}
           onClick={() => handleNavigation(item.href)}
         >
@@ -313,9 +313,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               <Button
                 key={child.label}
                 variant="ghost"
-                className={`justify-start text-sm ${
+                className={`justify-start text-sm bg-white ${
                   location.pathname === child.href
-                    ? "text-purple bg-gray-100"
+                    ? "text-sky-600"
                     : "text-gray-600"
                 }`}
                 onClick={() => handleNavigation(child.href)}
@@ -335,35 +335,39 @@ const Sidebar: React.FC<SidebarProps> = ({
   const SidebarContent = () => (
     <div
       className={`flex flex-col justify-between bg-white transition-all
-        ${isDesktop ? "h-full" : "h-screen"}
-        ${isDesktop ? (open ? "w-56" : "w-16") : "w-full"}
-      `}
+      ${isDesktop ? "h-full" : "h-screen"}
+      ${isDesktop ? (open ? "w-56" : "w-16") : "w-full"}
+    `}
     >
       {/* TOP */}
       <div
-        className={`h-16 flex items-center ${open ? "justify-start pl-4" : "justify-center"} border-b cursor-pointer`}
+        className={`h-16 flex items-center ${
+          open ? "justify-start pl-4" : "justify-center"
+        } border-b cursor-pointer`}
         onClick={() => isDesktop && setOpen?.(!open)}
       >
         {isDesktop ? (
-          <img
-            src={logo}
-            alt="CSC Logo"
-            className={`h-8 w-auto transition-all duration-200 ${open ? "opacity-100" : "opacity-0"}`}
-          />
+          <>
+            <img
+              src={logo}
+              alt="CSC Logo"
+              className={`h-8 w-auto transition-all duration-200 ${
+                open ? "opacity-100" : "opacity-0"
+              }`}
+            />
+            {!open && <Menu className="h-6 w-6 absolute left-3" />}
+          </>
         ) : (
           <img src={logo} alt="CSC Logo" className="h-8 w-auto" />
         )}
-        {isDesktop && !open && <Menu className="h-6 w-6 absolute left-3" />}
       </div>
 
-      {/* MENU */}
+      {/* MENU ITEMS */}
       <div className="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
         {sidebarItems.map((item) => (
           <SidebarItem key={item.label} item={item} />
         ))}
       </div>
-
-      {/* MOBILE LOGOUT */}
       {!isDesktop && (
         <Button
           variant="ghost"

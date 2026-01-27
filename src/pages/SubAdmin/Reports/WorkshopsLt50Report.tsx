@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 8;
 
-export default function WorkshopsLt50Report() {
+export default function SubWorkshopsLt50Report() {
   const { mutateAsync: fetchLt50 } = useViewCitizenCountLessThan50Report();
   const { mutateAsync: download } = useDownloadCitizenCountLessThan50Report();
   const { mutateAsync: getDistricts } = useGetDistrictParams();

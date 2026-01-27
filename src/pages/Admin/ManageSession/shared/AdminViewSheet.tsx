@@ -109,11 +109,11 @@ const AdminViewSheet = ({ open, workshopId, openClose }: StudentSheetProps) => {
 
   /* ---------- HELPERS ---------- */
 
-  const toggleChecklist = (item: string) => {
-    setCheckedItems((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
-    );
-  };
+  // const toggleChecklist = (item: string) => {
+  //   setCheckedItems((prev) =>
+  //     prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
+  //   );
+  // };
 
   const isChecklistChanged =
     checkedItems.sort().join(",") !== savedChecklist.sort().join(",");
@@ -229,13 +229,12 @@ const AdminViewSheet = ({ open, workshopId, openClose }: StudentSheetProps) => {
       const citizenText = `
 Name: ${citizen.name}
 Mobile Number: ${citizen.mobile_number}
-Email: ${citizen.email_id}
 Age: ${citizen.age}
 Gender: ${citizen.gender}
-Qualification: ${citizen.qualification}
-Father Name: ${citizen.father_name}
-Mother Name: ${citizen.mother_name}
-Address: ${citizen.address}
+Occupation: ${citizen.occupation_name}
+Gram Panchayat: ${citizen.gram_panchayat}
+Block Panchayat: ${citizen.block_panchayat}
+District: ${citizen.district}
 Registered On: ${citizen.created_at}
 `;
 
@@ -360,20 +359,14 @@ Registered On: ${citizen.created_at}
                   {CHECKLIST_ITEMS.map((item) => (
                     <label
                       key={item}
-                      className="flex items-center  text-sm cursor-pointer text-gray-700"
+                      className="flex items-center gap-2 text-sm text-gray-700"
                     >
                       <input
                         type="checkbox"
-                        checked={checkedItems.includes(item)}
-                        disabled={!isEditable || isChecklistComplete}
-                        onChange={() => toggleChecklist(item)}
-                        className={`accent-blue-600 ${
-                          isChecklistComplete
-                            ? "cursor-not-allowed opacity-60"
-                            : ""
-                        }`}
+                        checked={savedChecklist.includes(item)}
+                        disabled
+                        className="accent-blue-600 cursor-not-allowed"
                       />
-
                       {item}
                     </label>
                   ))}

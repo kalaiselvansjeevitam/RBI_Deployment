@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { ROUTE_URL } from "../../app/core/constants/coreUrl";
 import { OtpScreen } from "./components/OtpScreen";
 import { login } from "../../app/core/api/Login.service";
-import logo from "../../assets/images/csc-logo.png";
+import logo from "../../assets/images/RBi.png";
 
 const Login = () => {
   const navigate = useNavigate();
