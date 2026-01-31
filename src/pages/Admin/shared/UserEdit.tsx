@@ -15,6 +15,7 @@ import {
   useGetDistrictParams,
   useGetUpdateUser,
 } from "../../../app/core/api/Admin";
+import { Button } from "../../../app/components/ui/button";
 
 type Props = {
   open: boolean;
@@ -246,12 +247,12 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
 
         {/* Footer */}
         <div className="px-6 py-4 border-t bg-white sticky bottom-0">
-          <button
+          <Button
             onClick={handleSubmit}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-md font-medium hover:bg-blue-700 transition"
+            className="w-full text-white py-2.5 rounded-md font-medium hover:bg-blue-700 transition"
           >
             Update User
-          </button>
+          </Button>
         </div>
       </SheetContent>
     </Sheet>

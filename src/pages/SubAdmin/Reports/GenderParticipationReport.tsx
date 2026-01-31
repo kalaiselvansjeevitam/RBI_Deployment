@@ -137,7 +137,7 @@ export default function SubGenderParticipationReport() {
             </h2>
 
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              className="hover:bg-blue-700 text-white cursor-pointer"
               onClick={() => navigate(-1)}
             >
               Back
@@ -189,7 +189,7 @@ export default function SubGenderParticipationReport() {
                     Loading
                   </span>
                 ) : (
-                  "View Report"
+                  "View"
                 )}
               </Button>
 
@@ -279,10 +279,10 @@ export default function SubGenderParticipationReport() {
                     District
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Location
+                    Block Panchayat
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Topic
+                    Gram Panchayat
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Male
@@ -296,7 +296,16 @@ export default function SubGenderParticipationReport() {
                 </tr>
               </thead>
               <tbody>
-                {rows.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td className="py-6 text-center text-gray-500" colSpan={6}>
+                      <span className="inline-flex items-center gap-2">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </span>
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-6 text-center text-gray-500">
                       {loading ? "Loading..." : "No data found"}
@@ -307,8 +316,8 @@ export default function SubGenderParticipationReport() {
                     <tr key={i} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3">{offset + i + 1}</td>
                       <td className="px-4 py-3">{r.district}</td>
-                      <td className="px-4 py-3">{r.location}</td>
-                      <td className="px-4 py-3">{r.topic}</td>
+                      <td className="px-4 py-3">{r.block_panchayat}</td>
+                      <td className="px-4 py-3">{r.gram_panchayat}</td>
                       <td className="px-4 py-3">{toNum(r.male_count)}</td>
                       <td className="px-4 py-3">{toNum(r.female_count)}</td>
                       <td className="px-4 py-3">{toNum(r.others_count)}</td>

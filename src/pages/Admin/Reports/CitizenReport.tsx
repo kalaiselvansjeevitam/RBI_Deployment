@@ -12,6 +12,7 @@ import {
 } from "../../../app/core/api/Admin";
 import type { District } from "../../../app/lib/types";
 import React from "react";
+import { Button } from "../../../app/components/ui/button";
 
 export const CitizenReport = () => {
   const { mutateAsync: getDistricts } = useGetDistrictParams();
@@ -214,14 +215,14 @@ export const CitizenReport = () => {
           </div>
 
           {/* Download */}
-          <button
+          <Button
             onClick={handleDownload}
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2"
+            className="w-full text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 flex justify-center items-center gap-2"
           >
             {loading && <Loader className="w-4 h-4 animate-spin" />}
             Download Report
-          </button>
+          </Button>
         </div>
       </div>
     </Layout>

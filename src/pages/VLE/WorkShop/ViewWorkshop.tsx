@@ -460,12 +460,12 @@ export const ViewWorkshop = () => {
             </select>
           </label>
 
-          <button
+          <Button
             onClick={handleOkClick}
-            className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 text-sm"
+            className="text-white px-3 py-1 rounded-md hover:bg-blue-700 text-sm"
           >
             Submit
-          </button>
+          </Button>
         </div>
       </div>
 

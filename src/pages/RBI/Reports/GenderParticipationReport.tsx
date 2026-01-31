@@ -137,7 +137,7 @@ export default function GenderParticipationReport() {
             </h2>
 
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              className="hover:bg-blue-700 text-white cursor-pointer"
               onClick={() => navigate(-1)}
             >
               Back
@@ -189,7 +189,7 @@ export default function GenderParticipationReport() {
                     Loading
                   </span>
                 ) : (
-                  "View Report"
+                  "View"
                 )}
               </Button>
 
@@ -296,7 +296,16 @@ export default function GenderParticipationReport() {
                 </tr>
               </thead>
               <tbody>
-                {rows.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td className="py-6 text-center text-gray-500" colSpan={6}>
+                      <span className="inline-flex items-center gap-2">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </span>
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-6 text-center text-gray-500">
                       {loading ? "Loading..." : "No data found"}

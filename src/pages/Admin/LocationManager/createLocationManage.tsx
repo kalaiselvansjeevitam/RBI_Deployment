@@ -13,6 +13,7 @@ import type {
   GramPanchayatRes,
 } from "../../../app/lib/types";
 import { Loader } from "lucide-react";
+import { Button } from "../../../app/components/ui/button";
 
 export const CreateLocationManage = () => {
   const { mutateAsync: createLocation } = useGetCreateLoactionManager();
@@ -297,13 +298,13 @@ export const CreateLocationManage = () => {
 
           {/* Address */}
 
-          <button
+          <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full text-white py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading ? "Saving..." : "Create Location"}
-          </button>
+          </Button>
         </div>
       </div>
     </Layout>

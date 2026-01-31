@@ -264,6 +264,7 @@ export const useViewDistrictWiseByStatusWorkshopReport = () =>
 
 //12) Workshops with Citizen Count < 50 (View)
 export type ViewLt50Row = {
+  id: string;
   district: string;
   location: string;
   vle_name: string;

@@ -42,7 +42,7 @@ import SubDistrictStatusReport from "../../pages/SubAdmin/Reports/DistrictStatus
 import SubGenderParticipationReport from "../../pages/SubAdmin/Reports/GenderParticipationReport";
 import SubCitizenDataReport from "../../pages/SubAdmin/Reports/CitizenDataReport";
 import SubLocationScheduleReport from "../../pages/SubAdmin/Reports/LocationScheduleReport";
-import SubDistrictPendingCompleteReport from "../../pages/SubAdmin/Reports/DistrictPendingCompleteReport";
+// import SubDistrictPendingCompleteReport from "../../pages/SubAdmin/Reports/DistrictPendingCompleteReport";
 import SubWorkshopsLt50Report from "../../pages/SubAdmin/Reports/WorkshopsLt50Report";
 
 export const authProtectedRoutes = [
@@ -345,14 +345,14 @@ export const authProtectedRoutes = [
           </RequireRole>
         ),
       },
-      {
-        path: ROUTE_URL.subAdminReportDistrictPendingComplete,
-        element: (
-          <RequireRole allowedRoles={["sub_admin"]}>
-            <SubDistrictPendingCompleteReport />
-          </RequireRole>
-        ),
-      },
+      // {
+      //   path: ROUTE_URL.subAdminReportDistrictPendingComplete,
+      //   element: (
+      //     <RequireRole allowedRoles={["sub_admin"]}>
+      //       <SubDistrictPendingCompleteReport />
+      //     </RequireRole>
+      //   ),
+      // },
       {
         path: ROUTE_URL.subAdminReportWorkshopsLt50,
         element: (

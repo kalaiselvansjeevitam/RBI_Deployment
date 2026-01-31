@@ -209,7 +209,7 @@ export const ViewManageSession = () => {
     { key: "workshop_status", label: "Workshop Status", align: "left" },
     { key: "workshop_centre", label: "Workshop Center", align: "left" },
     { key: "workshop_district", label: "Workshop District", align: "left" },
-    { key: "workshop_pincode", label: "Workshop Pincode", align: "left" },
+    // { key: "workshop_pincode", label: "Workshop Pincode", align: "left" },
     { key: "vle_id", label: "VLE ID", align: "center" },
     { key: "vle_mobile_number", label: "VLE Mobile Number", align: "center" },
     { key: "vle_name", label: "VLE Name", align: "center" },
@@ -267,7 +267,7 @@ export const ViewManageSession = () => {
       onClick={onClick}
       ref={ref}
       className={`border border-gray-700 rounded-md px-3 py-2 text-sm w-[180px] text-left
-        ${value ? "text-black font-bold" : "text-gray-400 font-normal"}
+        ${value ? "text-black font-bold" : "text-black-400 font-normal"}
       `}
     >
       {value || "Select Date"}
@@ -283,12 +283,10 @@ export const ViewManageSession = () => {
   return (
     <Layout headerTitle="View Session">
       <div className="mt-4 px-4 space-y-4 w-full">
-        {/* Row 1: All Filters */}
-        <div className="flex items-end justify-between w-full pl-10">
-          <div className="flex flex-col w-[180px] text-black">
-            <span className="text-sm font-semibold text-black-900 mb-1">
-              From
-            </span>
+        {/* Row 1: From, To, Status, District */}
+        <div className="flex items-end gap-6 w-full pl-10">
+          <div className="flex flex-col w-[180px]">
+            <span className="text-sm font-semibold mb-1">From</span>
             <ReactDatePicker
               selected={startDate}
               onChange={(date: any) =>
@@ -301,9 +299,7 @@ export const ViewManageSession = () => {
           </div>
 
           <div className="flex flex-col w-[180px]">
-            <span className="text-sm font-semibold text-black-900 mb-1">
-              To
-            </span>
+            <span className="text-sm font-semibold mb-1">To</span>
             <ReactDatePicker
               selected={endDate}
               onChange={(date: any) =>
@@ -322,8 +318,8 @@ export const ViewManageSession = () => {
               value={workshopStatusfilter}
               onChange={(e) => setWorkshopStatusFilter(e.target.value)}
               className={`border border-gray-700 rounded-md px-2 py-2 text-sm
-          ${workshopStatusfilter ? "text-black-900 font-bold" : "text-black-100"}
-        `}
+            ${workshopStatusfilter ? "font-bold text-black" : "text-black-400"}
+          `}
             >
               <option value="">Select Status</option>
               {statusList.map((status) => (
@@ -340,8 +336,8 @@ export const ViewManageSession = () => {
               value={districtfilter}
               onChange={(e) => setDistrictFilter(e.target.value)}
               className={`border border-gray-700 rounded-md px-2 py-2 text-sm
-          ${districtfilter ? "text-black-900 font-bold" : "text-black-100"}
-        `}
+            ${districtfilter ? "font-bold text-black" : "text-black-400"}
+          `}
             >
               <option value="">Select District</option>
               {districtList.map((d: any) => (
@@ -351,15 +347,18 @@ export const ViewManageSession = () => {
               ))}
             </select>
           </div>
+        </div>
 
+        {/* Row 2: VLE + Buttons (left aligned) */}
+        <div className="flex items-end gap-6 w-full pl-10">
           <div className="flex flex-col w-[220px]">
             <span className="text-sm font-semibold mb-1">VLE</span>
             <select
               value={vleIdfilter}
               onChange={(e) => setVleIdFilter(e.target.value)}
               className={`border border-gray-700 rounded-md px-2 py-2 text-sm
-          ${vleIdfilter ? "text-black-900 font-bold" : "text-black-100"}
-        `}
+            ${vleIdfilter ? "font-bold text-black" : "text-black-400"}
+          `}
             >
               <option value="">Select VLE</option>
               {vleList.map((v: any) => (
@@ -369,33 +368,32 @@ export const ViewManageSession = () => {
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Row 2: Buttons only */}
-        <div className="flex justify-end gap-4 w-full">
-          <button
+          <Button
             onClick={() => {
               setCurrentPage(0);
               fetchData();
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-semibold"
+            className="hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-semibold h-[38px]"
           >
             Apply
-          </button>
+          </Button>
 
           <button
             onClick={clearFilters}
-            className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-md text-sm font-semibold"
+            className="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-md text-sm font-semibold h-[38px]"
           >
             Clear
           </button>
         </div>
       </div>
-      <div className="flex justify-between items-center flex-wrap gap-4 text-sm mt-3 px-4 pt-3">
-        {/* Left-aligned count */}
+
+      {/* Count */}
+      <div className="flex justify-between items-center text-sm mt-3 px-4 pt-3">
         <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>
       </div>
 
+      {/* Table */}
       <div className="mt-3">
         {loader ? (
           <div className="flex justify-center py-4">
@@ -412,6 +410,7 @@ export const ViewManageSession = () => {
           />
         )}
       </div>
+
       <AdminViewSheet
         open={open}
         workshopId={selectedWorkshopId}

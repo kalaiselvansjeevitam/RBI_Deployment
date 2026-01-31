@@ -16,6 +16,10 @@ type Props = {
   onClose: (updated?: boolean) => void;
 };
 
+/* ---------- PASSWORD RULE ---------- */
+const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
 const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
   const { mutateAsync: changePassword } = useChangeUserPassword();
 
@@ -28,6 +32,7 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
   const [loading, setLoading] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
 
   /* ---------- PREFILL ---------- */
   useEffect(() => {
@@ -37,6 +42,7 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
         new_password: "",
         confirm_password: "",
       });
+      setPasswordError("");
     }
   }, [user]);
 
@@ -48,7 +54,17 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
         text: "Please fill all fields",
         icon: "error",
         timer: 1000,
-        allowOutsideClick: false,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    if (!PASSWORD_REGEX.test(form.new_password)) {
+      Swal.fire({
+        title: "Invalid Password",
+        text: "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character",
+        icon: "error",
+        timer: 1500,
         showConfirmButton: false,
       });
       return;
@@ -60,7 +76,6 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
         text: "Passwords do not match",
         icon: "error",
         timer: 1000,
-        allowOutsideClick: false,
         showConfirmButton: false,
       });
       return;
@@ -86,10 +101,9 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
     } catch (error: any) {
       Swal.fire({
         title: "Error",
-        text: error?.response.data.message || "Password Update Failed",
+        text: error?.response?.data?.message || "Password Update Failed",
         icon: "error",
-        timer: 2000,
-        allowOutsideClick: false,
+        timer: 1500,
         showConfirmButton: false,
       });
     } finally {
@@ -104,6 +118,15 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
           <SheetTitle className="text-lg font-semibold text-gray-800">
             Change Password
           </SheetTitle>
+
+          {/* PASSWORD DESCRIPTION */}
+          <p className="mt-2 text-xs text-gray-500 leading-relaxed">
+            Password must be at least <b>8 characters</b> long and include:
+            <br />• One uppercase letter
+            <br />• One lowercase letter
+            <br />• One number
+            <br />• One special character
+          </p>
         </SheetHeader>
 
         <div className="mt-6 space-y-5 text-sm">
@@ -116,9 +139,18 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
               <input
                 type={showNew ? "text" : "password"}
                 value={form.new_password}
-                onChange={(e) =>
-                  setForm({ ...form, new_password: e.target.value })
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setForm({ ...form, new_password: value });
+
+                  if (!PASSWORD_REGEX.test(value)) {
+                    setPasswordError(
+                      "Must include uppercase, lowercase, number, special character (min 8 chars)",
+                    );
+                  } else {
+                    setPasswordError("");
+                  }
+                }}
                 className="w-full border rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter new password"
               />
@@ -130,6 +162,10 @@ const ChangePasswordSheet = ({ open, user, onClose }: Props) => {
                 {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+
+            {passwordError && (
+              <p className="mt-1 text-xs text-red-600">{passwordError}</p>
+            )}
           </div>
 
           {/* CONFIRM PASSWORD */}

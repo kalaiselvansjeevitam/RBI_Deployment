@@ -134,7 +134,7 @@ const Login = () => {
           <Button
             onClick={handleLogin}
             disabled={isPending}
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2  disabled:cursor-not-allowed"
+            className="w-full py-2 px-4 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2  disabled:cursor-not-allowed"
           >
             {isPending ? (
               <Loader className="animate-spin" />

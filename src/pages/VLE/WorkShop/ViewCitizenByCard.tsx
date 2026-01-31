@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { Button } from "../../../app/components/ui/button";
 
 const itemsPerPage = 10;
 
@@ -79,12 +80,12 @@ const ViewCitizenByCard = () => {
         <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>
 
         {/* Back button */}
-        <button
+        <Button
           onClick={() => navigate(-1)}
-          className="px-3 py-1.5 text-sm font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700"
+          className="px-3 py-1.5 text-sm font-semibold rounded-md text-white hover:bg-blue-700"
         >
           ← Back
-        </button>
+        </Button>
       </div>
 
       <div className="p-4">

@@ -8,6 +8,7 @@ import {
 } from "../../../app/core/api/Admin";
 import type { ViewTestimonytype } from "../../../app/lib/types";
 import Swal from "sweetalert2";
+import { Button } from "../../../app/components/ui/button";
 // import jsPDF from "jspdf";
 
 export const ViewTestimony = () => {
@@ -183,12 +184,12 @@ export const ViewTestimony = () => {
     <Layout headerTitle="View Testimony">
       <div className="px-6 py-4 space-y-10">
         <div className="mb-4 flex items-center justify-end">
-          <button
+          <Button
             onClick={() => navigate(-1)}
-            className="px-3 py-1.5 text-sm font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            className="px-3 py-1.5 text-sm font-semibold rounded-md text-white hover:bg-blue-700"
           >
             ← Back
-          </button>
+          </Button>
         </div>
 
         {loading ? (

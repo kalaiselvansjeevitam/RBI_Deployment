@@ -13,7 +13,7 @@ import {
 } from "../../../app/core/api/RBIReports";
 import { useNavigate } from "react-router-dom";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 export default function WorkshopsLt50Report() {
   const { mutateAsync: fetchLt50 } = useViewCitizenCountLessThan50Report();
@@ -96,6 +96,58 @@ export default function WorkshopsLt50Report() {
       setLoading(false);
     }
   };
+  const fetchData = async () => {
+    if (!selectedDistrict) {
+      toast.error("Please select a district");
+      setRows([]);
+      setTotal(0);
+      setOffset(0);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload: any = {
+        district: selectedDistrict,
+        offset: 0,
+      };
+
+      if (startDate) payload.start_date = startDate;
+      if (endDate) payload.end_date = endDate;
+
+      const res = await fetchLt50(payload);
+
+      const isSuccess = String(res?.result ?? "").toLowerCase() === "success";
+
+      const dataList = Array.isArray(res?.list)
+        ? res.list
+        : Array.isArray(res?.data)
+          ? res.data
+          : [];
+
+      const totalCount = Number(res?.total ?? res?.count ?? 0);
+
+      if (!isSuccess) {
+        toast.error(res?.message || "Failed to fetch data");
+        setRows([]);
+        setTotal(0);
+        return;
+      }
+
+      setRows(dataList);
+      setTotal(totalCount);
+      setOffset(0);
+    } catch (err: any) {
+      console.error("Error fetching data:", err);
+      toast.error(err?.message || "Failed to fetch report");
+      setRows([]);
+      setTotal(0);
+      setOffset(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDownload = async () => {
     if (!canSubmit) {
@@ -172,7 +224,7 @@ export default function WorkshopsLt50Report() {
             </h2>
 
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              className="hover:bg-blue-700 text-white cursor-pointer"
               onClick={() => navigate(-1)}
             >
               Back
@@ -237,6 +289,20 @@ export default function WorkshopsLt50Report() {
             </div>
 
             <div className="flex gap-2 flex-wrap">
+              <Button
+                className="cursor-pointer"
+                onClick={fetchData}
+                disabled={loading || !canSubmit}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Loading
+                  </span>
+                ) : (
+                  "View"
+                )}
+              </Button>
               <Button
                 className="cursor-pointer"
                 onClick={handleDownload}
@@ -322,12 +388,24 @@ export default function WorkshopsLt50Report() {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-600 border-b bg-gray-50">
-                  <th className="py-3 px-4">S.No</th>
-                  <th className="py-3 px-4">VLE Name</th>
-                  <th className="py-3 px-4">District</th>
-                  <th className="py-3 px-4">Location</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Citizens Count</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    S.No
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    VLE Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    District
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Location
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Citizens Count
+                  </th>
                 </tr>
               </thead>
 

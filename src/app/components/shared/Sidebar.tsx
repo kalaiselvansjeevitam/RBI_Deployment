@@ -265,11 +265,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           href: ROUTE_URL.subAdminReportLocationSchedule,
           icon: View,
         },
-        {
-          label: "Pending vs Completed",
-          href: ROUTE_URL.subAdminReportDistrictPendingComplete,
-          icon: View,
-        },
+        // {
+        //   label: "Pending vs Completed",
+        //   href: ROUTE_URL.subAdminReportDistrictPendingComplete,
+        //   icon: View,
+        // },
         {
           label: "< 50 Attendees",
           href: ROUTE_URL.subAdminReportWorkshopsLt50,

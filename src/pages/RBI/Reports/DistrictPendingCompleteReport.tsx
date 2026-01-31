@@ -15,7 +15,7 @@ import {
 } from "../../../app/core/api/RBIReports";
 import { useNavigate } from "react-router-dom";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 function toNum(x: any) {
   const n = Number(x);
@@ -213,7 +213,7 @@ export default function DistrictPendingCompleteReport() {
                     Loading
                   </span>
                 ) : (
-                  "View Report"
+                  "View"
                 )}
               </Button>
 
@@ -297,15 +297,33 @@ export default function DistrictPendingCompleteReport() {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-600 border-b bg-gray-50">
-                  <th className="py-3 px-4">SR.No</th>
-                  <th className="py-3 px-4">District</th>
-                  <th className="py-3 px-4">VLE Name</th>
-                  <th className="py-3 px-4">Location</th>
-                  <th className="py-3 px-4">Pending</th>
-                  <th className="py-3 px-4">Completed</th>
-                  <th className="py-3 px-4">Approved</th>
-                  <th className="py-3 px-4">Rejected</th>
-                  <th className="py-3 px-4">&lt; 50 Citizens</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    SR.No
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    District
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    VLE Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Location
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Pending
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Completed
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Approved
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Rejected
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    &lt; 50 Citizens
+                  </th>
                 </tr>
               </thead>
 

@@ -41,19 +41,19 @@ export const ROUTE_URL = {
     "/rbi-deployment/admin/rbiReports/district-pending-complete",
   rbiReportWorkshopsLt50: "/rbi-deployment/admin/rbiReports/workshops-lt-50",
 
-  subAdminReports: "/sub-admin-deployment/admin/rbiReports",
+  subAdminReports: "/rbi-deployment/admin/rbiReports",
   subAdminReportDistrictStatus:
-    "/sub-admin-deployment/admin/rbiReports/district-status",
+    "/rbi-deployment/admin/sub-admin-Reports/district-status",
   subAdminReportGenderParticipation:
-    "/sub-admin-deployment/admin/rbiReports/gender-participation",
+    "/rbi-deployment/admin/sub-admin-Reports/gender-participation",
   subAdminReportCitizenData:
-    "/sub-admin-deployment/admin/rbiReports/citizen-data",
+    "/rbi-deployment/admin/sub-admin-Reports/citizen-data",
   subAdminReportLocationSchedule:
-    "/sub-admin-deployment/admin/rbiReports/location-schedule",
+    "/rbi-deployment/admin/sub-admin-Reports/location-schedule",
   subAdminReportDistrictPendingComplete:
-    "/sub-admin-deployment/admin/rbiReports/district-pending-complete",
+    "/rbi-deployment/admin/sub-admin-Reports/district-pending-complete",
   subAdminReportWorkshopsLt50:
-    "/sub-admin-deployment/admin/rbiReports/workshops-lt-50",
+    "/rbi-deployment/admin/sub-admin-Reports/workshops-lt-50",
 };
 
 export const API_URL = {

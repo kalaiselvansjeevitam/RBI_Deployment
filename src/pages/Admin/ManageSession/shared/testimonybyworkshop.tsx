@@ -8,6 +8,7 @@ import {
   useApproveTestimony,
 } from "../../../../app/core/api/Admin";
 import type { Testimony } from "../../../../app/lib/types";
+import { Button } from "../../../../app/components/ui/button";
 
 /* ---------------- STATUS DROPDOWN ---------------- */
 const StatusDropdown = ({
@@ -164,12 +165,12 @@ const TestimonyByWorkshop = () => {
   return (
     <Layout headerTitle="Testimonies By Workshop">
       <div className="px-4 py-3">
-        <button
+        <Button
           onClick={() => navigate(-1)}
-          className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white"
+          className="px-3 py-1.5 text-sm rounded-md text-white"
         >
           ← Back
-        </button>
+        </Button>
 
         {loader && (
           <div className="flex justify-center py-4">

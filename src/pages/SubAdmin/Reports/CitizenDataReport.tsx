@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
-
 import { useGetDistrictParams } from "../../../app/core/api/Admin";
 import {
   useDownloadCitizenDataByDistrictReport,
@@ -14,7 +13,7 @@ import {
 } from "../../../app/core/api/RBIReports";
 import { useNavigate } from "react-router-dom";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 export default function SubCitizenDataReport() {
   const navigate = useNavigate();
@@ -22,32 +21,32 @@ export default function SubCitizenDataReport() {
   const { mutateAsync: download } = useDownloadCitizenDataByDistrictReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
 
-  // Unified state
+  const [districtList, setDistrictList] = useState<string[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [districtList, setDistrictList] = useState<string[]>([]);
-  const [allRows, setAllRows] = useState<CitizenRow[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
+
+  const [rows, setRows] = useState<CitizenRow[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [total, setTotal] = useState(0);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const canSubmit = selectedDistrict && startDate && endDate;
+  const canSubmit = Boolean(selectedDistrict && startDate && endDate);
 
-  // Load districts on mount
+  /* ---------------- Load districts ---------------- */
   useEffect(() => {
     (async () => {
       try {
-        const districtRes = await getDistricts();
-        const districts = districtRes?.list ?? [];
-
-        const names: string[] = Array.isArray(districts)
-          ? districts
+        const res = await getDistricts();
+        const list = res?.list ?? [];
+        const names = Array.isArray(list)
+          ? list
               .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
-              .map((x: any) => String(x))
+              .map(String)
               .filter(Boolean)
           : [];
-
         setDistrictList(names);
       } catch (e) {
         console.error("Failed to load districts:", e);
@@ -57,44 +56,52 @@ export default function SubCitizenDataReport() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const load = async () => {
-    // All fields are required by the API
-    if (!selectedDistrict || !startDate || !endDate) {
+  /* ---------------- Fetch data ---------------- */
+  const fetchData = async (opts?: {
+    reset?: boolean;
+    offsetOverride?: number;
+  }) => {
+    if (!canSubmit) {
       setError("Please select district, start date, and end date");
-      setAllRows([]);
+      setRows([]);
+      setTotal(0);
       return;
     }
 
-    setLoading(true);
-    setError("");
-    setCurrentPage(0);
+    const nextOffset = opts?.offsetOverride ?? (opts?.reset ? 0 : offset);
 
     try {
-      const payload = {
+      setLoading(true);
+      setError("");
+
+      const res = await fetchView({
         district: selectedDistrict,
         start_date: startDate,
         end_date: endDate,
-        offset: 0,
-      };
-
-      const res = await fetchView(payload);
+        offset: nextOffset,
+      });
 
       if (res?.status !== "Success") {
-        setAllRows([]);
+        setRows([]);
+        setTotal(0);
         setError(res?.message || "Failed to fetch data");
         return;
       }
 
-      setAllRows(res.data ?? []);
-    } catch (err: any) {
-      console.error("Error fetching data:", err);
-      setError(err?.message || "An error occurred while fetching data");
-      setAllRows([]);
+      setRows(res?.data ?? []);
+      setTotal(Number(res?.count ?? 0));
+      setOffset(nextOffset);
+    } catch (e: any) {
+      console.error("Fetch failed:", e);
+      setRows([]);
+      setTotal(0);
+      setError(e?.message || "Failed to fetch data");
     } finally {
       setLoading(false);
     }
   };
 
+  /* ---------------- Download ---------------- */
   const handleDownload = async () => {
     if (!canSubmit) {
       toast.error("Please select district, start date, and end date");
@@ -104,28 +111,25 @@ export default function SubCitizenDataReport() {
     try {
       setLoading(true);
 
-      const response = await download({
+      const res = await download({
         district: selectedDistrict,
         start_date: startDate,
         end_date: endDate,
       });
 
       const url =
-        typeof response?.data === "string" && response.data.trim()
-          ? response.data.trim()
-          : "";
+        typeof res?.data === "string" && res.data.trim() ? res.data.trim() : "";
 
-      const isSuccessful =
-        String(response?.result ?? "")
+      const ok =
+        String(res?.result ?? "")
           .trim()
           .toLowerCase() === "success";
 
-      if (!isSuccessful || !url) {
-        toast.error(response?.message || "Failed to download report");
+      if (!ok || !url) {
+        toast.error(res?.message || "Failed to download report");
         return;
       }
 
-      // 🔥 DIRECT DOWNLOAD
       window.open(url, "_blank", "noopener,noreferrer");
       toast.success("Excel report downloaded successfully");
     } catch (e: any) {
@@ -136,74 +140,48 @@ export default function SubCitizenDataReport() {
     }
   };
 
-  // const handleOpenDownload = () => {
-  //   if (!downloadUrl) return;
-  //   window.open(downloadUrl, "_blank", "noopener,noreferrer");
-  //   toast.success("Download Successful");
-  // };
-
-  // Client-side pagination
-  const paginatedRows = useMemo(() => {
-    const start = currentPage * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-    return allRows.slice(start, end);
-  }, [allRows, currentPage]);
-
-  const totalPages = Math.ceil(allRows.length / PAGE_SIZE);
-  const hasNext = currentPage < totalPages - 1;
-  const hasPrev = currentPage > 0;
+  /* ---------------- Pagination helpers ---------------- */
+  const canPrev = offset > 0;
+  const canNext = offset + PAGE_SIZE < total;
 
   const showingText = useMemo(() => {
-    if (allRows.length === 0) return "Showing 0–0 of 0";
-    const start = currentPage * PAGE_SIZE + 1;
-    const end = Math.min((currentPage + 1) * PAGE_SIZE, allRows.length);
-    return `Showing ${start}–${end} of ${allRows.length}`;
-  }, [currentPage, allRows.length]);
+    if (!total) return "Showing 0–0 of 0";
+    return `Showing ${offset + 1}–${Math.min(
+      offset + PAGE_SIZE,
+      total,
+    )} of ${total}`;
+  }, [offset, total]);
 
+  /* ---------------- UI ---------------- */
   return (
     <Layout headerTitle="District-wise Citizen Data Report">
       <div className="p-6">
-        {/* Merged Card */}
         <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">
               District-wise Citizens Report
             </h2>
-
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-              onClick={() => navigate(-1)}
-            >
-              Back
-            </Button>
+            <Button onClick={() => navigate(-1)}>Back</Button>
           </div>
 
-          {/* Filters and Actions */}
+          {/* Filters */}
           <div className="grid md:grid-cols-4 gap-4 items-end mb-6">
             <div>
               <label className="text-sm text-gray-600">
                 District (required)
               </label>
-              {districtList.length > 0 ? (
-                <select
-                  className="border rounded-md h-10 px-3 w-full"
-                  value={selectedDistrict}
-                  onChange={(e) => setSelectedDistrict(e.target.value)}
-                >
-                  <option value="">Select district</option>
-                  {districtList.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <Input
-                  value={selectedDistrict}
-                  onChange={(e) => setSelectedDistrict(e.target.value)}
-                  placeholder="e.g., Springfield"
-                />
-              )}
+              <select
+                className="border rounded-md h-10 px-3 w-full"
+                value={selectedDistrict}
+                onChange={(e) => setSelectedDistrict(e.target.value)}
+              >
+                <option value="">Select district</option>
+                {districtList.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -213,7 +191,6 @@ export default function SubCitizenDataReport() {
               <Input
                 type="date"
                 value={startDate}
-                max="2026-03-31"
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
@@ -225,32 +202,19 @@ export default function SubCitizenDataReport() {
               <Input
                 type="date"
                 value={endDate}
-                max="2026-03-31"
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
 
             <div className="flex gap-2 flex-wrap">
               <Button
-                className="cursor-pointer"
-                onClick={load}
+                onClick={() => fetchData({ reset: true })}
                 disabled={loading || !canSubmit}
               >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <Loader className="w-4 h-4 animate-spin" />
-                    Loading
-                  </span>
-                ) : (
-                  "View Report"
-                )}
+                {loading ? <Loader className="w-4 h-4 animate-spin" /> : "View"}
               </Button>
 
-              <Button
-                className="cursor-pointer"
-                onClick={handleDownload}
-                disabled={loading || !canSubmit}
-              >
+              <Button onClick={handleDownload} disabled={loading || !canSubmit}>
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <Loader className="w-4 h-4 animate-spin" />
@@ -262,15 +226,15 @@ export default function SubCitizenDataReport() {
               </Button>
 
               <Button
-                className="cursor-pointer"
                 variant="outline"
                 onClick={() => {
                   setSelectedDistrict("");
                   setStartDate("");
                   setEndDate("");
+                  setRows([]);
+                  setTotal(0);
+                  setOffset(0);
                   setError("");
-                  setAllRows([]);
-                  setCurrentPage(0);
                 }}
               >
                 Clear
@@ -278,105 +242,106 @@ export default function SubCitizenDataReport() {
             </div>
           </div>
 
-          {/* Validation Message */}
+          {/* Messages */}
           {!canSubmit && (
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm">
-              Please fill district, start date, and end date to view or generate
-              this report.
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm">
+              Please fill district, start date, and end date.
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm">
               {error}
             </div>
           )}
 
           {/* Pagination */}
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex justify-between mb-4">
             <div className="text-sm text-gray-600">{showingText}</div>
-
-            <div className="flex items-center gap-3">
+            <div className="flex gap-2">
               <Button
-                className="cursor-pointer"
                 variant="outline"
-                onClick={() => setCurrentPage((p) => p - 1)}
-                disabled={loading || !hasPrev}
+                disabled={!canPrev || loading}
+                onClick={() =>
+                  fetchData({ offsetOverride: offset - PAGE_SIZE })
+                }
               >
                 Prev
               </Button>
-
               <Button
-                className="cursor-pointer"
                 variant="outline"
-                onClick={() => setCurrentPage((p) => p + 1)}
-                disabled={loading || !hasNext}
+                disabled={!canNext || loading}
+                onClick={() =>
+                  fetchData({ offsetOverride: offset + PAGE_SIZE })
+                }
               >
                 Next
               </Button>
             </div>
           </div>
 
-          {/* Download Link Display
-          {downloadUrl && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="text-sm font-medium text-green-800 mb-1">
-                Excel report ready!
-              </div>
-              <a
-                className="text-sm text-blue-600 break-all underline hover:text-blue-800"
-                href={downloadUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {downloadUrl}
-              </a>
-            </div>
-          )} */}
-
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="border-b bg-gray-50">
-                <tr className="text-left text-gray-600">
-                  <th className="px-4 py-3">SR.No</th>
-                  <th className="px-4 py-3">District</th>
-                  <th className="px-4 py-3">VLE Name</th>
-                  <th className="px-4 py-3">Citizen Name</th>
-                  <th className="px-4 py-3">Mobile</th>
-                  <th className="px-4 py-3">Gender</th>
-                  <th className="px-4 py-3">Age</th>
-                  <th className="px-4 py-3">Program</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Address</th>
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    SR.No
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    District
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Block Panchayat
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Gram Panchayat
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Citizen Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Mobile
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Gender
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Age
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Created Date
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedRows.length === 0 ? (
+                {loading ? (
                   <tr>
-                    <td colSpan={10} className="py-6 text-center text-gray-500">
-                      {loading
-                        ? "Loading..."
-                        : error ||
-                          "No data found. Please select district, start date, end date and click View Report."}
+                    <td className="py-6 text-center text-gray-500" colSpan={6}>
+                      <span className="inline-flex items-center gap-2">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </span>
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="py-6 text-center text-gray-500">
+                      {loading ? "Loading..." : "No data found"}
                     </td>
                   </tr>
                 ) : (
-                  paginatedRows.map((r, i) => (
+                  rows.map((r, i) => (
                     <tr key={i} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        {currentPage * PAGE_SIZE + i + 1}
-                      </td>
+                      <td className="px-4 py-3">{offset + i + 1}</td>
                       <td className="px-4 py-3">{r.district}</td>
-                      <td className="px-4 py-3">{r.vle_name}</td>
+                      <td className="px-4 py-3">{r.block_panchayat}</td>
+                      <td className="px-4 py-3">{r.gram_panchayat}</td>
                       <td className="px-4 py-3">{r.citizen_name}</td>
                       <td className="px-4 py-3">{r.mobile_number}</td>
                       <td className="px-4 py-3">{r.gender}</td>
                       <td className="px-4 py-3">{r.age}</td>
-                      <td className="px-4 py-3">{r.program_name}</td>
                       <td className="px-4 py-3">{r.date}</td>
-                      <td className="px-4 py-3">{r.address}</td>
                     </tr>
                   ))
                 )}

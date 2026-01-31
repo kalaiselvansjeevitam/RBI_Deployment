@@ -10,6 +10,7 @@ import { useGetDeleteUser, useGetgetallusers } from "../../app/core/api/Admin";
 import type { AllUser } from "../../app/lib/types";
 import UserEditSheet from "./shared/UserEdit";
 import ChangePasswordSheet from "./shared/ChangePasswordSheet";
+import { Button } from "../../app/components/ui/button";
 
 export const ViewUser = () => {
   const [loader, setLoader] = useState(false);
@@ -138,12 +139,12 @@ export const ViewUser = () => {
       render: (_value, row) => (
         <div className="flex justify-center gap-2">
           {/* UPDATE */}
-          <button
+          <Button
             onClick={() => handleEditUser(row)}
-            className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+            className="px-3 py-1 text-xs font-semibold rounded-md text-white hover:bg-blue-700 cursor-pointer"
           >
             Update
-          </button>
+          </Button>
 
           {/* DELETE */}
           <button

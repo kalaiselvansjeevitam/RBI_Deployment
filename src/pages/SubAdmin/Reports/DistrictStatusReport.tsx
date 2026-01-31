@@ -21,7 +21,7 @@ function isSuccess(x: any) {
   );
 }
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 export default function SubDistrictStatusReport() {
   const { mutateAsync: getDistricts } = useGetDistrictParams();
@@ -29,23 +29,25 @@ export default function SubDistrictStatusReport() {
     useViewDistrictWiseByStatusWorkshopReport();
   const { mutateAsync: download } = useDownloadDistrictWiseWorkshopReport();
 
-  // Unified state for both view and download
   const [districtList, setDistrictList] = useState<string[]>([]);
-  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(0);
-  const [allRows, setAllRows] = useState<DistrictStatusRow[]>([]);
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [rows, setRows] = useState<DistrictStatusRow[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Load districts list once
+  const navigate = useNavigate();
+
+  /* -------------------- Load districts -------------------- */
   useEffect(() => {
     (async () => {
       try {
-        const districtRes = await getDistricts();
-        const districts = districtRes?.list ?? [];
-        const names: string[] = Array.isArray(districts)
-          ? districts
+        const res = await getDistricts();
+        const list = res?.list ?? [];
+        const names = Array.isArray(list)
+          ? list
               .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
-              .map((x: any) => String(x))
+              .map(String)
               .filter(Boolean)
           : [];
         setDistrictList(names);
@@ -57,50 +59,66 @@ export default function SubDistrictStatusReport() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchData = async () => {
+  /* -------------------- Fetch report -------------------- */
+  const fetchData = async (opts?: {
+    reset?: boolean;
+    offsetOverride?: number;
+  }) => {
+    const nextOffset = opts?.offsetOverride ?? (opts?.reset ? 0 : offset);
+
     try {
       setLoading(true);
-      setCurrentPage(0);
+
       const res = await viewReport({
-        district: selectedDistrict.trim() ? selectedDistrict.trim() : "",
-        offset: 0,
+        district: selectedDistrict.trim() || undefined,
+        offset: nextOffset,
       });
+
       if (isSuccess(res)) {
-        const data = Array.isArray(res?.data) ? res.data : [];
-        setAllRows(data);
+        setRows(res?.data ?? []);
+        setTotal(Number(res?.count ?? 0));
+        setOffset(nextOffset);
       } else {
-        console.error("View report error:", res?.message);
-        setAllRows([]);
+        setRows([]);
+        setTotal(0);
       }
     } catch (e) {
       console.error("View report failed:", e);
-      setAllRows([]);
+      setRows([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
   };
 
+  /* -------------------- Initial load -------------------- */
+  useEffect(() => {
+    fetchData({ reset: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* -------------------- Download -------------------- */
   const handleDownload = async () => {
     try {
       setLoading(true);
 
-      // No filters required for this download
-      const res = await download({ district: selectedDistrict });
+      const res = await download({
+        district: selectedDistrict || undefined,
+      });
 
       const url =
         typeof res?.data === "string" && res.data.trim() ? res.data.trim() : "";
 
-      const isSuccessful =
+      const ok =
         String(res?.result ?? "")
           .trim()
           .toLowerCase() === "success";
 
-      if (!isSuccessful || !url) {
+      if (!ok || !url) {
         toast.error(res?.message || "Failed to download report");
         return;
       }
 
-      // 🔥 DIRECT DOWNLOAD
       window.open(url, "_blank", "noopener,noreferrer");
       toast.success("Excel report downloaded successfully");
     } catch (e: any) {
@@ -111,55 +129,35 @@ export default function SubDistrictStatusReport() {
     }
   };
 
-  // Initial load
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Client-side pagination
-  const paginatedRows = useMemo(() => {
-    const start = currentPage * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-    return allRows.slice(start, end);
-  }, [allRows, currentPage]);
-
-  const totalPages = Math.ceil(allRows.length / PAGE_SIZE);
-  const hasNext = currentPage < totalPages - 1;
-  const hasPrev = currentPage > 0;
+  /* -------------------- Pagination helpers -------------------- */
+  const canPrev = offset > 0;
+  const canNext = offset + PAGE_SIZE < total;
 
   const showingText = useMemo(() => {
-    if (allRows.length === 0) return "Showing 0–0 of 0";
-    const start = currentPage * PAGE_SIZE + 1;
-    const end = Math.min((currentPage + 1) * PAGE_SIZE, allRows.length);
-    return `Showing ${start}–${end} of ${allRows.length}`;
-  }, [currentPage, allRows.length]);
-  const navigate = useNavigate();
+    if (!total) return "Showing 0–0 of 0";
+    return `Showing ${offset + 1}–${Math.min(
+      offset + PAGE_SIZE,
+      total,
+    )} of ${total}`;
+  }, [offset, total]);
 
+  /* -------------------- UI -------------------- */
   return (
     <Layout headerTitle="District-wise Workshop Status Report">
       <div className="p-6">
-        {/* Merged Card */}
         <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">
               District-wise Workshop Report
             </h2>
-
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-              onClick={() => navigate(-1)}
-            >
-              Back
-            </Button>
+            <Button onClick={() => navigate(-1)}>Back</Button>
           </div>
 
           <p className="text-sm text-gray-600 mb-6">
-            View report data in the table below and download as Excel. District
-            filter is optional.
+            View report data and download as Excel. District filter is optional.
           </p>
 
-          {/* Filters and Actions */}
+          {/* Filters */}
           <div className="flex flex-wrap gap-4 items-end justify-between mb-6">
             <div className="flex flex-col gap-1 min-w-[280px]">
               <label className="text-sm text-gray-600">
@@ -182,32 +180,19 @@ export default function SubDistrictStatusReport() {
                 <Input
                   value={selectedDistrict}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
-                  placeholder="e.g., Ahmednagar"
                 />
               )}
             </div>
 
             <div className="flex gap-3">
               <Button
-                className="cursor-pointer"
-                onClick={fetchData}
+                onClick={() => fetchData({ reset: true })}
                 disabled={loading}
               >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <Loader className="w-4 h-4 animate-spin" />
-                    Loading
-                  </span>
-                ) : (
-                  "View Report"
-                )}
+                {loading ? <Loader className="w-4 h-4 animate-spin" /> : "View"}
               </Button>
 
-              <Button
-                className="cursor-pointer"
-                onClick={handleDownload}
-                disabled={loading}
-              >
+              <Button onClick={handleDownload} disabled={loading}>
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <Loader className="w-4 h-4 animate-spin" />
@@ -219,15 +204,11 @@ export default function SubDistrictStatusReport() {
               </Button>
 
               <Button
-                className="cursor-pointer"
                 variant="outline"
                 onClick={() => {
                   setSelectedDistrict("");
-                  setTimeout(() => {
-                    fetchData();
-                  }, 0);
+                  setTimeout(() => fetchData({ reset: true }), 0);
                 }}
-                disabled={loading}
               >
                 Clear
               </Button>
@@ -235,22 +216,24 @@ export default function SubDistrictStatusReport() {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex justify-between mb-4">
             <div className="text-sm text-gray-600">{showingText}</div>
-            <div className="flex items-center gap-3">
+            <div className="flex gap-2">
               <Button
-                className="cursor-pointer"
                 variant="outline"
-                onClick={() => setCurrentPage((p) => p - 1)}
-                disabled={loading || !hasPrev}
+                disabled={!canPrev || loading}
+                onClick={() =>
+                  fetchData({ offsetOverride: offset - PAGE_SIZE })
+                }
               >
                 Prev
               </Button>
               <Button
-                className="cursor-pointer"
                 variant="outline"
-                onClick={() => setCurrentPage((p) => p + 1)}
-                disabled={loading || !hasNext}
+                disabled={!canNext || loading}
+                onClick={() =>
+                  fetchData({ offsetOverride: offset + PAGE_SIZE })
+                }
               >
                 Next
               </Button>
@@ -260,47 +243,65 @@ export default function SubDistrictStatusReport() {
           {/* Table */}
           <div className="overflow-auto">
             <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-600 border-b bg-gray-50">
-                  <th className="py-3 px-4">SR.No</th>
-                  <th className="py-3 px-4">District</th>
-                  <th className="py-3 px-4">Pending</th>
-                  <th className="py-3 px-4">Completed</th>
-                  <th className="py-3 px-4">Approved</th>
-                  <th className="py-3 px-4">Rejected</th>
-                  <th className="py-3 px-4">&lt; 50 Citizens</th>
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    SR.No
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    District
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Pending
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Completed
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Approved
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Rejected
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    &lt; 50 Citizens
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedRows.length === 0 ? (
+                {loading ? (
                   <tr>
-                    <td className="py-6 text-center text-gray-500" colSpan={7}>
-                      {loading ? "Loading..." : "No data found."}
+                    <td className="py-6 text-center text-gray-500" colSpan={6}>
+                      <span className="inline-flex items-center gap-2">
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </span>
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-6 text-center text-gray-500">
+                      {loading ? "Loading..." : "No data found"}
                     </td>
                   </tr>
                 ) : (
-                  paginatedRows.map((r, idx) => (
-                    <tr
-                      key={`${r.district}-${idx}`}
-                      className="border-b hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4">
-                        {currentPage * PAGE_SIZE + idx + 1}
-                      </td>
-                      <td className="py-3 px-4">{r.district}</td>
-                      <td className="py-3 px-4">
+                  rows.map((r, i) => (
+                    <tr key={i} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-3">{offset + i + 1}</td>
+                      <td className="px-4 py-3">{r.district}</td>
+                      <td className="px-4 py-3">
                         {Number(r.pending_count ?? 0)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="px-4 py-3">
                         {Number(r.completed_count ?? 0)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="px-4 py-3">
                         {Number(r.approved_count ?? 0)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="px-4 py-3">
                         {Number(r.rejected_count ?? 0)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="px-4 py-3">
                         {Number(r.citizens_count_lessthan_50 ?? 0)}
                       </td>
                     </tr>

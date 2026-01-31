@@ -21,6 +21,7 @@ import type {
   WorkshopDetails,
 } from "../../../../app/lib/types";
 import { ROUTE_URL } from "../../../../app/core/constants/coreUrl";
+import { Button } from "../../../../app/components/ui/button";
 
 /* ---------- PROPS ---------- */
 
@@ -318,12 +319,12 @@ Registered On: ${citizen.created_at}
                   <div className="flex items-center gap-3">
                     <span>{data[0].total_citizens}</span>
 
-                    <button
+                    <Button
                       onClick={() => handleViewCitizens(data[0].id)}
-                      className="px-3 py-1  text-xs px-3 py-0.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                      className="px-3 py-1  text-xs px-3 py-0.5 rounded-md text-white hover:bg-blue-700 transition"
                     >
                       View
-                    </button>
+                    </Button>
                   </div>
                 }
               />
@@ -336,16 +337,16 @@ Registered On: ${citizen.created_at}
                     <span>Videos: {data[0].videos_count}</span>
                     <span>Images: {data[0].images_count}</span>
 
-                    <button
+                    <Button
                       onClick={() =>
                         navigate(
                           `${ROUTE_URL.testimonyByWorkshop}?workshop_id=${workshopId}`,
                         )
                       }
-                      className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                      className="px-3 py-1 text-xs font-semibold rounded-md text-white hover:bg-blue-700"
                     >
                       View
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -406,14 +407,14 @@ Registered On: ${citizen.created_at}
           (workshop.work_shop_status === "Approved" ||
             workshop.work_shop_status === "Rejected") && (
             <div className="flex justify-end px-4 pt-2">
-              <button
+              <Button
                 onClick={() =>
                   workshop && downloadWorkshopWithCitizensPDF(workshop)
                 }
                 className="px-3 py-1.5 text-xs font-semibold rounded-md bg-green-600 text-white hover:bg-green-700"
               >
                 Download PDF
-              </button>
+              </Button>
             </div>
           )}
 
