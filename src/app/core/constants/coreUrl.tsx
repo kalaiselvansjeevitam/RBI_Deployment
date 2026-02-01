@@ -55,11 +55,11 @@ export const ROUTE_URL = {
   subAdminReportWorkshopsLt50:
     "/rbi-deployment/admin/sub-admin-Reports/workshops-lt-50",
 
-  vleIecMaterials: "/vle/iec-materials",
-  vleFaq: "/vle/faq",
-  vleFaqOma: "/vle/faq/oma-portal",
-  vleFaqProject: "/vle/faq/project",
-  vleFaqVideoScripts: "/vle/faq/video-scripts",
+  vleIecMaterials: "/rbi-deployment/admin/vle/iec-materials",
+  vleFaq: "/rbi-deployment/admin/vle/faq",
+  vleFaqOma: "/rbi-deployment/admin/vle/faq/oma-portal",
+  vleFaqProject: "/rbi-deployment/admin/vle/faq/project",
+  vleFaqVideoScripts: "/rbi-deployment/admin/vle/faq/video-scripts",
 };
 
 export const API_URL = {

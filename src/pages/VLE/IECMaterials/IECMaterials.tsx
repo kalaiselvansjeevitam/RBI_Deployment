@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/static-components */
-import { Download } from "lucide-react";
+import { PlayCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
@@ -41,13 +41,19 @@ const IECMaterials = () => {
       },
       {
         title: "Videos",
-        description: "Download RBI-approved videos (placeholder for now).",
+        description: "RBI-approved awareness videos for sessions.",
         downloads: {
           English: [
-            { label: "Video Pack (English) - Coming soon", href: null },
+            {
+              label: "Digital Payment Awareness Video (English)",
+              href: "https://youtu.be/ef9HRVlel6E",
+            },
           ],
           Marathi: [
-            { label: "Video Pack (Marathi) - Coming soon", href: null },
+            {
+              label: "डिजिटल पेमेंट जनजागृती व्हिडिओ (Marathi)",
+              href: "https://youtu.be/ef9HRVlel6E",
+            },
           ],
         },
       },
@@ -106,9 +112,38 @@ const IECMaterials = () => {
           </div>
         </div>
 
-        <div className="mt-5 space-y-3">
+        <div className="mt-5 space-y-4">
           {items.map((d, idx) => {
+            // VIDEO CARD (YouTube redirect)
+            if (title === "Videos" && d.href) {
+              return (
+                <div
+                  key={`${title}-${idx}`}
+                  onClick={() => {
+                    if (d.href) {
+                      window.open(d.href, "_blank", "noopener,noreferrer");
+                    }
+                  }}
+                  className="group cursor-pointer border rounded-2xl p-4 bg-gray-50 hover:bg-gray-100 transition"
+                >
+                  <div className="text-sm font-medium text-gray-800 mb-3">
+                    {d.label}
+                  </div>
+
+                  <div className="relative w-full h-[220px] rounded-xl bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                    <PlayCircle className="w-16 h-16 text-white opacity-90 group-hover:scale-110 transition-transform" />
+
+                    <span className="absolute bottom-3 right-3 text-xs text-white/70">
+                      Watch on YouTube
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+
+            // DEFAULT DOWNLOAD (Handbook / Banner)
             const disabled = !d.href;
+
             return (
               <div
                 key={`${title}-${idx}`}
@@ -118,14 +153,12 @@ const IECMaterials = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="gap-2"
                   disabled={disabled}
                   onClick={() => {
                     if (!d.href) return;
                     window.open(d.href, "_blank", "noopener,noreferrer");
                   }}
                 >
-                  <Download className="h-4 w-4" />
                   Download
                 </Button>
               </div>
