@@ -1,19 +1,19 @@
 // import axios,{AxiosRequestConfig,AxiosResponse} from 'axios';
 // import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import axios, { type AxiosResponse } from "axios";
 import type { AxiosRequestConfig } from "axios";
+import axios, { type AxiosResponse } from "axios";
 
 // import { useNavigate } from 'react-router-dom';
+import Swal from "sweetalert2";
 import { DEFAULT_API_TIMEOUT } from "../constants/constants";
 import { ROUTE_URL } from "../constants/coreUrl";
-import Swal from "sweetalert2";
 
 const axiosInstance = axios.create({
   // baseURL: "http://localhost/olympiad/",
   // baseURL: "http://lochanaragupathy.com/rbi_deployment/api/",
-  // baseURL: "https://jeevitam.in/rbi-deployment/api/",
+  baseURL: "https://jeevitam.in/rbi-deployment/api/",
   // baseURL: "http://45.250.3.166/rbi-deployment/api/",
-  baseURL: "http://csc-rbi.cscacademy.org/rbi-deployment/api/",
+  // baseURL: "http://csc-rbi.cscacademy.org/rbi-deployment/api/",
   // baseURL: "https://csc-rbi.cscacademy.org/rbi-deployment/api/",
   timeout: DEFAULT_API_TIMEOUT,
   headers: {

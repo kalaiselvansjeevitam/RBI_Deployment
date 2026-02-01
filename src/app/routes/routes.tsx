@@ -1,49 +1,54 @@
+import { ScrollRestoration } from "react-router-dom";
 import { ROUTE_URL } from "../core/constants/coreUrl";
 import PrivateRoute, {
   RequireRole,
   RoleFallbackRedirect,
 } from "./PrivateRoutes";
-import { ScrollRestoration } from "react-router-dom";
 
 import Login from "../../pages/Login/Login";
 // import Dashboard from "../../pages/Dashboard/Dashboard";
 import AdminDashboard from "../../pages/Admin/AdminDashboard";
 import CreateUser from "../../pages/Admin/CreateUser";
-import CreateWorkshop from "../../pages/VLE/WorkShop/CreateWorkshop";
-import CreateCitizen from "../../pages/VLE/Citizen/CreateCitizen";
-import MapCitizen from "../../pages/VLE/WorkShop/MapCitizen";
-import VLEDashboard from "../../pages/VLE/VLEDashboard";
-import UploadTestimony from "../../pages/VLE/WorkShop/UploadTestimony";
-import VleUpload from "../../pages/Admin/VleUpload";
-import { ViewWorkshop } from "../../pages/VLE/WorkShop/ViewWorkshop";
-import { ViewTestimony } from "../../pages/VLE/WorkShop/ViewTestimony";
-import ViewCitizenByCard from "../../pages/VLE/WorkShop/ViewCitizenByCard";
-import { ViewUser } from "../../pages/Admin/ViewUser";
-import ViewManageSession from "../../pages/Admin/ManageSession/ViewManageSession";
-import TestimonyByWorkshop from "../../pages/Admin/ManageSession/shared/testimonybyworkshop";
 import CreateLocationManage from "../../pages/Admin/LocationManager/createLocationManage";
 import ViewLocationManagerPage from "../../pages/Admin/LocationManager/viewLocationManager";
-import VLEReport from "../../pages/Admin/Reports/VLEReport";
+import ViewManageSession from "../../pages/Admin/ManageSession/ViewManageSession";
+import TestimonyByWorkshop from "../../pages/Admin/ManageSession/shared/testimonybyworkshop";
 import CitizenReport from "../../pages/Admin/Reports/CitizenReport";
+import VLEReport from "../../pages/Admin/Reports/VLEReport";
 import WorkshopReport from "../../pages/Admin/Reports/WorkshopReport";
+import { ViewUser } from "../../pages/Admin/ViewUser";
+import VleUpload from "../../pages/Admin/VleUpload";
 import RBIDashboard from "../../pages/RBI/RBIDashboard";
 import RBIMonthView from "../../pages/RBI/RBIMonthView";
 import RBIWorkshopDateWise from "../../pages/RBI/RBIWorkshopDateWise";
-import RBIReportsHome from "../../pages/RBI/Reports/RBIReportsHome";
+import CitizenDataReport from "../../pages/RBI/Reports/CitizenDataReport";
 import DistrictStatusReport from "../../pages/RBI/Reports/DistrictStatusReport";
 import GenderParticipationReport from "../../pages/RBI/Reports/GenderParticipationReport";
-import CitizenDataReport from "../../pages/RBI/Reports/CitizenDataReport";
+import RBIReportsHome from "../../pages/RBI/Reports/RBIReportsHome";
+import CreateCitizen from "../../pages/VLE/Citizen/CreateCitizen";
+import VLEDashboard from "../../pages/VLE/VLEDashboard";
+import CreateWorkshop from "../../pages/VLE/WorkShop/CreateWorkshop";
+import MapCitizen from "../../pages/VLE/WorkShop/MapCitizen";
+import UploadTestimony from "../../pages/VLE/WorkShop/UploadTestimony";
+import ViewCitizenByCard from "../../pages/VLE/WorkShop/ViewCitizenByCard";
+import { ViewTestimony } from "../../pages/VLE/WorkShop/ViewTestimony";
+import { ViewWorkshop } from "../../pages/VLE/WorkShop/ViewWorkshop";
 // import LocationScheduleReport from "../../pages/RBI/Reports/LocationScheduleReport";
 // import DistrictPendingCompleteReport from "../../pages/RBI/Reports/DistrictPendingCompleteReport";
 // import WorkshopsLt50Report from "../../pages/RBI/Reports/WorkshopsLt50Report";
-import DashboardSubAdmin from "../../pages/SubAdmin/SubAdminDashboard";
 import SubRBIReportsHome from "../../pages/RBI/Reports/RBIReportsHome";
+import SubCitizenDataReport from "../../pages/SubAdmin/Reports/CitizenDataReport";
 import SubDistrictStatusReport from "../../pages/SubAdmin/Reports/DistrictStatusReport";
 import SubGenderParticipationReport from "../../pages/SubAdmin/Reports/GenderParticipationReport";
-import SubCitizenDataReport from "../../pages/SubAdmin/Reports/CitizenDataReport";
 import SubLocationScheduleReport from "../../pages/SubAdmin/Reports/LocationScheduleReport";
+import DashboardSubAdmin from "../../pages/SubAdmin/SubAdminDashboard";
 // import SubDistrictPendingCompleteReport from "../../pages/SubAdmin/Reports/DistrictPendingCompleteReport";
 import SubWorkshopsLt50Report from "../../pages/SubAdmin/Reports/WorkshopsLt50Report";
+import FAQHome from "../../pages/VLE/FAQ/FAQHome";
+import OMAPortalFAQ from "../../pages/VLE/FAQ/OMAPortalFAQ";
+import ProjectFAQ from "../../pages/VLE/FAQ/ProjectFAQ";
+import VideoScriptsFAQ from "../../pages/VLE/FAQ/VideoScriptsFAQ";
+import IECMaterials from "../../pages/VLE/IECMaterials/IECMaterials";
 
 export const authProtectedRoutes = [
   {
@@ -361,6 +366,47 @@ export const authProtectedRoutes = [
           </RequireRole>
         ),
       },
+      {
+        path: ROUTE_URL.vleIecMaterials,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <IECMaterials />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vleFaq,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <FAQHome />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vleFaqOma,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <OMAPortalFAQ />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vleFaqProject,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <ProjectFAQ />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vleFaqVideoScripts,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <VideoScriptsFAQ />
+          </RequireRole>
+        ),
+      },
+
       { path: "*", element: <RoleFallbackRedirect /> },
     ],
   },

@@ -1,25 +1,27 @@
+import logo from "@/assets/images/RBI.png";
 import {
-  Menu,
-  LogOut,
-  Home,
-  User,
-  View,
-  Upload,
+  BarChart3,
+  BookOpen,
   ClipboardList,
-  UserPlus,
   Eye,
-  Locate,
   File,
   FileText,
-  BarChart3,
+  HelpCircle,
+  Home,
+  Locate,
+  LogOut,
+  Menu,
+  Upload,
+  User,
+  UserPlus,
+  View,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "../ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
-import useWindowSize from "../../core/hooks/windowResize";
 import { ROUTE_URL } from "../../core/constants/coreUrl";
+import useWindowSize from "../../core/hooks/windowResize";
+import { Button } from "../ui/button";
 import { Sheet, SheetContent } from "../ui/sheet";
-import logo from "@/assets/images/RBI.png";
 
 /* ---------------- TYPES ---------------- */
 
@@ -134,12 +136,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       ],
     });
   } else if (user_type?.toLowerCase() === "vle") {
+    // Dashboard
     sidebarItems.splice(2, 0, {
       icon: Home,
       label: "Dashboard",
       href: ROUTE_URL.vleDashboard,
     });
-    sidebarItems.splice(2, 0, {
+    // Workshop
+    sidebarItems.splice(5, 0, {
       icon: ClipboardList,
       label: "Work Shop",
       href: ROUTE_URL.createWorkShop,
@@ -161,7 +165,9 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     });
-    sidebarItems.splice(3, 0, {
+
+    // Citizen
+    sidebarItems.splice(6, 0, {
       icon: User,
       label: "Citizen",
       href: ROUTE_URL.createCitizens,
@@ -178,24 +184,42 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     });
+    // IEC Materials (NEW)
+    sidebarItems.splice(3, 0, {
+      icon: BookOpen,
+      label: "IEC Materials",
+      href: ROUTE_URL.vleIecMaterials,
+    });
+
+    // FAQ (NEW)
+    sidebarItems.splice(4, 0, {
+      icon: HelpCircle,
+      label: "FAQ",
+      href: ROUTE_URL.vleFaq,
+      children: [
+        {
+          label: "OMA Portal FAQs",
+          href: ROUTE_URL.vleFaqOma,
+          icon: FileText,
+        },
+        {
+          label: "Project FAQs",
+          href: ROUTE_URL.vleFaqProject,
+          icon: FileText,
+        },
+        {
+          label: "Video Scripts FAQs",
+          href: ROUTE_URL.vleFaqVideoScripts,
+          icon: FileText,
+        },
+      ],
+    });
   } else if (user_type?.toLowerCase() === "rbi") {
     sidebarItems.splice(2, 0, {
       icon: BarChart3,
       label: "Dashboard",
       href: ROUTE_URL.rbiDashboard,
     });
-
-    // sidebarItems.splice(3, 0, {
-    //   icon: Calendar,
-    //   label: "Month View",
-    //   href: ROUTE_URL.rbiMonthView,
-    // });
-
-    // sidebarItems.splice(4, 0, {
-    //   icon: ClipboardList,
-    //   label: "Workshop Date Wise",
-    //   href: ROUTE_URL.rbiWorkshopDateWise,
-    // });
 
     sidebarItems.splice(5, 0, {
       icon: FileText,
@@ -217,21 +241,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           href: ROUTE_URL.rbiReportCitizenData,
           icon: View,
         },
-        // {
-        //   label: "Location Schedule",
-        //   href: ROUTE_URL.rbiReportLocationSchedule,
-        //   icon: View,
-        // },
-        // {
-        //   label: "Pending vs Completed",
-        //   href: ROUTE_URL.rbiReportDistrictPendingComplete,
-        //   icon: View,
-        // },
-        // {
-        //   label: "< 50 Attendees",
-        //   href: ROUTE_URL.rbiReportWorkshopsLt50,
-        //   icon: View,
-        // },
       ],
     });
   } else if (user_type?.toLowerCase() === "sub_admin") {
@@ -265,11 +274,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           href: ROUTE_URL.subAdminReportLocationSchedule,
           icon: View,
         },
-        // {
-        //   label: "Pending vs Completed",
-        //   href: ROUTE_URL.subAdminReportDistrictPendingComplete,
-        //   icon: View,
-        // },
         {
           label: "< 50 Attendees",
           href: ROUTE_URL.subAdminReportWorkshopsLt50,
@@ -368,6 +372,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <SidebarItem key={item.label} item={item} />
         ))}
       </div>
+
       {!isDesktop && (
         <Button
           variant="ghost"

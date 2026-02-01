@@ -54,6 +54,12 @@ export const ROUTE_URL = {
     "/rbi-deployment/admin/sub-admin-Reports/district-pending-complete",
   subAdminReportWorkshopsLt50:
     "/rbi-deployment/admin/sub-admin-Reports/workshops-lt-50",
+
+  vleIecMaterials: "/vle/iec-materials",
+  vleFaq: "/vle/faq",
+  vleFaqOma: "/vle/faq/oma-portal",
+  vleFaqProject: "/vle/faq/project",
+  vleFaqVideoScripts: "/vle/faq/video-scripts",
 };
 
 export const API_URL = {
