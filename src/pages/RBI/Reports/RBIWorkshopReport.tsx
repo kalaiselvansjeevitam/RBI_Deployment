@@ -18,7 +18,7 @@ import {
 } from "../../../app/core/api/RBIReports";
 
 const PAGE_SIZE = 10;
-const TABLE_COLS = 18;
+const TABLE_COLS = 14;
 
 type BlockItem = { block_panchayat_name: string };
 type GramItem = { gram_panchayat_code: string; gram_panchayat_name: string };
@@ -535,16 +535,7 @@ export default function RBIWorkshopReport() {
                     Workshop date
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Workshop Time
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Workshop Created At
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Status
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Workshop Checklist
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Aproved Date
@@ -554,9 +545,6 @@ export default function RBIWorkshopReport() {
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     VLE Name
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Age
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Approver Name

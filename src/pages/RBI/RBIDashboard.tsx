@@ -174,7 +174,7 @@ export default function RBIDashboard() {
         ]),
       },
       {
-        title: "Under the Schedule",
+        title: "Total Workshop Pending",
         value: cardValueInt([
           "total_pending",
           "pending",
@@ -200,15 +200,21 @@ export default function RBIDashboard() {
           "total_workshop_rejected",
         ]),
       },
-
       {
         title: "Avg Approval Days",
         value: cardValueFloat(["avg_approval_days"], 0),
       },
-
       {
         title: "Total Workshop Cancelled",
         value: cardValueInt(["total_cancelled"]),
+      },
+      {
+        title: "Gram Panchayat Covered Till Date",
+        value: cardValueInt([
+          "gram_panchayat_completed_approved_count",
+          "gram_panchayat_covered_till_date",
+          "gramPanchayatCompletedApprovedCount",
+        ]),
       },
     ];
   }, [cardValueInt, cardValueFloat]);
@@ -222,9 +228,12 @@ export default function RBIDashboard() {
 
       const row = barRes?.list?.[0] ?? {};
       setDistrictBarData([
-        { status: "Completed", count: toNumberSafe(row.completed_count, 0) },
-        { status: "Pending", count: toNumberSafe(row.pending_count, 0) },
         { status: "Approved", count: toNumberSafe(row.approved_count, 0) },
+        { status: "Rejected", count: toNumberSafe(row.rejected_count, 0) },
+        {
+          status: "Scheduled but Pending",
+          count: toNumberSafe(row.pending_count, 0),
+        },
       ]);
     },
     [getDistrictBar],
@@ -239,9 +248,12 @@ export default function RBIDashboard() {
 
       const row = res?.list?.[0] ?? {};
       setMonthBarData([
-        { status: "Pending", count: toNumberSafe(row.pending_count, 0) },
         { status: "Approved", count: toNumberSafe(row.approved_count, 0) },
-        { status: "Completed", count: toNumberSafe(row.completed_count, 0) },
+        { status: "Rejected", count: toNumberSafe(row.rejected_count, 0) },
+        {
+          status: "Scheduled but Pending",
+          count: toNumberSafe(row.pending_count, 0),
+        },
       ]);
     },
     [getMonthBar],
@@ -441,13 +453,6 @@ export default function RBIDashboard() {
                 </option>
               ))}
             </select>
-
-            {/* <Button
-              variant="outline"
-              onClick={() => onMonthChange(selectedMonth)}
-            >
-              Refresh
-            </Button> */}
           </div>
 
           <BarChartComponent

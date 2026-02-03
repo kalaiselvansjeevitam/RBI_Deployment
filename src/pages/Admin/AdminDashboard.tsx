@@ -100,7 +100,7 @@ export default function AdminDashboard() {
         value: toNumberSafe(cardsRaw.total_completed),
       },
       {
-        title: "Under the Schedule",
+        title: "Total Workshop Pending",
         value: toNumberSafe(cardsRaw.total_pending),
       },
       {
