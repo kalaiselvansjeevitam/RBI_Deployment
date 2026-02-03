@@ -34,11 +34,21 @@ export const useDownloadDistrictWiseWorkshopReport = () =>
 // 2) Gender-wise Workshop Report (Download)
 export const useDownloadGenderWiseWorkshopReport = () =>
   useMutation({
-    mutationFn: (data?: { district?: string }) => {
+    mutationFn: (data?: {
+      district?: string;
+      // block_panchayat: string;
+      // gram_panchayat: string;
+      // from_date: string;
+      // to_date: string;
+    }) => {
       return POST<DownloadReportResponse>({
         url: API_URL.downloadGenderWiseWorkshopReport,
         data: {
           district: data?.district ?? "",
+          //     block_panchayat: data?.block_panchayat ?? "",
+          // gram_panchayat: data?.gram_panchayat ?? "",
+          // from_date: data?.from_date ?? "",
+          // to_date: data?.to_date ?? "",
         },
       });
     },
@@ -51,9 +61,27 @@ export const useDownloadCitizenDataByDistrictReport = () =>
       district: string;
       start_date: string;
       end_date: string;
+      block_panchayat: string;
+      gram_panchayat: string;
     }) => {
       return POST<DownloadReportResponse>({
         url: API_URL.downloadCitizenDataByDistrictReport,
+        data,
+      });
+    },
+  });
+
+export const useDownloadRBIWorkshopReport = () =>
+  useMutation({
+    mutationFn: (data: {
+      district: string;
+      start_date: string;
+      end_date: string;
+      block_panchayat: string;
+      gram_panchayat: string;
+    }) => {
+      return POST<DownloadReportResponse>({
+        url: API_URL.downloadRBIWorkshopReport,
         data,
       });
     },
@@ -143,7 +171,14 @@ export type GenderWorkshopRow = {
 
 export const useViewGenderWiseWorkshopReport = () =>
   useMutation({
-    mutationFn: (data: { district?: string; offset: number }) =>
+    mutationFn: (data: {
+      district?: string;
+      offset: number;
+      // block_panchayat: string;
+      // gram_panchayat: string;
+      // from_date: string;
+      // to_date: string;
+    }) =>
       POST<ReportTableResponse<GenderWorkshopRow>>({
         url: API_URL.viewGenderWiseWorkshopReport,
         data,
@@ -158,6 +193,9 @@ export type CitizenRow = {
   gram_panchayat: string;
   district: string;
   citizen_name: string;
+  centre_name: string;
+  centre_address: string;
+  workshop_date: string;
   mobile_number: string;
   program_name: string;
   gender: string;
@@ -175,10 +213,40 @@ export type ViewCitizenResponse = {
   data: CitizenRow[];
 };
 
+export type RBIWorkshopReportRow = {
+  workshop_name: string;
+  workshop_date: string;
+  workshop_from_time: string;
+  workshop_to_time: string;
+  workshop_district: string;
+  workshop_created_at: string;
+  workshop_status: string;
+  workshop_checklist: string;
+  workshop_approved_date: string;
+  workshop_rejected_reason: string;
+  vle_name: string;
+  approver_name: string;
+  workshop_id: string;
+  workshop_center_name: string;
+  workshop_center_address: string;
+  participants_count: string;
+  workshop_block_panchayat: string;
+  workshop_gram_panchayat: string;
+};
+
+export type RBIWorkshopReportResponse = {
+  status: "Success" | "Error";
+  message: string;
+  count: number;
+  data: RBIWorkshopReportRow[];
+};
+
 export const useViewCitizenDataByDistrictReport = () =>
   useMutation({
     mutationFn: (payload: {
       district: string;
+      gram_panchayat: string;
+      block_panchayat: string;
       start_date: string;
       end_date: string;
       offset: number;
@@ -187,6 +255,32 @@ export const useViewCitizenDataByDistrictReport = () =>
         url: API_URL.viewCitizenDataByDistrictReport,
         data: {
           district: payload.district,
+          gram_panchayat: payload.gram_panchayat,
+          block_panchayat: payload.block_panchayat,
+          start_date: payload.start_date,
+          end_date: payload.end_date,
+          offset: payload.offset,
+        },
+      });
+    },
+  });
+
+export const useViewWorkshopReport = () =>
+  useMutation({
+    mutationFn: (payload: {
+      district: string;
+      gram_panchayat: string;
+      block_panchayat: string;
+      start_date: string;
+      end_date: string;
+      offset: number;
+    }) => {
+      return POST<RBIWorkshopReportResponse>({
+        url: API_URL.viewWorkShopReport,
+        data: {
+          district: payload.district,
+          gram_panchayat: payload.gram_panchayat,
+          block_panchayat: payload.block_panchayat,
           start_date: payload.start_date,
           end_date: payload.end_date,
           offset: payload.offset,

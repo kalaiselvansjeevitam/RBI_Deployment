@@ -444,6 +444,14 @@ export const useGetDistrictParams = () =>
     },
   });
 
+// export const useGetWorkshopIdParams = () =>
+//   useMutation({
+//     mutationFn: () => {
+//       return GET<GetDistrictListRes>({
+//         url: API_URL.getDistrict,
+//       });
+//     },
+//   });
 export const useGetVleParams = () =>
   useMutation({
     mutationFn: (data: { get_by: string }) => {

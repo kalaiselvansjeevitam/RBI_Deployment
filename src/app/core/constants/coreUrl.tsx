@@ -25,6 +25,12 @@ export const ROUTE_URL = {
   downloadWorkshopReport: "/rbi-deployment/admin/DownloadWorkshopReport",
   subAdminDashboard: "/rbi-deployment/admin/sub-admin-dashboard",
 
+  vleIecMaterials: "/rbi-deployment/admin/vle/iec-materials",
+  vleFaq: "/rbi-deployment/admin/vle/faq",
+  vleFaqOma: "/rbi-deployment/admin/vle/faq/oma-portal",
+  vleFaqProject: "/rbi-deployment/admin/vle/faq/project",
+  vleFaqVideoScripts: "/rbi-deployment/admin/vle/faq/video-scripts",
+
   rbiDashboard: "/rbi-deployment/admin/rbiDashboard",
   rbiMonthView: "/rbi-deployment/admin/rbi/month-view",
   rbiWorkshopDateWise: "/rbi-deployment/admin/rbiWorkshopDateWise",
@@ -35,6 +41,8 @@ export const ROUTE_URL = {
   rbiReportGenderParticipation:
     "/rbi-deployment/admin/rbiReports/gender-participation",
   rbiReportCitizenData: "/rbi-deployment/admin/rbiReports/citizen-data",
+  rbiworkshopData: "/rbi-deployment/admin/rbiReports/Workshop-data",
+
   rbiReportLocationSchedule:
     "/rbi-deployment/admin/rbiReports/location-schedule",
   rbiReportDistrictPendingComplete:
@@ -107,6 +115,7 @@ export const API_URL = {
   downloadGenderWiseWorkshopReport: "/download-gender-wise-workshop-report",
   downloadCitizenDataByDistrictReport:
     "/download-citizen-data-by-district-report",
+  downloadRBIWorkshopReport: "/download-workshop-report",
   downloadLocationManagerWiseWorkshopReport:
     "/download-location-manager-wise-workshop-report",
   downloadDistrictWiseByStatusWorkshopReport:
@@ -118,6 +127,7 @@ export const API_URL = {
   viewDistrictWiseWorkshopReport: "/view-district-wise-workshop-report",
   viewGenderWiseWorkshopReport: "/view-gender-wise-workshop-report",
   viewCitizenDataByDistrictReport: "/view-citizen-data-by-district-report",
+  viewWorkShopReport: "/view-workshop-by-district-block-gram-panchayat-wise",
   viewLocationManagerWiseWorkshopReport:
     "/view-location-manager-wise-workshop-report",
   viewDistrictWiseByStatusWorkshopReport:

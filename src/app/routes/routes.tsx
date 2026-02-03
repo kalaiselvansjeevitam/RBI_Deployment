@@ -44,6 +44,12 @@ import SubCitizenDataReport from "../../pages/SubAdmin/Reports/CitizenDataReport
 import SubLocationScheduleReport from "../../pages/SubAdmin/Reports/LocationScheduleReport";
 // import SubDistrictPendingCompleteReport from "../../pages/SubAdmin/Reports/DistrictPendingCompleteReport";
 import SubWorkshopsLt50Report from "../../pages/SubAdmin/Reports/WorkshopsLt50Report";
+import IECMaterials from "../../pages/VLE/IECMaterials/IECMaterials";
+import FAQHome from "../../pages/VLE/FAQ/FAQHome";
+import OMAPortalFAQ from "../../pages/VLE/FAQ/OMAPortalFAQ";
+import ProjectFAQ from "../../pages/VLE/FAQ/ProjectFAQ";
+import VideoScriptsFAQ from "../../pages/VLE/FAQ/VideoScriptsFAQ";
+import RBIWorkshopReport from "../../pages/RBI/Reports/RBIWorkshopReport";
 
 export const authProtectedRoutes = [
   {
@@ -209,6 +215,46 @@ export const authProtectedRoutes = [
         ),
       },
       {
+        path: ROUTE_URL.vleIecMaterials,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <IECMaterials />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vleFaq,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <FAQHome />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vleFaqOma,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <OMAPortalFAQ />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vleFaqProject,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <ProjectFAQ />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vleFaqVideoScripts,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <VideoScriptsFAQ />
+          </RequireRole>
+        ),
+      },
+      {
         path: ROUTE_URL.viewCitizenByCard,
         element: (
           <RequireRole allowedRoles={["vle", "admin"]}>
@@ -270,6 +316,14 @@ export const authProtectedRoutes = [
         element: (
           <RequireRole allowedRoles={["rbi"]}>
             <CitizenDataReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.rbiworkshopData,
+        element: (
+          <RequireRole allowedRoles={["rbi"]}>
+            <RBIWorkshopReport />
           </RequireRole>
         ),
       },

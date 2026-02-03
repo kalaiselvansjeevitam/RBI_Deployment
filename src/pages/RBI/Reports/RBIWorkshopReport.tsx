@@ -11,18 +11,18 @@ import {
   useGetGramPanchayat,
 } from "../../../app/core/api/Admin";
 import {
-  useDownloadCitizenDataByDistrictReport,
-  useViewCitizenDataByDistrictReport,
-  type CitizenRow,
+  useDownloadRBIWorkshopReport,
+  useViewWorkshopReport,
+  type RBIWorkshopReportRow,
 } from "../../../app/core/api/RBIReports";
 import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 10;
 
-export default function CitizenDataReport() {
+export default function RBIWorkshopReport() {
   const navigate = useNavigate();
-  const { mutateAsync: fetchView } = useViewCitizenDataByDistrictReport();
-  const { mutateAsync: download } = useDownloadCitizenDataByDistrictReport();
+  const { mutateAsync: fetchView } = useViewWorkshopReport();
+  const { mutateAsync: download } = useDownloadRBIWorkshopReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
 
   const [districtList, setDistrictList] = useState<string[]>([]);
@@ -30,7 +30,7 @@ export default function CitizenDataReport() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const [rows, setRows] = useState<CitizenRow[]>([]);
+  const [rows, setRows] = useState<RBIWorkshopReportRow[]>([]);
   const [offset, setOffset] = useState(0);
   const [total, setTotal] = useState(0);
 
@@ -50,6 +50,7 @@ export default function CitizenDataReport() {
   const canSubmit = Boolean(
     selectedDistrict && startDate && endDate && selectedBlock && selectedGram,
   );
+  const canSubmitDownload = Boolean(selectedDistrict && startDate && endDate);
 
   /* ---------------- Load districts ---------------- */
   useEffect(() => {
@@ -216,13 +217,11 @@ export default function CitizenDataReport() {
 
   /* ---------------- UI ---------------- */
   return (
-    <Layout headerTitle="District-wise Citizen Data Report">
+    <Layout headerTitle="View Workshop by District, Gram, Panchayat">
       <div className="p-6">
         <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">
-              District-wise Citizens Report
-            </h2>
+            <h2 className="text-lg font-semibold">View Workshop Report</h2>
             <Button onClick={() => navigate(-1)}>Back</Button>
           </div>
           {/* Filters */}
@@ -332,7 +331,10 @@ export default function CitizenDataReport() {
                 {loading ? <Loader className="w-4 h-4 animate-spin" /> : "View"}
               </Button>
 
-              <Button onClick={handleDownload} disabled={loading || !canSubmit}>
+              <Button
+                onClick={handleDownload}
+                disabled={loading || !canSubmitDownload}
+              >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <Loader className="w-4 h-4 animate-spin" />
@@ -409,37 +411,55 @@ export default function CitizenDataReport() {
                     SR.No
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    District
+                    Workshop Name
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Block Panchayat
+                    Workshop date
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Gram Panchayat
+                    Workshop Time
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Citizen Name
+                    Workshop Created At
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Center Name
+                    Workshop Status
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Centre Address
+                    Workshop Checklist
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Workshop Date
+                    Workshop Aproved Date
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Mobile
+                    Workshop Rejected Reason
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Gender
+                    VLE Name
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Age
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Created Date
+                    Approver Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Workshop ID
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Workshop Center Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Workshop Center Address
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Participants Count
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Workshop Block Panchayat
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Workshop Gram Panchayat
                   </th>
                 </tr>
               </thead>
@@ -463,17 +483,29 @@ export default function CitizenDataReport() {
                   rows.map((r, i) => (
                     <tr key={i} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3">{offset + i + 1}</td>
-                      <td className="px-4 py-3">{r.district}</td>
-                      <td className="px-4 py-3">{r.block_panchayat}</td>
-                      <td className="px-4 py-3">{r.gram_panchayat}</td>
-                      <td className="px-4 py-3">{r.citizen_name}</td>
-                      <td className="px-4 py-3">{r.centre_name}</td>
-                      <td className="px-4 py-3">{r.centre_address}</td>
+                      <td className="px-4 py-3">{r.workshop_name}</td>
                       <td className="px-4 py-3">{r.workshop_date}</td>
-                      <td className="px-4 py-3">{r.mobile_number}</td>
-                      <td className="px-4 py-3">{r.gender}</td>
-                      <td className="px-4 py-3">{r.age}</td>
-                      <td className="px-4 py-3">{r.date}</td>
+                      <td className="px-4 py-3">
+                        {r.workshop_from_time} - {r.workshop_to_time}
+                      </td>
+                      <td className="px-4 py-3">{r.workshop_district}</td>
+                      <td className="px-4 py-3">{r.workshop_created_at}</td>
+                      <td className="px-4 py-3">{r.workshop_status}</td>
+                      <td className="px-4 py-3">{r.workshop_checklist}</td>
+                      <td className="px-4 py-3">{r.workshop_approved_date}</td>
+                      <td className="px-4 py-3">
+                        {r.workshop_rejected_reason}
+                      </td>
+                      <td className="px-4 py-3">{r.vle_name}</td>
+                      <td className="px-4 py-3">{r.approver_name}</td>
+                      <td className="px-4 py-3">{r.workshop_id}</td>
+                      <td className="px-4 py-3">{r.workshop_center_name}</td>
+                      <td className="px-4 py-3">{r.workshop_center_address}</td>
+                      <td className="px-4 py-3">{r.participants_count}</td>
+                      <td className="px-4 py-3">
+                        {r.workshop_block_panchayat}
+                      </td>
+                      <td className="px-4 py-3">{r.workshop_gram_panchayat}</td>
                     </tr>
                   ))
                 )}

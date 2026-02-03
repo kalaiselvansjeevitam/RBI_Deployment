@@ -252,6 +252,12 @@ export default function DistrictStatusReport() {
                     District
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    VLE ID
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    VLE Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Pending
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
@@ -262,9 +268,6 @@ export default function DistrictStatusReport() {
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Rejected
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    &lt; 50 Citizens
                   </th>
                 </tr>
               </thead>
@@ -289,6 +292,8 @@ export default function DistrictStatusReport() {
                     <tr key={i} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3">{offset + i + 1}</td>
                       <td className="px-4 py-3">{r.district}</td>
+                      <td className="px-4 py-3">{r.vle_id}</td>
+                      <td className="px-4 py-3">{r.vle_name}</td>
                       <td className="px-4 py-3">
                         {Number(r.pending_count ?? 0)}
                       </td>
@@ -300,9 +305,6 @@ export default function DistrictStatusReport() {
                       </td>
                       <td className="px-4 py-3">
                         {Number(r.rejected_count ?? 0)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {Number(r.citizens_count_lessthan_50 ?? 0)}
                       </td>
                     </tr>
                   ))

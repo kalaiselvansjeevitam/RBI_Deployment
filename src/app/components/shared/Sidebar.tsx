@@ -13,6 +13,8 @@ import {
   FileText,
   BarChart3,
   type LucideIcon,
+  BookOpen,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -178,6 +180,35 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     });
+    sidebarItems.splice(3, 0, {
+      icon: BookOpen,
+      label: "IEC Materials",
+      href: ROUTE_URL.vleIecMaterials,
+    });
+
+    // FAQ (NEW)
+    sidebarItems.splice(4, 0, {
+      icon: HelpCircle,
+      label: "FAQ",
+      href: ROUTE_URL.vleFaqOma,
+      children: [
+        {
+          label: "OMA Portal FAQs",
+          href: ROUTE_URL.vleFaqOma,
+          icon: FileText,
+        },
+        {
+          label: "Project FAQs",
+          href: ROUTE_URL.vleFaqProject,
+          icon: FileText,
+        },
+        {
+          label: "Video Scripts FAQs",
+          href: ROUTE_URL.vleFaqVideoScripts,
+          icon: FileText,
+        },
+      ],
+    });
   } else if (user_type?.toLowerCase() === "rbi") {
     sidebarItems.splice(2, 0, {
       icon: BarChart3,
@@ -207,14 +238,19 @@ const Sidebar: React.FC<SidebarProps> = ({
           href: ROUTE_URL.rbiReportDistrictStatus,
           icon: View,
         },
-        {
-          label: "Gender Participation",
-          href: ROUTE_URL.rbiReportGenderParticipation,
-          icon: View,
-        },
+        // {
+        //   label: "Gender Participation",
+        //   href: ROUTE_URL.rbiReportGenderParticipation,
+        //   icon: View,
+        // },
         {
           label: "Citizen Data",
           href: ROUTE_URL.rbiReportCitizenData,
+          icon: View,
+        },
+        {
+          label: "Workshop Data",
+          href: ROUTE_URL.rbiworkshopData,
           icon: View,
         },
         // {
