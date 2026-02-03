@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
@@ -11,22 +12,103 @@ import {
   useGetGramPanchayat,
 } from "../../../app/core/api/Admin";
 import {
-  useDownloadRBIWorkshopReport,
+  useDownloadCitizenDataByDistrictReport,
   useViewWorkshopReport,
   type RBIWorkshopReportRow,
 } from "../../../app/core/api/RBIReports";
-import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 10;
+const TABLE_COLS = 18;
+
+type BlockItem = { block_panchayat_name: string };
+type GramItem = { gram_panchayat_code: string; gram_panchayat_name: string };
+
+const isSuccess = (x: any) =>
+  String(x?.result ?? "")
+    .trim()
+    .toLowerCase() === "success";
+
+const normalizeDate = (d: string) => String(d ?? "").trim(); // YYYY-MM-DD
+const isValidDateRange = (start: string, end: string) => {
+  if (!!start !== !!end) return false; // one set => both required
+  if (!start && !end) return true;
+  return start <= end; // lexical works for YYYY-MM-DD
+};
+
+function safeText(v: unknown): string {
+  if (v == null) return "";
+  return String(v).trim();
+}
+
+/**
+ * Keeps same UI/table, just prevents 100+ words exploding layout.
+ * Shows truncated preview with "Show more/less" and optional "Copy".
+ */
+function ExpandableText({
+  text,
+  maxChars = 140,
+}: {
+  text: unknown;
+  maxChars?: number;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const clean = safeText(text);
+  if (!clean) return <span className="text-gray-400">-</span>;
+
+  const isLong = clean.length > maxChars;
+  const shown = open || !isLong ? clean : `${clean.slice(0, maxChars)}…`;
+
+  return (
+    <div className="max-w-[420px]">
+      <p className="text-gray-700 break-words">{shown}</p>
+
+      {isLong && (
+        <div className="mt-1 flex gap-2">
+          <button
+            type="button"
+            className="text-xs text-blue-600 hover:underline"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? "Show less" : "Show more"}
+          </button>
+
+          <button
+            type="button"
+            className="text-xs text-gray-600 hover:underline"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(clean);
+                toast.success("Copied");
+              } catch {
+                toast.error("Copy failed");
+              }
+            }}
+          >
+            Copy
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function RBIWorkshopReport() {
   const navigate = useNavigate();
+
   const { mutateAsync: fetchView } = useViewWorkshopReport();
-  const { mutateAsync: download } = useDownloadRBIWorkshopReport();
+  const { mutateAsync: downloadCitizen } =
+    useDownloadCitizenDataByDistrictReport();
+
   const { mutateAsync: getDistricts } = useGetDistrictParams();
+  const { mutateAsync: getBlocks } = useGetBlockPanchayat();
+  const { mutateAsync: getGrams } = useGetGramPanchayat();
 
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedBlock, setSelectedBlock] = useState("");
+  const [selectedGram, setSelectedGram] = useState("");
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -35,22 +117,20 @@ export default function RBIWorkshopReport() {
   const [total, setTotal] = useState(0);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [blockList, setBlockList] = useState<any[]>([]);
-  const [gramList, setGramList] = useState<any[]>([]);
-
-  const [selectedBlock, setSelectedBlock] = useState("");
-  const [selectedGram, setSelectedGram] = useState("");
-
   const [loadingBlock, setLoadingBlock] = useState(false);
   const [loadingGram, setLoadingGram] = useState(false);
-  const { mutateAsync: getBlocks } = useGetBlockPanchayat();
-  const { mutateAsync: getGrams } = useGetGramPanchayat();
+  const [error, setError] = useState("");
 
-  const canSubmit = Boolean(
-    selectedDistrict && startDate && endDate && selectedBlock && selectedGram,
-  );
-  const canSubmitDownload = Boolean(selectedDistrict && startDate && endDate);
+  const [blockList, setBlockList] = useState<BlockItem[]>([]);
+  const [gramList, setGramList] = useState<GramItem[]>([]);
+
+  // Optional session_id support (no UI input currently)
+  const [sessionId, setSessionId] = useState("");
+
+  // Requirement: district+block+gram required; date optional but must be valid pair if used
+  const hasValidDates = isValidDateRange(startDate, endDate);
+  const canSubmit = Boolean(selectedDistrict && selectedBlock && selectedGram);
+  const canSubmitDownload = Boolean(canSubmit && hasValidDates);
 
   /* ---------------- Load districts ---------------- */
   useEffect(() => {
@@ -72,6 +152,8 @@ export default function RBIWorkshopReport() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ---------------- Load blocks when district changes ---------------- */
   useEffect(() => {
     if (!selectedDistrict) {
       setBlockList([]);
@@ -84,15 +166,23 @@ export default function RBIWorkshopReport() {
     (async () => {
       try {
         setLoadingBlock(true);
+        setBlockList([]);
+        setGramList([]);
+        setSelectedBlock("");
+        setSelectedGram("");
+
         const res = await getBlocks({ district: selectedDistrict });
-        setBlockList(res?.list ?? []);
+        setBlockList((res?.list ?? []) as BlockItem[]);
       } catch (e) {
+        console.error("Failed to load blocks:", e);
         setBlockList([]);
       } finally {
         setLoadingBlock(false);
       }
     })();
-  }, [selectedDistrict]);
+  }, [selectedDistrict, getBlocks]);
+
+  /* ---------------- Load grams when block changes ---------------- */
   useEffect(() => {
     if (!selectedBlock) {
       setGramList([]);
@@ -103,17 +193,19 @@ export default function RBIWorkshopReport() {
     (async () => {
       try {
         setLoadingGram(true);
-        const res = await getGrams({
-          block_panchayat_name: selectedBlock,
-        });
-        setGramList(res?.list ?? []);
+        setGramList([]);
+        setSelectedGram("");
+
+        const res = await getGrams({ block_panchayat_name: selectedBlock });
+        setGramList((res?.list ?? []) as GramItem[]);
       } catch (e) {
+        console.error("Failed to load grams:", e);
         setGramList([]);
       } finally {
         setLoadingGram(false);
       }
     })();
-  }, [selectedBlock]);
+  }, [selectedBlock, getGrams]);
 
   /* ---------------- Fetch data ---------------- */
   const fetchData = async (opts?: {
@@ -121,9 +213,18 @@ export default function RBIWorkshopReport() {
     offsetOverride?: number;
   }) => {
     if (!canSubmit) {
-      setError("Please select district, start date, and end date");
+      setError("Please select District, Block Panchayat, and Gram Panchayat.");
       setRows([]);
       setTotal(0);
+      setOffset(0);
+      return;
+    }
+
+    if (!hasValidDates) {
+      setError("Please select both Start and End date (and End >= Start).");
+      setRows([]);
+      setTotal(0);
+      setOffset(0);
       return;
     }
 
@@ -133,14 +234,16 @@ export default function RBIWorkshopReport() {
       setLoading(true);
       setError("");
 
-      const res = await fetchView({
+      const payload: any = {
         district: selectedDistrict,
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
-        start_date: startDate,
-        end_date: endDate,
         offset: nextOffset,
-      });
+        start_date: startDate, // backend expects keys; empty string ok if optional
+        end_date: endDate,
+      };
+
+      const res = await fetchView(payload);
 
       if (res?.status !== "Success") {
         setRows([]);
@@ -162,31 +265,41 @@ export default function RBIWorkshopReport() {
     }
   };
 
-  /* ---------------- Download ---------------- */
+  /* ---------------- Download Citizen Excel ---------------- */
   const handleDownload = async () => {
     if (!canSubmit) {
-      toast.error("Please select district, start date, and end date");
+      toast.error(
+        "Please select District, Block Panchayat, and Gram Panchayat.",
+      );
+      return;
+    }
+    if (!hasValidDates) {
+      toast.error("Please select both Start and End date (and End >= Start).");
       return;
     }
 
     try {
       setLoading(true);
 
-      const res = await download({
+      const payload: any = {
         district: selectedDistrict,
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
-        start_date: startDate,
-        end_date: endDate,
-      });
+      };
+
+      const s = normalizeDate(startDate);
+      const e = normalizeDate(endDate);
+      if (s && e) {
+        payload.start_date = s;
+        payload.end_date = e;
+      }
+      if (sessionId) payload.session_id = sessionId;
+
+      const res = await downloadCitizen(payload);
 
       const url =
         typeof res?.data === "string" && res.data.trim() ? res.data.trim() : "";
-
-      const ok =
-        String(res?.result ?? "")
-          .trim()
-          .toLowerCase() === "success";
+      const ok = isSuccess(res);
 
       if (!ok || !url) {
         toast.error(res?.message || "Failed to download report");
@@ -209,10 +322,7 @@ export default function RBIWorkshopReport() {
 
   const showingText = useMemo(() => {
     if (!total) return "Showing 0–0 of 0";
-    return `Showing ${offset + 1}–${Math.min(
-      offset + PAGE_SIZE,
-      total,
-    )} of ${total}`;
+    return `Showing ${offset + 1}–${Math.min(offset + PAGE_SIZE, total)} of ${total}`;
   }, [offset, total]);
 
   /* ---------------- UI ---------------- */
@@ -224,9 +334,9 @@ export default function RBIWorkshopReport() {
             <h2 className="text-lg font-semibold">View Workshop Report</h2>
             <Button onClick={() => navigate(-1)}>Back</Button>
           </div>
+
           {/* Filters */}
           <div className="mb-6 space-y-4">
-            {/* ===== Row 1 : Filters ===== */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {/* District */}
               <div>
@@ -261,7 +371,7 @@ export default function RBIWorkshopReport() {
                   <option value="">
                     {loadingBlock ? "Loading blocks..." : "All blocks"}
                   </option>
-                  {blockList.map((b: any) => (
+                  {blockList.map((b) => (
                     <option
                       key={b.block_panchayat_name}
                       value={b.block_panchayat_name}
@@ -286,7 +396,7 @@ export default function RBIWorkshopReport() {
                   <option value="">
                     {loadingGram ? "Loading grams..." : "All gram panchayats"}
                   </option>
-                  {gramList.map((g: any) => (
+                  {gramList.map((g) => (
                     <option
                       key={g.gram_panchayat_code}
                       value={g.gram_panchayat_name}
@@ -300,7 +410,7 @@ export default function RBIWorkshopReport() {
               {/* Start Date */}
               <div>
                 <label className="text-sm text-gray-600">
-                  Start Date (required)
+                  Start Date (optional)
                 </label>
                 <Input
                   type="date"
@@ -312,7 +422,7 @@ export default function RBIWorkshopReport() {
               {/* End Date */}
               <div>
                 <label className="text-sm text-gray-600">
-                  End Date (required)
+                  End Date (optional)
                 </label>
                 <Input
                   type="date"
@@ -322,11 +432,11 @@ export default function RBIWorkshopReport() {
               </div>
             </div>
 
-            {/* ===== Row 2 : Actions (Right aligned) ===== */}
+            {/* Actions */}
             <div className="flex justify-end gap-3">
               <Button
                 onClick={() => fetchData({ reset: true })}
-                disabled={loading || !canSubmit}
+                disabled={loading || !canSubmit || !hasValidDates}
               >
                 {loading ? <Loader className="w-4 h-4 animate-spin" /> : "View"}
               </Button>
@@ -357,6 +467,7 @@ export default function RBIWorkshopReport() {
                   setTotal(0);
                   setOffset(0);
                   setError("");
+                  setSessionId("");
                 }}
               >
                 Clear
@@ -367,7 +478,14 @@ export default function RBIWorkshopReport() {
           {/* Messages */}
           {!canSubmit && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm">
-              Please fill district, start date, and end date.
+              Please fill District, Block Panchayat, and Gram Panchayat.
+            </div>
+          )}
+
+          {canSubmit && !hasValidDates && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm">
+              Please select both Start and End date (and End date must be after
+              Start date).
             </div>
           )}
 
@@ -463,10 +581,14 @@ export default function RBIWorkshopReport() {
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 {loading ? (
                   <tr>
-                    <td className="py-6 text-center text-gray-500" colSpan={9}>
+                    <td
+                      className="py-6 text-center text-gray-500"
+                      colSpan={TABLE_COLS}
+                    >
                       <span className="inline-flex items-center gap-2">
                         <Loader className="w-4 h-4 animate-spin" />
                         Loading...
@@ -475,37 +597,68 @@ export default function RBIWorkshopReport() {
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-6 text-center text-gray-500">
-                      {loading ? "Loading..." : "No data found"}
+                    <td
+                      className="py-6 text-center text-gray-500"
+                      colSpan={TABLE_COLS}
+                    >
+                      No data found
                     </td>
                   </tr>
                 ) : (
                   rows.map((r, i) => (
-                    <tr key={i} className="border-b hover:bg-gray-50">
+                    <tr
+                      key={`${r.workshop_id ?? i}`}
+                      className="border-b hover:bg-gray-50"
+                    >
                       <td className="px-4 py-3">{offset + i + 1}</td>
-                      <td className="px-4 py-3">{r.workshop_name}</td>
-                      <td className="px-4 py-3">{r.workshop_date}</td>
+
+                      <td className="px-4 py-3">{r.workshop_name ?? "-"}</td>
+                      <td className="px-4 py-3">{r.workshop_date ?? "-"}</td>
+
                       <td className="px-4 py-3">
-                        {r.workshop_from_time} - {r.workshop_to_time}
+                        {r.workshop_from_time && r.workshop_to_time
+                          ? `${r.workshop_from_time} - ${r.workshop_to_time}`
+                          : "-"}
                       </td>
-                      <td className="px-4 py-3">{r.workshop_district}</td>
-                      <td className="px-4 py-3">{r.workshop_created_at}</td>
-                      <td className="px-4 py-3">{r.workshop_status}</td>
-                      <td className="px-4 py-3">{r.workshop_checklist}</td>
-                      <td className="px-4 py-3">{r.workshop_approved_date}</td>
                       <td className="px-4 py-3">
-                        {r.workshop_rejected_reason}
+                        {r.workshop_created_at ?? "-"}
                       </td>
-                      <td className="px-4 py-3">{r.vle_name}</td>
-                      <td className="px-4 py-3">{r.approver_name}</td>
-                      <td className="px-4 py-3">{r.workshop_id}</td>
-                      <td className="px-4 py-3">{r.workshop_center_name}</td>
-                      <td className="px-4 py-3">{r.workshop_center_address}</td>
-                      <td className="px-4 py-3">{r.participants_count}</td>
+
+                      <td className="px-4 py-3">{r.workshop_status ?? "-"}</td>
                       <td className="px-4 py-3">
-                        {r.workshop_block_panchayat}
+                        {r.workshop_checklist ?? "-"}
                       </td>
-                      <td className="px-4 py-3">{r.workshop_gram_panchayat}</td>
+                      <td className="px-4 py-3">
+                        {r.workshop_approved_date ?? "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <ExpandableText
+                          text={r.workshop_rejected_reason}
+                          maxChars={140}
+                        />
+                      </td>
+
+                      <td className="px-4 py-3">{r.vle_name ?? "-"}</td>
+                      <td className="px-4 py-3">{(r as any).age ?? "-"}</td>
+                      <td className="px-4 py-3">{r.approver_name ?? "-"}</td>
+
+                      <td className="px-4 py-3">{r.workshop_id ?? "-"}</td>
+                      <td className="px-4 py-3">
+                        {r.workshop_center_name ?? "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.workshop_center_address ?? "-"}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {r.participants_count ?? "0"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.workshop_block_panchayat ?? "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.workshop_gram_panchayat ?? "-"}
+                      </td>
                     </tr>
                   ))
                 )}

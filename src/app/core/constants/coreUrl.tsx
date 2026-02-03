@@ -148,4 +148,7 @@ export const API_URL = {
   programsConductedbarGraph: "/programsConductedbarGraph",
   top5vles: "/top5vles",
   top5districts: "/top5districts",
+
+  // RBI Lookups
+  getAllWorkshopLookup: "/get-all-workshop-lookup",
 };

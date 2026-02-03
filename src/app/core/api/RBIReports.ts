@@ -59,16 +59,33 @@ export const useDownloadCitizenDataByDistrictReport = () =>
   useMutation({
     mutationFn: (data: {
       district: string;
-      start_date: string;
-      end_date: string;
       block_panchayat: string;
       gram_panchayat: string;
-    }) => {
-      return POST<DownloadReportResponse>({
+      start_date?: string;
+      end_date?: string;
+      session_id?: string;
+    }) =>
+      POST<{
+        result: string; // "success"
+        message: string;
+        data?: string; // url
+      }>({
         url: API_URL.downloadCitizenDataByDistrictReport,
         data,
-      });
-    },
+      }),
+  });
+
+/** Workshop lookup (optional) */
+export const useGetAllWorkshopLookup = () =>
+  useMutation({
+    mutationFn: () =>
+      POST<{
+        result: string;
+        message: string;
+        list?: any[];
+      }>({
+        url: API_URL.getAllWorkshopLookup,
+      }),
   });
 
 export const useDownloadRBIWorkshopReport = () =>

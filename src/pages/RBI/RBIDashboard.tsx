@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Layout from "../../app/components/Layout/Layout";
-// import { Button } from "../../app/components/ui/button";
 
 import BarChartComponent from "../../app/components/shared/BarChart";
 import DonutChartComponent from "../../app/components/shared/DonutChartComponent";
@@ -36,35 +35,52 @@ const MONTHS = [
   { value: "12", label: "December" },
 ];
 
-function isSuccess(x: any) {
+function isSuccess(res: any): boolean {
   return (
-    String(x?.result ?? "")
+    String(res?.result ?? "")
       .trim()
       .toLowerCase() === "success"
   );
 }
 
+function toNumberSafe(v: any, fallback = 0): number {
+  if (v == null) return fallback;
+  if (typeof v === "number") return Number.isFinite(v) ? v : fallback;
+
+  const s = String(v).trim();
+  if (!s) return fallback;
+
+  const n = Number(s);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function toDonutData(input: any): { name: string; value: number }[] {
   if (!input) return [];
 
-  if (Array.isArray(input)) {
-    const maybe = input
+  // Typical responses: { list: [...] } or directly [...]
+  const list = Array.isArray(input)
+    ? input
+    : Array.isArray(input?.list)
+      ? input.list
+      : null;
+
+  if (Array.isArray(list)) {
+    const mapped = list
       .map((x) => {
         const name = x?.name ?? x?.label ?? x?.gender ?? x?.status;
         const value = x?.value ?? x?.total ?? x?.count ?? x?.percentage;
         if (name == null || value == null) return null;
-        return { name: String(name), value: Number(value) };
+        return { name: String(name), value: toNumberSafe(value, 0) };
       })
       .filter(Boolean) as { name: string; value: number }[];
 
-    if (maybe.length) return maybe;
+    if (mapped.length) return mapped;
   }
 
-  if (Array.isArray(input?.list)) return toDonutData(input.list);
-
-  if (typeof input === "object") {
+  // Some backends may return object maps like { Pending: "12", Completed: "1" }
+  if (typeof input === "object" && input && !Array.isArray(input)) {
     return Object.entries(input)
-      .map(([k, v]) => ({ name: k, value: Number(v) }))
+      .map(([k, v]) => ({ name: String(k), value: toNumberSafe(v, NaN) }))
       .filter((x) => Number.isFinite(x.value));
   }
 
@@ -82,6 +98,7 @@ export default function RBIDashboard() {
   const { mutateAsync: getDistrictBar } = useGetDistrictWiseWorkshopBarGraph();
   const { mutateAsync: getMonthBar } = useGetMonthWiseWorkshopBarGraph();
 
+  // Kept as existing calls (even if not rendered currently)
   const { mutateAsync: getProgramsBar } = useGetProgramsConductedBarGraph();
   const { mutateAsync: getTopVles } = useGetTop5Vles();
   const { mutateAsync: getTopDistricts } = useGetTop5Districts();
@@ -111,18 +128,36 @@ export default function RBIDashboard() {
   const [monthBarData, setMonthBarData] = useState<
     { status: string; count: number }[]
   >([]);
-  const cardValue = (keys: string[], fallback = 0) => {
-    for (const k of keys) {
-      const v = cardsRaw?.[k];
-      if (v != null && v !== "") return Number(v);
-    }
-    return fallback;
-  };
+
+  const cardValueInt = useCallback(
+    (keys: string[], fallback = 0) => {
+      for (const k of keys) {
+        const v = cardsRaw?.[k];
+        if (v != null && String(v).trim() !== "")
+          return Math.trunc(toNumberSafe(v, fallback));
+      }
+      return fallback;
+    },
+    [cardsRaw],
+  );
+
+  const cardValueFloat = useCallback(
+    (keys: string[], fallback = 0) => {
+      for (const k of keys) {
+        const v = cardsRaw?.[k];
+        if (v != null && String(v).trim() !== "")
+          return toNumberSafe(v, fallback);
+      }
+      return fallback;
+    },
+    [cardsRaw],
+  );
+
   const cards = useMemo(() => {
     return [
       {
         title: "Total Workshop Scheduled",
-        value: cardValue([
+        value: cardValueInt([
           "total_work_shop",
           "total_workshop",
           "total_planned",
@@ -131,7 +166,7 @@ export default function RBIDashboard() {
       },
       {
         title: "Total Workshop Completed",
-        value: cardValue([
+        value: cardValueInt([
           "total_completed",
           "completed",
           "totalWorkshopCompleted",
@@ -140,7 +175,7 @@ export default function RBIDashboard() {
       },
       {
         title: "Under the Schedule",
-        value: cardValue([
+        value: cardValueInt([
           "total_pending",
           "pending",
           "totalWorkshopPending",
@@ -149,7 +184,7 @@ export default function RBIDashboard() {
       },
       {
         title: "Total Workshop Approved",
-        value: cardValue([
+        value: cardValueInt([
           "total_approved",
           "approved",
           "totalWorkshopApproved",
@@ -158,26 +193,69 @@ export default function RBIDashboard() {
       },
       {
         title: "Total Workshop Rejected",
-        value: cardValue([
+        value: cardValueInt([
           "total_rejected",
           "rejected",
           "totalWorkshopRejected",
           "total_workshop_rejected",
         ]),
       },
+
+      {
+        title: "Avg Approval Days",
+        value: cardValueFloat(["avg_approval_days"], 0),
+      },
+
       {
         title: "Total Workshop Cancelled",
-        value: cardValue(["total_cancelled"]),
+        value: cardValueInt(["total_cancelled"]),
       },
     ];
-  }, [cardsRaw]);
+  }, [cardValueInt, cardValueFloat]);
+
+  const loadDistrictBar = useCallback(
+    async (district: string) => {
+      if (!district) return;
+
+      const barRes = await getDistrictBar({ district });
+      if (!isSuccess(barRes)) return;
+
+      const row = barRes?.list?.[0] ?? {};
+      setDistrictBarData([
+        { status: "Completed", count: toNumberSafe(row.completed_count, 0) },
+        { status: "Pending", count: toNumberSafe(row.pending_count, 0) },
+        { status: "Approved", count: toNumberSafe(row.approved_count, 0) },
+      ]);
+    },
+    [getDistrictBar],
+  );
+
+  const loadMonthBar = useCallback(
+    async (month: string) => {
+      if (!month) return;
+
+      const res = await getMonthBar({ month });
+      if (!isSuccess(res)) return;
+
+      const row = res?.list?.[0] ?? {};
+      setMonthBarData([
+        { status: "Pending", count: toNumberSafe(row.pending_count, 0) },
+        { status: "Approved", count: toNumberSafe(row.approved_count, 0) },
+        { status: "Completed", count: toNumberSafe(row.completed_count, 0) },
+      ]);
+    },
+    [getMonthBar],
+  );
 
   useEffect(() => {
+    let alive = true;
+
     const load = async () => {
       try {
         setLoading(true);
 
-        const [cardsRes, pRes, sRes, mRes, districtRes] = await Promise.all([
+        // Keep same set of calls (even if some results aren't used in UI right now)
+        const results = await Promise.allSettled([
           getCards(),
           getPendingCompleted(),
           getScheduledCancelled(),
@@ -188,88 +266,97 @@ export default function RBIDashboard() {
           getTopDistricts({ offset: 0 }),
         ]);
 
-        if (isSuccess(cardsRes)) setCardsRaw(cardsRes.list?.[0] ?? null);
+        if (!alive) return;
 
-        if (isSuccess(pRes))
-          setDonutPendingCompleted(toDonutData(pRes.list?.[0] ?? pRes.list));
+        const [
+          cardsRes,
+          pRes,
+          sRes,
+          mRes,
+          districtRes,
+          // unused but kept (programs/top5)
+          _programsRes,
+          _topVlesRes,
+          _topDistrictsRes,
+        ] = results.map((r) => (r.status === "fulfilled" ? r.value : null));
 
-        if (isSuccess(sRes))
-          setDonutScheduledCancelled(toDonutData(sRes.list?.[0] ?? sRes.list));
+        if (cardsRes && isSuccess(cardsRes))
+          setCardsRaw(cardsRes?.list?.[0] ?? null);
 
-        if (isSuccess(mRes))
-          setDonutMaleFemale(toDonutData(mRes.list?.[0] ?? mRes.list));
+        if (pRes && isSuccess(pRes))
+          setDonutPendingCompleted(
+            toDonutData(pRes?.list?.[0] ?? pRes?.list ?? pRes),
+          );
+
+        if (sRes && isSuccess(sRes))
+          setDonutScheduledCancelled(
+            toDonutData(sRes?.list?.[0] ?? sRes?.list ?? sRes),
+          );
+
+        if (mRes && isSuccess(mRes))
+          setDonutMaleFemale(
+            toDonutData(mRes?.list?.[0] ?? mRes?.list ?? mRes),
+          );
 
         const districts = districtRes?.list ?? [];
         const names = Array.isArray(districts)
           ? districts
               .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
               .map(String)
+              .map((s) => s.trim())
               .filter(Boolean)
           : [];
 
         setDistrictList(names);
 
+        // Preserve your behavior: auto-select first district
         const first = names[0] ?? "";
         setSelectedDistrict(first);
 
-        if (first) {
-          const barRes = await getDistrictBar({ district: first });
-          if (isSuccess(barRes)) {
-            const row = barRes.list?.[0] ?? {};
-            setDistrictBarData([
-              { status: "Completed", count: Number(row.completed_count ?? 0) },
-              { status: "Pending", count: Number(row.pending_count ?? 0) },
-              { status: "Approved", count: Number(row.approved_count ?? 0) },
-            ]);
-          }
-        }
-
-        const monthRes = await getMonthBar({ month: selectedMonth });
-        if (isSuccess(monthRes)) {
-          const row = monthRes.list?.[0] ?? {};
-          setMonthBarData([
-            { status: "Pending", count: Number(row.pending_count ?? 0) },
-            { status: "Approved", count: Number(row.approved_count ?? 0) },
-            { status: "Completed", count: Number(row.completed_count ?? 0) },
-          ]);
-        }
+        // Initial bars
+        if (first) await loadDistrictBar(first);
+        await loadMonthBar(selectedMonth);
+      } catch (err) {
+        console.error("RBIDashboard load failed:", err);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     };
 
     load();
+
+    return () => {
+      alive = false;
+    };
+    // Intentionally keep dependencies minimal and stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onDistrictChange = async (district: string) => {
-    setSelectedDistrict(district);
-    if (!district) return;
+  const onDistrictChange = useCallback(
+    async (district: string) => {
+      setSelectedDistrict(district);
+      if (!district) return;
+      try {
+        await loadDistrictBar(district);
+      } catch (err) {
+        console.error("District bar load failed:", err);
+      }
+    },
+    [loadDistrictBar],
+  );
 
-    const barRes = await getDistrictBar({ district });
-    if (isSuccess(barRes)) {
-      const row = barRes.list?.[0] ?? {};
-      setDistrictBarData([
-        { status: "Completed", count: Number(row.completed_count ?? 0) },
-        { status: "Pending", count: Number(row.pending_count ?? 0) },
-        { status: "Approved", count: Number(row.approved_count ?? 0) },
-      ]);
-    }
-  };
-
-  const onMonthChange = async (month: string) => {
-    setSelectedMonth(month);
-    if (!month) return;
-
-    const res = await getMonthBar({ month });
-    if (isSuccess(res)) {
-      const row = res.list?.[0] ?? {};
-      setMonthBarData([
-        { status: "Pending", count: Number(row.pending_count ?? 0) },
-        { status: "Approved", count: Number(row.approved_count ?? 0) },
-        { status: "Completed", count: Number(row.completed_count ?? 0) },
-      ]);
-    }
-  };
+  const onMonthChange = useCallback(
+    async (month: string) => {
+      setSelectedMonth(month);
+      if (!month) return;
+      try {
+        await loadMonthBar(month);
+      } catch (err) {
+        console.error("Month bar load failed:", err);
+      }
+    },
+    [loadMonthBar],
+  );
 
   if (loading) {
     return (
