@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
@@ -15,9 +16,19 @@ import {
   useViewCitizenDataByDistrictReport,
   type CitizenRow,
 } from "../../../app/core/api/RBIReports";
-import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 10;
+
+type WorkshopItem = {
+  id: number | string;
+  date?: string;
+  center_name?: string;
+};
+
+function safeText(v: unknown): string {
+  if (v == null) return "";
+  return String(v).trim();
+}
 
 export default function CitizenDataReport() {
   const navigate = useNavigate();
@@ -47,6 +58,10 @@ export default function CitizenDataReport() {
   const { mutateAsync: getBlocks } = useGetBlockPanchayat();
   const { mutateAsync: getGrams } = useGetGramPanchayat();
 
+  const [workshopList, setWorkshopList] = useState<WorkshopItem[]>([]);
+  const [loadingWorkshops, setLoadingWorkshops] = useState(false);
+  const [workshopId, setWorkshopId] = useState<string>("");
+
   const canSubmit = Boolean(
     selectedDistrict && startDate && endDate && selectedBlock && selectedGram,
   );
@@ -71,6 +86,8 @@ export default function CitizenDataReport() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ---------------- Load blocks when district changes ---------------- */
   useEffect(() => {
     if (!selectedDistrict) {
       setBlockList([]);
@@ -91,7 +108,9 @@ export default function CitizenDataReport() {
         setLoadingBlock(false);
       }
     })();
-  }, [selectedDistrict]);
+  }, [selectedDistrict, getBlocks]);
+
+  /* ---------------- Load grams when block changes ---------------- */
   useEffect(() => {
     if (!selectedBlock) {
       setGramList([]);
@@ -112,7 +131,34 @@ export default function CitizenDataReport() {
         setLoadingGram(false);
       }
     })();
-  }, [selectedBlock]);
+  }, [selectedBlock, getGrams]);
+
+  useEffect(() => {
+    const fetchWorkshops = async () => {
+      try {
+        setLoadingWorkshops(true);
+
+        const res: any = null;
+
+        const list: WorkshopItem[] = Array.isArray(res?.data) ? res.data : [];
+        setWorkshopList(list);
+      } catch (e) {
+        console.error("Failed to load workshops:", e);
+        setWorkshopList([]);
+      } finally {
+        setLoadingWorkshops(false);
+      }
+    };
+
+    fetchWorkshops();
+  }, []);
+
+  const workshopOptions = useMemo(() => {
+    return workshopList
+      .map((w) => safeText(w.id))
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [workshopList]);
 
   /* ---------------- Fetch data ---------------- */
   const fetchData = async (opts?: {
@@ -132,14 +178,18 @@ export default function CitizenDataReport() {
       setLoading(true);
       setError("");
 
-      const res = await fetchView({
+      const payload: any = {
         district: selectedDistrict,
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
         start_date: startDate,
         end_date: endDate,
         offset: nextOffset,
-      });
+      };
+
+      if (workshopId) payload.work_shop_id = workshopId;
+
+      const res = await fetchView(payload);
 
       if (res?.status !== "Success") {
         setRows([]);
@@ -171,13 +221,18 @@ export default function CitizenDataReport() {
     try {
       setLoading(true);
 
-      const res = await download({
+      const payload: any = {
         district: selectedDistrict,
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
         start_date: startDate,
         end_date: endDate,
-      });
+      };
+
+      // ✅ optional workshop_id (kept as session_id)
+      if (workshopId) payload.work_shop_id = workshopId;
+
+      const res = await download(payload);
 
       const url =
         typeof res?.data === "string" && res.data.trim() ? res.data.trim() : "";
@@ -225,10 +280,10 @@ export default function CitizenDataReport() {
             </h2>
             <Button onClick={() => navigate(-1)}>Back</Button>
           </div>
+
           {/* Filters */}
           <div className="mb-6 space-y-4">
-            {/* ===== Row 1 : Filters ===== */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               {/* District */}
               <div>
                 <label className="text-sm text-gray-600">
@@ -321,9 +376,39 @@ export default function CitizenDataReport() {
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
+
+              <div>
+                <label className="text-sm text-gray-600">
+                  Workshop ID (optional)
+                </label>
+
+                {/* Searchable dropdown without new libs */}
+                <input
+                  className="border rounded-md h-10 px-3 w-full"
+                  list="workshop-options"
+                  placeholder={
+                    loadingWorkshops
+                      ? "Loading workshops..."
+                      : "Search / select workshop id"
+                  }
+                  value={workshopId}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    // Optional: keep numeric-only input
+                    if (/^\d*$/.test(v)) setWorkshopId(v);
+                  }}
+                  disabled={loadingWorkshops}
+                />
+
+                <datalist id="workshop-options">
+                  {workshopOptions.map((id) => (
+                    <option key={id} value={id} />
+                  ))}
+                </datalist>
+              </div>
             </div>
 
-            {/* ===== Row 2 : Actions (Right aligned) ===== */}
+            {/* Actions */}
             <div className="flex justify-end gap-3">
               <Button
                 onClick={() => fetchData({ reset: true })}
@@ -351,6 +436,7 @@ export default function CitizenDataReport() {
                   setSelectedGram("");
                   setStartDate("");
                   setEndDate("");
+                  setWorkshopId("");
                   setRows([]);
                   setTotal(0);
                   setOffset(0);
@@ -446,7 +532,7 @@ export default function CitizenDataReport() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td className="py-6 text-center text-gray-500" colSpan={9}>
+                    <td className="py-6 text-center text-gray-500" colSpan={12}>
                       <span className="inline-flex items-center gap-2">
                         <Loader className="w-4 h-4 animate-spin" />
                         Loading...
@@ -455,7 +541,7 @@ export default function CitizenDataReport() {
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-6 text-center text-gray-500">
+                    <td colSpan={12} className="py-6 text-center text-gray-500">
                       {loading ? "Loading..." : "No data found"}
                     </td>
                   </tr>

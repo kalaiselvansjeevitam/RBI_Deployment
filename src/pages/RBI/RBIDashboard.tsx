@@ -157,6 +157,7 @@ export default function RBIDashboard() {
     return [
       {
         title: "Total Workshop Scheduled",
+
         value: cardValueInt([
           "total_work_shop",
           "total_workshop",
@@ -174,7 +175,14 @@ export default function RBIDashboard() {
         ]),
       },
       {
-        title: "Total Workshop Pending",
+        title: (
+          <>
+            Under the Schedule
+            <br />
+            (Total workshop pending)
+          </>
+        ),
+
         value: cardValueInt([
           "total_pending",
           "pending",

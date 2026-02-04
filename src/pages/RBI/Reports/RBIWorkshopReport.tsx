@@ -12,7 +12,7 @@ import {
   useGetGramPanchayat,
 } from "../../../app/core/api/Admin";
 import {
-  useDownloadCitizenDataByDistrictReport,
+  useDownloadRBIWorkshopReport,
   useViewWorkshopReport,
   type RBIWorkshopReportRow,
 } from "../../../app/core/api/RBIReports";
@@ -97,8 +97,7 @@ export default function RBIWorkshopReport() {
   const navigate = useNavigate();
 
   const { mutateAsync: fetchView } = useViewWorkshopReport();
-  const { mutateAsync: downloadCitizen } =
-    useDownloadCitizenDataByDistrictReport();
+  const { mutateAsync: downloadWorkshop } = useDownloadRBIWorkshopReport();
 
   const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: getBlocks } = useGetBlockPanchayat();
@@ -295,7 +294,7 @@ export default function RBIWorkshopReport() {
       }
       if (sessionId) payload.session_id = sessionId;
 
-      const res = await downloadCitizen(payload);
+      const res = await downloadWorkshop(payload);
 
       const url =
         typeof res?.data === "string" && res.data.trim() ? res.data.trim() : "";
@@ -526,7 +525,7 @@ export default function RBIWorkshopReport() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    SR.No
+                    Workshop ID
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Name
@@ -538,26 +537,28 @@ export default function RBIWorkshopReport() {
                     Workshop Status
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Workshop Aproved Date
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Workshop Rejected Reason
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
                     VLE Name
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Workshop Reject Reason
+                  </th>
+                  {/* <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Workshop Aproved Date
+                  </th>
+                  
+                   */}
+                  {/* <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Approver Name
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop ID
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  </th> */}
+                  {/* <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Center Name
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  </th> */}
+                  {/* <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Center Address
-                  </th>
+                  </th> */}
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Participants Count
                   </th>
@@ -598,25 +599,25 @@ export default function RBIWorkshopReport() {
                       key={`${r.workshop_id ?? i}`}
                       className="border-b hover:bg-gray-50"
                     >
-                      <td className="px-4 py-3">{offset + i + 1}</td>
+                      <td className="px-4 py-3">{r.workshop_id ?? "-"}</td>
 
                       <td className="px-4 py-3">{r.workshop_name ?? "-"}</td>
                       <td className="px-4 py-3">{r.workshop_date ?? "-"}</td>
 
-                      <td className="px-4 py-3">
-                        {r.workshop_from_time && r.workshop_to_time
-                          ? `${r.workshop_from_time} - ${r.workshop_to_time}`
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-3">
-                        {r.workshop_created_at ?? "-"}
-                      </td>
-
                       <td className="px-4 py-3">{r.workshop_status ?? "-"}</td>
                       <td className="px-4 py-3">
-                        {r.workshop_checklist ?? "-"}
+                        {(r as any).vle_name ?? "-"}
                       </td>
                       <td className="px-4 py-3">
+                        <ExpandableText
+                          text={(r as any).workshop_rejected_reason}
+                          maxChars={140}
+                        />
+                      </td>
+                      {/* <td className="px-4 py-3">
+                        {r.workshop_checklist ?? "-"}
+                      </td> */}
+                      {/* <td className="px-4 py-3">
                         {r.workshop_approved_date ?? "-"}
                       </td>
                       <td className="px-4 py-3">
@@ -626,17 +627,16 @@ export default function RBIWorkshopReport() {
                         />
                       </td>
 
-                      <td className="px-4 py-3">{r.vle_name ?? "-"}</td>
-                      <td className="px-4 py-3">{(r as any).age ?? "-"}</td>
-                      <td className="px-4 py-3">{r.approver_name ?? "-"}</td>
+                      <td className="px-4 py-3">{r.vle_name ?? "-"}</td> */}
+                      {/* <td className="px-4 py-3">{r.approver_name ?? "-"}</td> */}
 
-                      <td className="px-4 py-3">{r.workshop_id ?? "-"}</td>
-                      <td className="px-4 py-3">
+                      {/* <td className="px-4 py-3">{r.workshop_id ?? "-"}</td> */}
+                      {/* <td className="px-4 py-3">
                         {r.workshop_center_name ?? "-"}
-                      </td>
-                      <td className="px-4 py-3">
+                      </td> */}
+                      {/* <td className="px-4 py-3">
                         {r.workshop_center_address ?? "-"}
-                      </td>
+                      </td> */}
 
                       <td className="px-4 py-3">
                         {r.participants_count ?? "0"}

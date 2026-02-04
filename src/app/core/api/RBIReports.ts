@@ -63,7 +63,7 @@ export const useDownloadCitizenDataByDistrictReport = () =>
       gram_panchayat: string;
       start_date?: string;
       end_date?: string;
-      session_id?: string;
+      work_shop_id?: string;
     }) =>
       POST<{
         result: string; // "success"
@@ -266,6 +266,7 @@ export const useViewCitizenDataByDistrictReport = () =>
       block_panchayat: string;
       start_date: string;
       end_date: string;
+      work_shop_id?: string;
       offset: number;
     }) => {
       return POST<ViewCitizenResponse>({
@@ -276,6 +277,7 @@ export const useViewCitizenDataByDistrictReport = () =>
           block_panchayat: payload.block_panchayat,
           start_date: payload.start_date,
           end_date: payload.end_date,
+          work_shop_id: payload.work_shop_id,
           offset: payload.offset,
         },
       });
