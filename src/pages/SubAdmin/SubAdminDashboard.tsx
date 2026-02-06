@@ -104,7 +104,11 @@ const DashboardSubAdmin = () => {
   const { mutateAsync: getGenderCountsApi } = useGetgenderWiseDonutParams();
 
   const [district, setDistrict] = useState<string>("");
+<<<<<<< HEAD
   // const [districtList, setDistrictList] = useState<string[]>([]);
+=======
+  const [districtList, setDistrictList] = useState<string[]>([]);
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
 
   const [cards, setCards] = useState<CardCounts | null>(null);
   const [genderCounts, setGenderCounts] = useState<GenderCount[]>([]);
@@ -148,7 +152,11 @@ const DashboardSubAdmin = () => {
           ? rawDistricts.map(normalizeDistrictName).filter(Boolean)
           : [];
 
+<<<<<<< HEAD
         // setDistrictList(names);
+=======
+        setDistrictList(names);
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
         setDistrict(names[0] ?? "");
 
         // Cards

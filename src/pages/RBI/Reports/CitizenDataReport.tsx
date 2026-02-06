@@ -26,6 +26,14 @@ type WorkshopItem = {
   center_name?: string;
 };
 
+<<<<<<< HEAD
+=======
+function safeText(v: unknown): string {
+  if (v == null) return "";
+  return String(v).trim();
+}
+
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
 export default function CitizenDataReport() {
   const navigate = useNavigate();
   const { mutateAsync: fetchView } = useViewCitizenDataByDistrictReport();
@@ -135,9 +143,16 @@ export default function CitizenDataReport() {
       try {
         setLoadingWorkshops(true);
 
+<<<<<<< HEAD
         const res = await fetchWorkshopsApi();
 
         setWorkshopList(res.data ?? []);
+=======
+        const res: any = null;
+
+        const list: WorkshopItem[] = Array.isArray(res?.data) ? res.data : [];
+        setWorkshopList(list);
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
       } catch (e) {
         console.error("Failed to load workshops:", e);
         setWorkshopList([]);
@@ -148,6 +163,16 @@ export default function CitizenDataReport() {
 
     fetchWorkshops();
   }, []);
+<<<<<<< HEAD
+=======
+
+  const workshopOptions = useMemo(() => {
+    return workshopList
+      .map((w) => safeText(w.id))
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [workshopList]);
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
 
   /* ---------------- Fetch data ---------------- */
   const fetchData = async (opts?: {
@@ -271,8 +296,13 @@ export default function CitizenDataReport() {
           </div>
 
           {/* Filters */}
+<<<<<<< HEAD
           <div className="mb-6">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+=======
+          <div className="mb-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
               {/* District */}
               <div className="md:col-span-3">
                 <label className="text-sm text-gray-600">
@@ -389,6 +419,7 @@ export default function CitizenDataReport() {
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
+<<<<<<< HEAD
 
               {/* View Button */}
               <div className="md:col-span-2">
@@ -398,6 +429,52 @@ export default function CitizenDataReport() {
                   disabled={loading || !canSubmit}
                 >
                   {loading ? (
+=======
+
+              <div>
+                <label className="text-sm text-gray-600">
+                  Workshop ID (optional)
+                </label>
+
+                {/* Searchable dropdown without new libs */}
+                <input
+                  className="border rounded-md h-10 px-3 w-full"
+                  list="workshop-options"
+                  placeholder={
+                    loadingWorkshops
+                      ? "Loading workshops..."
+                      : "Search / select workshop id"
+                  }
+                  value={workshopId}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    // Optional: keep numeric-only input
+                    if (/^\d*$/.test(v)) setWorkshopId(v);
+                  }}
+                  disabled={loadingWorkshops}
+                />
+
+                <datalist id="workshop-options">
+                  {workshopOptions.map((id) => (
+                    <option key={id} value={id} />
+                  ))}
+                </datalist>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3">
+              <Button
+                onClick={() => fetchData({ reset: true })}
+                disabled={loading || !canSubmit}
+              >
+                {loading ? <Loader className="w-4 h-4 animate-spin" /> : "View"}
+              </Button>
+
+              <Button onClick={handleDownload} disabled={loading || !canSubmit}>
+                {loading ? (
+                  <span className="flex items-center gap-2">
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
                     <Loader className="w-4 h-4 animate-spin" />
                   ) : (
                     "View"
@@ -405,6 +482,7 @@ export default function CitizenDataReport() {
                 </Button>
               </div>
 
+<<<<<<< HEAD
               {/* Download Button */}
               <div className="md:col-span-2">
                 <Button
@@ -444,6 +522,25 @@ export default function CitizenDataReport() {
                   Clear
                 </Button>
               </div>
+=======
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSelectedDistrict("");
+                  setSelectedBlock("");
+                  setSelectedGram("");
+                  setStartDate("");
+                  setEndDate("");
+                  setWorkshopId("");
+                  setRows([]);
+                  setTotal(0);
+                  setOffset(0);
+                  setError("");
+                }}
+              >
+                Clear
+              </Button>
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
             </div>
           </div>
 

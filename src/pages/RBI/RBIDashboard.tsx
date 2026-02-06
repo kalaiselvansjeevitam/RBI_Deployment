@@ -175,7 +175,18 @@ export default function RBIDashboard() {
         ]),
       },
       {
+<<<<<<< HEAD
         title: "Under the Schedule\n(Total workshop pending)",
+=======
+        title: (
+          <>
+            Under the Schedule
+            <br />
+            (Total workshop pending)
+          </>
+        ),
+
+>>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
         value: cardValueInt([
           "total_pending",
           "pending",
