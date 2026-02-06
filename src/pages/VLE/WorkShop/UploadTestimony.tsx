@@ -95,7 +95,7 @@ const UploadTestimony = () => {
   /* ---------------- Image Compression ---------------- */
   const compressImage = async (file: File) => {
     return await imageCompression(file, {
-      maxSizeMB: 5,
+      maxSizeMB: 10,
       maxWidthOrHeight: 1920,
       useWebWorker: true,
     });
@@ -140,8 +140,8 @@ const UploadTestimony = () => {
             setError("Only MP4 videos allowed");
             return;
           }
-          if (file.size > 20 * 1024 * 1024) {
-            setError("Video must be under 20MB");
+          if (file.size > 50 * 1024 * 1024) {
+            setError("Video must be under 50MB");
             return;
           }
           processedFiles.push(file);
@@ -338,8 +338,8 @@ const UploadTestimony = () => {
             {fileType && (
               <p className="text-xs text-gray-600">
                 {fileType === "image"
-                  ? "Only image files up to 5 MB are allowed."
-                  : "Only MP4 video files up to 20 MB are allowed."}
+                  ? "Only image files up to 10 MB are allowed."
+                  : "Only MP4 video files up to 50 MB are allowed."}
               </p>
             )}
 

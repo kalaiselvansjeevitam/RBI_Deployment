@@ -59,16 +59,51 @@ export const useDownloadCitizenDataByDistrictReport = () =>
   useMutation({
     mutationFn: (data: {
       district: string;
-      start_date: string;
-      end_date: string;
       block_panchayat: string;
       gram_panchayat: string;
-    }) => {
-      return POST<DownloadReportResponse>({
+      start_date?: string;
+      end_date?: string;
+      work_shop_id?: string;
+    }) =>
+      POST<{
+        result: string; // "success"
+        message: string;
+        data?: string; // url
+      }>({
         url: API_URL.downloadCitizenDataByDistrictReport,
         data,
-      });
-    },
+      }),
+  });
+
+export const useSubDownloadCitizenDataByDistrictReport = () =>
+  useMutation({
+    mutationFn: (data: {
+      district: string;
+      start_date?: string;
+      end_date?: string;
+      work_shop_id?: string;
+    }) =>
+      POST<{
+        result: string; // "success"
+        message: string;
+        data?: string; // url
+      }>({
+        url: API_URL.downloadCitizenDataByDistrictReport,
+        data,
+      }),
+  });
+
+/** Workshop lookup (optional) */
+export const useGetAllWorkshopLookup = () =>
+  useMutation({
+    mutationFn: () =>
+      POST<{
+        result: string;
+        message: string;
+        list?: any[];
+      }>({
+        url: API_URL.getAllWorkshopLookup,
+      }),
   });
 
 export const useDownloadRBIWorkshopReport = () =>
@@ -213,6 +248,18 @@ export type ViewCitizenResponse = {
   data: CitizenRow[];
 };
 
+export type WorkshopList = {
+  id: number;
+  date: string;
+  center_name: string;
+};
+
+export type WorkshoplistRes = {
+  status: string;
+  message: string;
+  data: WorkshopList[];
+};
+
 export type RBIWorkshopReportRow = {
   workshop_name: string;
   workshop_date: string;
@@ -249,6 +296,7 @@ export const useViewCitizenDataByDistrictReport = () =>
       block_panchayat: string;
       start_date: string;
       end_date: string;
+      work_shop_id?: string;
       offset: number;
     }) => {
       return POST<ViewCitizenResponse>({
@@ -259,6 +307,29 @@ export const useViewCitizenDataByDistrictReport = () =>
           block_panchayat: payload.block_panchayat,
           start_date: payload.start_date,
           end_date: payload.end_date,
+          work_shop_id: payload.work_shop_id,
+          offset: payload.offset,
+        },
+      });
+    },
+  });
+
+export const useSubViewCitizenDataByDistrictReport = () =>
+  useMutation({
+    mutationFn: (payload: {
+      district: string;
+      start_date: string;
+      end_date: string;
+      work_shop_id?: string;
+      offset: number;
+    }) => {
+      return POST<ViewCitizenResponse>({
+        url: API_URL.viewCitizenDataByDistrictReport,
+        data: {
+          district: payload.district,
+          start_date: payload.start_date,
+          end_date: payload.end_date,
+          work_shop_id: payload.work_shop_id,
           offset: payload.offset,
         },
       });
@@ -394,6 +465,15 @@ export const useViewCitizenCountLessThan50Report = () =>
       return POST<ViewLt50Response>({
         url: API_URL.viewCitizenCountLessThan50Report,
         data,
+      });
+    },
+  });
+
+export const getWorkshopList = () =>
+  useMutation({
+    mutationFn: () => {
+      return POST<WorkshoplistRes>({
+        url: API_URL.viewWorkshopLookup,
       });
     },
   });

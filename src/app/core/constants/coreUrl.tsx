@@ -127,6 +127,7 @@ export const API_URL = {
   viewDistrictWiseWorkshopReport: "/view-district-wise-workshop-report",
   viewGenderWiseWorkshopReport: "/view-gender-wise-workshop-report",
   viewCitizenDataByDistrictReport: "/view-citizen-data-by-district-report",
+  viewWorkshopLookup: "/get-all-workshop-lookup",
   viewWorkShopReport: "/view-workshop-by-district-block-gram-panchayat-wise",
   viewLocationManagerWiseWorkshopReport:
     "/view-location-manager-wise-workshop-report",
@@ -148,4 +149,7 @@ export const API_URL = {
   programsConductedbarGraph: "/programsConductedbarGraph",
   top5vles: "/top5vles",
   top5districts: "/top5districts",
+
+  // RBI Lookups
+  getAllWorkshopLookup: "/get-all-workshop-lookup",
 };

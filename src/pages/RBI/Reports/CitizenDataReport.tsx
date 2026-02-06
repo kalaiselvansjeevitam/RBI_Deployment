@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
@@ -11,19 +12,26 @@ import {
   useGetGramPanchayat,
 } from "../../../app/core/api/Admin";
 import {
+  getWorkshopList,
   useDownloadCitizenDataByDistrictReport,
   useViewCitizenDataByDistrictReport,
   type CitizenRow,
 } from "../../../app/core/api/RBIReports";
-import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 10;
+
+type WorkshopItem = {
+  id: number | string;
+  date?: string;
+  center_name?: string;
+};
 
 export default function CitizenDataReport() {
   const navigate = useNavigate();
   const { mutateAsync: fetchView } = useViewCitizenDataByDistrictReport();
   const { mutateAsync: download } = useDownloadCitizenDataByDistrictReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
+  const { mutateAsync: fetchWorkshopsApi } = getWorkshopList();
 
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
@@ -46,6 +54,10 @@ export default function CitizenDataReport() {
   const [loadingGram, setLoadingGram] = useState(false);
   const { mutateAsync: getBlocks } = useGetBlockPanchayat();
   const { mutateAsync: getGrams } = useGetGramPanchayat();
+
+  const [workshopList, setWorkshopList] = useState<WorkshopItem[]>([]);
+  const [loadingWorkshops, setLoadingWorkshops] = useState(false);
+  const [workshopId, setWorkshopId] = useState<string>("");
 
   const canSubmit = Boolean(
     selectedDistrict && startDate && endDate && selectedBlock && selectedGram,
@@ -71,6 +83,8 @@ export default function CitizenDataReport() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ---------------- Load blocks when district changes ---------------- */
   useEffect(() => {
     if (!selectedDistrict) {
       setBlockList([]);
@@ -91,7 +105,9 @@ export default function CitizenDataReport() {
         setLoadingBlock(false);
       }
     })();
-  }, [selectedDistrict]);
+  }, [selectedDistrict, getBlocks]);
+
+  /* ---------------- Load grams when block changes ---------------- */
   useEffect(() => {
     if (!selectedBlock) {
       setGramList([]);
@@ -112,7 +128,26 @@ export default function CitizenDataReport() {
         setLoadingGram(false);
       }
     })();
-  }, [selectedBlock]);
+  }, [selectedBlock, getGrams]);
+
+  useEffect(() => {
+    const fetchWorkshops = async () => {
+      try {
+        setLoadingWorkshops(true);
+
+        const res = await fetchWorkshopsApi();
+
+        setWorkshopList(res.data ?? []);
+      } catch (e) {
+        console.error("Failed to load workshops:", e);
+        setWorkshopList([]);
+      } finally {
+        setLoadingWorkshops(false);
+      }
+    };
+
+    fetchWorkshops();
+  }, []);
 
   /* ---------------- Fetch data ---------------- */
   const fetchData = async (opts?: {
@@ -132,14 +167,18 @@ export default function CitizenDataReport() {
       setLoading(true);
       setError("");
 
-      const res = await fetchView({
+      const payload: any = {
         district: selectedDistrict,
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
         start_date: startDate,
         end_date: endDate,
         offset: nextOffset,
-      });
+      };
+
+      if (workshopId) payload.work_shop_id = workshopId;
+
+      const res = await fetchView(payload);
 
       if (res?.status !== "Success") {
         setRows([]);
@@ -171,13 +210,18 @@ export default function CitizenDataReport() {
     try {
       setLoading(true);
 
-      const res = await download({
+      const payload: any = {
         district: selectedDistrict,
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
         start_date: startDate,
         end_date: endDate,
-      });
+      };
+
+      // ✅ optional workshop_id (kept as session_id)
+      if (workshopId) payload.work_shop_id = workshopId;
+
+      const res = await download(payload);
 
       const url =
         typeof res?.data === "string" && res.data.trim() ? res.data.trim() : "";
@@ -225,12 +269,12 @@ export default function CitizenDataReport() {
             </h2>
             <Button onClick={() => navigate(-1)}>Back</Button>
           </div>
+
           {/* Filters */}
-          <div className="mb-6 space-y-4">
-            {/* ===== Row 1 : Filters ===== */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
               {/* District */}
-              <div>
+              <div className="md:col-span-3">
                 <label className="text-sm text-gray-600">
                   District (required)
                 </label>
@@ -249,7 +293,7 @@ export default function CitizenDataReport() {
               </div>
 
               {/* Block */}
-              <div>
+              <div className="md:col-span-3">
                 <label className="text-sm text-gray-600">
                   Block Panchayat (required)
                 </label>
@@ -262,7 +306,7 @@ export default function CitizenDataReport() {
                   <option value="">
                     {loadingBlock ? "Loading blocks..." : "All blocks"}
                   </option>
-                  {blockList.map((b: any) => (
+                  {blockList.map((b) => (
                     <option
                       key={b.block_panchayat_name}
                       value={b.block_panchayat_name}
@@ -274,7 +318,7 @@ export default function CitizenDataReport() {
               </div>
 
               {/* Gram */}
-              <div>
+              <div className="md:col-span-3">
                 <label className="text-sm text-gray-600">
                   Gram Panchayat (required)
                 </label>
@@ -287,7 +331,7 @@ export default function CitizenDataReport() {
                   <option value="">
                     {loadingGram ? "Loading grams..." : "All gram panchayats"}
                   </option>
-                  {gramList.map((g: any) => (
+                  {gramList.map((g) => (
                     <option
                       key={g.gram_panchayat_code}
                       value={g.gram_panchayat_name}
@@ -298,8 +342,32 @@ export default function CitizenDataReport() {
                 </select>
               </div>
 
+              {/* Workshop */}
+              <div className="md:col-span-3">
+                <label className="text-sm text-gray-600">
+                  Workshop ID (optional)
+                </label>
+                <select
+                  className="border rounded-md h-10 px-3 w-full"
+                  value={workshopId}
+                  onChange={(e) => setWorkshopId(e.target.value)}
+                  disabled={loadingWorkshops}
+                >
+                  <option value="">
+                    {loadingWorkshops
+                      ? "Loading workshops..."
+                      : "All Workshops"}
+                  </option>
+                  {workshopList.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Start Date */}
-              <div>
+              <div className="md:col-span-3">
                 <label className="text-sm text-gray-600">
                   Start Date (required)
                 </label>
@@ -311,7 +379,7 @@ export default function CitizenDataReport() {
               </div>
 
               {/* End Date */}
-              <div>
+              <div className="md:col-span-3">
                 <label className="text-sm text-gray-600">
                   End Date (required)
                 </label>
@@ -321,51 +389,69 @@ export default function CitizenDataReport() {
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
-            </div>
 
-            {/* ===== Row 2 : Actions (Right aligned) ===== */}
-            <div className="flex justify-end gap-3">
-              <Button
-                onClick={() => fetchData({ reset: true })}
-                disabled={loading || !canSubmit}
-              >
-                {loading ? <Loader className="w-4 h-4 animate-spin" /> : "View"}
-              </Button>
-
-              <Button onClick={handleDownload} disabled={loading || !canSubmit}>
-                {loading ? (
-                  <span className="flex items-center gap-2">
+              {/* View Button */}
+              <div className="md:col-span-2">
+                <Button
+                  className="w-full h-10"
+                  onClick={() => fetchData({ reset: true })}
+                  disabled={loading || !canSubmit}
+                >
+                  {loading ? (
                     <Loader className="w-4 h-4 animate-spin" />
-                    Downloading
-                  </span>
-                ) : (
-                  "Download Excel"
-                )}
-              </Button>
+                  ) : (
+                    "View"
+                  )}
+                </Button>
+              </div>
 
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSelectedDistrict("");
-                  setSelectedBlock("");
-                  setSelectedGram("");
-                  setStartDate("");
-                  setEndDate("");
-                  setRows([]);
-                  setTotal(0);
-                  setOffset(0);
-                  setError("");
-                }}
-              >
-                Clear
-              </Button>
+              {/* Download Button */}
+              <div className="md:col-span-2">
+                <Button
+                  className="w-full h-10"
+                  onClick={handleDownload}
+                  disabled={loading || !canSubmit}
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Downloading
+                    </span>
+                  ) : (
+                    "Download Excel"
+                  )}
+                </Button>
+              </div>
+
+              {/* Clear Button */}
+              <div className="md:col-span-2">
+                <Button
+                  className="w-full h-10"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedDistrict("");
+                    setSelectedBlock("");
+                    setSelectedGram("");
+                    setStartDate("");
+                    setEndDate("");
+                    setWorkshopId("");
+                    setRows([]);
+                    setTotal(0);
+                    setOffset(0);
+                    setError("");
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Messages */}
           {!canSubmit && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm">
-              Please fill district, start date, and end date.
+              Please fill district, block panchayat, gram panchayat, start date,
+              and end date.
             </div>
           )}
 
@@ -446,7 +532,7 @@ export default function CitizenDataReport() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td className="py-6 text-center text-gray-500" colSpan={9}>
+                    <td className="py-6 text-center text-gray-500" colSpan={12}>
                       <span className="inline-flex items-center gap-2">
                         <Loader className="w-4 h-4 animate-spin" />
                         Loading...
@@ -455,7 +541,7 @@ export default function CitizenDataReport() {
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-6 text-center text-gray-500">
+                    <td colSpan={12} className="py-6 text-center text-gray-500">
                       {loading ? "Loading..." : "No data found"}
                     </td>
                   </tr>

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 
+import banner from "../../../assets/images/RBIbanner.pdf"
+
 type Language = "English" | "Marathi";
 
 type MaterialType = "Handbook" | "Banner" | "Videos";
@@ -14,6 +16,15 @@ type MaterialConfig = {
   // Placeholder links by language (keep null for now)
   downloads: Record<Language, { label: string; href: string | null }[]>;
 };
+const downloadFile = (url: string, filename: string) => {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 
 const IECMaterials = () => {
   const [handbookLang, setHandbookLang] = useState<Language>("English");
@@ -36,7 +47,7 @@ const IECMaterials = () => {
           "Download banners for session venue (placeholder for now).",
         downloads: {
           English: [{ label: "Banner (English) - Coming soon", href: null }],
-          Marathi: [{ label: "Banner (Marathi) - Coming soon", href: null }],
+          Marathi: [{ label: "Banner (Marathi)", href: banner }],
         },
       },
       {
@@ -151,16 +162,17 @@ const IECMaterials = () => {
               >
                 <div className="text-sm text-gray-700">{d.label}</div>
                 <Button
-                  type="button"
-                  variant="outline"
-                  disabled={disabled}
-                  onClick={() => {
-                    if (!d.href) return;
-                    window.open(d.href, "_blank", "noopener,noreferrer");
-                  }}
-                >
-                  Download
-                </Button>
+  type="button"
+  variant="outline"
+  disabled={disabled}
+  onClick={() => {
+    if (!d.href) return;
+    downloadFile(d.href, "RBI_Banner.pdf");
+  }}
+>
+  Download
+</Button>
+
               </div>
             );
           })}

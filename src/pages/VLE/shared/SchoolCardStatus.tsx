@@ -26,7 +26,7 @@ const SchoolCardStatus: React.FC<SchoolCardProps> = ({
       flex flex-col ${hasSplit ? "gap-3" : "gap-2 justify-center"}`}
     >
       {/* Title */}
-      <h4 className="text-center text-sm font-semibold uppercase tracking-wide opacity-90">
+      <h4 className="text-center text-sm font-semibold uppercase tracking-wide opacity-90 whitespace-pre-line">
         {title}
       </h4>
 

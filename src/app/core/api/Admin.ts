@@ -217,7 +217,7 @@ export const useGetUpdateTestimony = () =>
     mutationFn: (formData: FormData) => {
       return POST<GetResponsewithFile>({
         url: API_URL.uploadTestimony,
-        timeout: 50000,
+        timeout: 180000,
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",

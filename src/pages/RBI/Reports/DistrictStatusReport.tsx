@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
@@ -11,7 +12,6 @@ import {
   useViewDistrictWiseByStatusWorkshopReport,
   type DistrictStatusRow,
 } from "../../../app/core/api/RBIReports";
-import { useNavigate } from "react-router-dom";
 
 function isSuccess(x: any) {
   return (
@@ -145,7 +145,7 @@ export default function DistrictStatusReport() {
   return (
     <Layout headerTitle="District-wise Workshop Status Report">
       <div className="p-6">
-        <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
+        <div className="bg-white rounded-2xl shadow p-6 bg-linear-to-br from-white to-gray-50 shadow-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">
               District-wise Workshop Report
@@ -252,12 +252,6 @@ export default function DistrictStatusReport() {
                     District
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    VLE ID
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    VLE Name
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Pending
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
@@ -283,7 +277,7 @@ export default function DistrictStatusReport() {
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-6 text-center text-gray-500">
+                    <td colSpan={6} className="py-6 text-center text-gray-500">
                       {loading ? "Loading..." : "No data found"}
                     </td>
                   </tr>
@@ -292,8 +286,6 @@ export default function DistrictStatusReport() {
                     <tr key={i} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3">{offset + i + 1}</td>
                       <td className="px-4 py-3">{r.district}</td>
-                      <td className="px-4 py-3">{r.vle_id}</td>
-                      <td className="px-4 py-3">{r.vle_name}</td>
                       <td className="px-4 py-3">
                         {Number(r.pending_count ?? 0)}
                       </td>

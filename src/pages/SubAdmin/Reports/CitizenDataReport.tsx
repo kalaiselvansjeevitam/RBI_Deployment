@@ -7,8 +7,10 @@ import { Button } from "../../../app/components/ui/button";
 import { Input } from "../../../app/components/ui/input";
 import { useGetDistrictParams } from "../../../app/core/api/Admin";
 import {
-  useDownloadCitizenDataByDistrictReport,
-  useViewCitizenDataByDistrictReport,
+  // useDownloadCitizenDataByDistrictReport,
+  useSubDownloadCitizenDataByDistrictReport,
+  useSubViewCitizenDataByDistrictReport,
+  // useViewCitizenDataByDistrictReport,
   type CitizenRow,
 } from "../../../app/core/api/RBIReports";
 import { useNavigate } from "react-router-dom";
@@ -17,8 +19,8 @@ const PAGE_SIZE = 10;
 
 export default function SubCitizenDataReport() {
   const navigate = useNavigate();
-  const { mutateAsync: fetchView } = useViewCitizenDataByDistrictReport();
-  const { mutateAsync: download } = useDownloadCitizenDataByDistrictReport();
+  const { mutateAsync: fetchView } = useSubViewCitizenDataByDistrictReport();
+  const { mutateAsync: download } = useSubDownloadCitizenDataByDistrictReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
 
   const [districtList, setDistrictList] = useState<string[]>([]);
