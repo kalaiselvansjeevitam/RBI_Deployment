@@ -74,8 +74,6 @@ export const useDownloadCitizenDataByDistrictReport = () =>
         data,
       }),
   });
-
-<<<<<<< HEAD
 export const useSubDownloadCitizenDataByDistrictReport = () =>
   useMutation({
     mutationFn: (data: {
@@ -94,8 +92,6 @@ export const useSubDownloadCitizenDataByDistrictReport = () =>
       }),
   });
 
-=======
->>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
 /** Workshop lookup (optional) */
 export const useGetAllWorkshopLookup = () =>
   useMutation({
@@ -311,7 +307,6 @@ export const useViewCitizenDataByDistrictReport = () =>
           start_date: payload.start_date,
           end_date: payload.end_date,
           work_shop_id: payload.work_shop_id,
-<<<<<<< HEAD
           offset: payload.offset,
         },
       });
@@ -334,8 +329,6 @@ export const useSubViewCitizenDataByDistrictReport = () =>
           start_date: payload.start_date,
           end_date: payload.end_date,
           work_shop_id: payload.work_shop_id,
-=======
->>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
           offset: payload.offset,
         },
       });

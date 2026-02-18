@@ -106,11 +106,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           href: ROUTE_URL.createLoactionManager,
           icon: UserPlus,
         },
-        {
-          label: "View Locations",
-          href: ROUTE_URL.viewLocationManager,
-          icon: View,
-        },
+        // {
+        //   label: "View Locations",
+        //   href: ROUTE_URL.viewLocationManager,
+        //   icon: View,
+        // },
       ],
     });
     sidebarItems.splice(4, 0, {
@@ -135,6 +135,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     });
+    // sidebarItems.splice(5, 0, {
+    //   icon: UserPlus,
+    //   label: "Create IEC",
+    //   href: ROUTE_URL.createIEC,
+    // });
   } else if (user_type?.toLowerCase() === "vle") {
     sidebarItems.splice(2, 0, {
       icon: Home,

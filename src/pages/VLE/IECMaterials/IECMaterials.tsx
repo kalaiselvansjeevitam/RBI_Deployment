@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 
-import banner from "../../../assets/images/RBIbanner.pdf"
+import banner from "../../../assets/images/RBIbanner.pdf";
 
-type Language = "English" | "Marathi";
+type Language = "Hindi" | "Marathi";
 
 type MaterialType = "Handbook" | "Banner" | "Videos";
 
@@ -25,11 +25,10 @@ const downloadFile = (url: string, filename: string) => {
   document.body.removeChild(link);
 };
 
-
 const IECMaterials = () => {
-  const [handbookLang, setHandbookLang] = useState<Language>("English");
-  const [bannerLang, setBannerLang] = useState<Language>("English");
-  const [videosLang, setVideosLang] = useState<Language>("English");
+  const [handbookLang, setHandbookLang] = useState<Language>("Hindi");
+  const [bannerLang, setBannerLang] = useState<Language>("Hindi");
+  const [videosLang, setVideosLang] = useState<Language>("Hindi");
 
   const materials = useMemo<MaterialConfig[]>(
     () => [
@@ -37,7 +36,7 @@ const IECMaterials = () => {
         title: "Handbook",
         description: "Download participant handbooks (placeholder for now).",
         downloads: {
-          English: [{ label: "Handbook (English) - Coming soon", href: null }],
+          Hindi: [{ label: "Handbook (Hindi) - Coming soon", href: null }],
           Marathi: [{ label: "Handbook (Marathi) - Coming soon", href: null }],
         },
       },
@@ -46,7 +45,7 @@ const IECMaterials = () => {
         description:
           "Download banners for session venue (placeholder for now).",
         downloads: {
-          English: [{ label: "Banner (English) - Coming soon", href: null }],
+          Hindi: [{ label: "Banner (Hindi) - Coming soon", href: null }],
           Marathi: [{ label: "Banner (Marathi)", href: banner }],
         },
       },
@@ -54,9 +53,9 @@ const IECMaterials = () => {
         title: "Videos",
         description: "RBI-approved awareness videos for sessions.",
         downloads: {
-          English: [
+          Hindi: [
             {
-              label: "Digital Payment Awareness Video (English)",
+              label: "Digital Payment Awareness Video (Hindi)",
               href: "https://youtu.be/ef9HRVlel6E",
             },
           ],
@@ -87,7 +86,7 @@ const IECMaterials = () => {
       onChange={(e) => onChange(e.target.value as Language)}
       className="w-full md:w-44 border rounded-lg px-3 py-2 text-sm bg-white"
     >
-      <option value="English">English</option>
+      <option value="Hindi">Hindi</option>
       <option value="Marathi">Marathi</option>
     </select>
   );
@@ -162,17 +161,16 @@ const IECMaterials = () => {
               >
                 <div className="text-sm text-gray-700">{d.label}</div>
                 <Button
-  type="button"
-  variant="outline"
-  disabled={disabled}
-  onClick={() => {
-    if (!d.href) return;
-    downloadFile(d.href, "RBI_Banner.pdf");
-  }}
->
-  Download
-</Button>
-
+                  type="button"
+                  variant="outline"
+                  disabled={disabled}
+                  onClick={() => {
+                    if (!d.href) return;
+                    downloadFile(d.href, "RBI_Banner.pdf");
+                  }}
+                >
+                  Download
+                </Button>
               </div>
             );
           })}

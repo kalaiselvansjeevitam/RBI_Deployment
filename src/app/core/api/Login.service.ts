@@ -13,6 +13,7 @@ type loginRes = {
     unique_user_id: string;
     name: string;
     last_log_in: string;
+    district: string;
     last_login_via: string;
     user_type: string;
     session_token: string;

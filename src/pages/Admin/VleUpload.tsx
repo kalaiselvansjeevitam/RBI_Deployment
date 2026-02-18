@@ -101,7 +101,7 @@ const VleUpload = () => {
 
             {/* Sample Excel download */}
             <a
-              href="/rbi-deployment/admin/files/VLE Details - Sample Format.xlsx"
+              href="/rbi-deployment/admin/files/VLE Details - SampleFormat.xlsx"
               download
               className="text-sm text-blue-600 hover:underline font-medium"
             >

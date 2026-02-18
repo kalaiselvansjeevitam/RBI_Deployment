@@ -100,6 +100,7 @@ export const WorkshopReport = () => {
               className="w-full border p-2 rounded"
             >
               <option value="">Select District</option>
+              <option value="All Districts">All Districts</option>
               {districtList.map((d) => (
                 <option key={d.id} value={d.district}>
                   {d.district}

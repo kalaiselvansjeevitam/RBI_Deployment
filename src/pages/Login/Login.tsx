@@ -36,6 +36,7 @@ const Login = () => {
       sessionStorage.setItem("user_type", res.data.user_type.toLowerCase());
       sessionStorage.setItem("session_token", res.data.session_token);
       sessionStorage.setItem("user_id", res.data.unique_user_id);
+      sessionStorage.setItem("district", res.data.district);
 
       if (res.data.user_type.toLowerCase() === "vle") {
         navigate(ROUTE_URL.vleDashboard, { replace: true });

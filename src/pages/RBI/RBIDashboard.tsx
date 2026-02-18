@@ -5,7 +5,6 @@ import Layout from "../../app/components/Layout/Layout";
 
 import BarChartComponent from "../../app/components/shared/BarChart";
 import DonutChartComponent from "../../app/components/shared/DonutChartComponent";
-import SchoolCardStatus from "../VLE/shared/SchoolCardStatus";
 
 import { useGetDistrictParams } from "../../app/core/api/Admin";
 import {
@@ -19,6 +18,7 @@ import {
   useGetTop5Districts,
   useGetTop5Vles,
 } from "../../app/core/api/RBIDashboard";
+import CardStatus from "./Reports/shared/Cards";
 
 const MONTHS = [
   { value: "1", label: "January" },
@@ -166,33 +166,26 @@ export default function RBIDashboard() {
         ]),
       },
       {
-        title: "Total Workshop Completed",
+        title: "Total Workshop Pending for Approval",
         value: cardValueInt([
           "total_completed",
           "completed",
           "totalWorkshopCompleted",
           "total_workshop_completed",
         ]),
+        from: "from-pink-400",
+        to: "to-rose-500",
       },
       {
-<<<<<<< HEAD
         title: "Under the Schedule\n(Total workshop pending)",
-=======
-        title: (
-          <>
-            Under the Schedule
-            <br />
-            (Total workshop pending)
-          </>
-        ),
-
->>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
         value: cardValueInt([
           "total_pending",
           "pending",
           "totalWorkshopPending",
           "total_workshop_pending",
         ]),
+        from: "from-amber-300",
+        to: "to-orange-400",
       },
       {
         title: "Total Workshop Approved",
@@ -202,6 +195,8 @@ export default function RBIDashboard() {
           "totalWorkshopApproved",
           "total_workshop_approved",
         ]),
+        from: "from-green-400",
+        to: "to-green-500",
       },
       {
         title: "Total Workshop Rejected",
@@ -211,14 +206,12 @@ export default function RBIDashboard() {
           "totalWorkshopRejected",
           "total_workshop_rejected",
         ]),
+        from: "from-red-400",
+        to: "to-red-500",
       },
       {
         title: "Avg Approval Days",
         value: cardValueFloat(["avg_approval_days"], 0),
-      },
-      {
-        title: "Total Workshop Cancelled",
-        value: cardValueInt(["total_cancelled"]),
       },
       {
         title: "Gram Panchayat Covered Till Date",
@@ -398,10 +391,12 @@ export default function RBIDashboard() {
         {/* Cards */}
         <div className="flex flex-wrap gap-6">
           {cards.map((c) => (
-            <SchoolCardStatus
+            <CardStatus
               key={c.title}
               title={c.title}
               total={c.value ?? 0}
+              from={c.from}
+              to={c.to}
             />
           ))}
         </div>

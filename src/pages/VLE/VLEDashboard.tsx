@@ -10,6 +10,7 @@ import {
 } from "../../app/core/api/Admin";
 import type { GetCityCountRes, GetGenderCountRes } from "../../app/lib/types";
 import DonutChartComponent from "../../app/components/shared/DonutChartComponent";
+import BarChartComponentWorkshop from "./WorkShop/Shared/BarchartWorkshop";
 
 /* ---------- TYPES ---------- */
 
@@ -89,8 +90,11 @@ const VLEDashboard = () => {
   }, [genderData]);
   const cityChartData = useMemo(() => {
     return cityData.map((item) => ({
-      district: item.district,
-      Citizen_Count: Number(item.total),
+      total: Number(item.total),
+      date: item.date,
+      id: Number(item.id),
+      workshop_name: item.workshop_name,
+      label: `${item.date} | ${item.id}`,
     }));
   }, [cityData]);
 
@@ -129,10 +133,14 @@ const VLEDashboard = () => {
           <SchoolCardStatus
             title="Approved Sessions"
             total={dashboardData?.workshop_approved_status_count ?? 0}
+            from="from-green-300"
+            to="to-green-400"
           />
           <SchoolCardStatus
             title="Total Citizens"
             total={dashboardData?.total_citizens_count ?? 0}
+            from="from-pink-300"
+            to="to-rose-400"
           />
         </div>
 
@@ -167,14 +175,14 @@ const VLEDashboard = () => {
 
         <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
-            City-wise Citizen Count
+            Workshops by Date and Workshop ID
           </h3>
 
           <div className="h-[300px]">
-            <BarChartComponent
+            <BarChartComponentWorkshop
               data={cityChartData}
-              dataKey="Citizen_Count"
-              categoryKey="district"
+              dataKey="total"
+              categoryKey="label"
               height={300}
               fillColor="#22c55e"
             />

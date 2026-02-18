@@ -4,7 +4,7 @@ import { Button } from "../../../app/components/ui/button";
 import type { GetWorkshopRes } from "../../../app/lib/types";
 import {
   useGetMapCitizen,
-  useGetWorkshopParams,
+  useGetPendingWorkshopParams,
 } from "../../../app/core/api/Admin";
 import Swal from "sweetalert2";
 import { Loader } from "lucide-react";
@@ -26,6 +26,7 @@ interface WorkshopOption {
 }
 
 const MapCitizen = () => {
+  const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
   const [selectedWorkshop, setSelectedWorkshop] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
@@ -33,7 +34,7 @@ const MapCitizen = () => {
   const userId = sessionStorage.getItem("user_id");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [workshops, setWorkshops] = useState<WorkshopOption[]>([]);
-  const { mutateAsync: Workshop } = useGetWorkshopParams();
+  const { mutateAsync: Workshop } = useGetPendingWorkshopParams();
   const { mutateAsync: MapCitizen } = useGetMapCitizen();
   const [loading, setLoading] = useState(false);
   useEffect(() => {
@@ -76,6 +77,10 @@ const MapCitizen = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedDisclaimer) {
+      setError("Please accept the disclaimer before uploading testimony");
+      return;
+    }
 
     if (!selectedWorkshop) {
       setError("Please select a workshop");
@@ -179,7 +184,7 @@ const MapCitizen = () => {
 
               {/* Sample Excel download */}
               <a
-                href="/rbi-deployment/admin/files/Citizen Details - Sample Format.xlsx"
+                href="/rbi-deployment/admin/files/Citizen Details - SampleFormat.xlsx"
                 download
                 className="text-sm text-blue-600 hover:underline font-medium"
               >
@@ -190,8 +195,34 @@ const MapCitizen = () => {
           {/* Error */}
           {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
-          <div className="flex justify-center">
-            <Button type="submit" className="bg-purple">
+          <div className="border border-yellow-400 bg-yellow-50 rounded p-4 text-sm space-y-2">
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={acceptedDisclaimer}
+                onChange={(e) => setAcceptedDisclaimer(e.target.checked)}
+                className="mt-1"
+              />
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold text-yellow-800">
+                  Disclaimer:
+                </span>{" "}
+                I confirm that the uploaded data has been shared with valid
+                consent and is in compliance with the{" "}
+                <a
+                  href="https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9f04e6fb4f8fef35e82c42aa5.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  Digital Personal Data Protection (DPDP) Act, 2023
+                </a>
+                . *
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-center pt-1">
+            <Button type="submit" disabled={loading || !acceptedDisclaimer}>
               {loading ? (
                 <div className=" flex justify-center">
                   <Loader className=" animate-spin" />

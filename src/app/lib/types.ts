@@ -50,7 +50,6 @@ export interface WorkshopByFiltersData {
   block_panchayat: string;
   gram_panchayat: string;
   gram_panchayat_code: string;
-  location: string;
   checklist: string;
   total_citizens: string;
   videos_count: string;
@@ -195,6 +194,9 @@ export type AllUser = {
   username: string;
   mobile_number: string;
   email_id: string;
+  block_panchayat: string;
+  gram_panchayat: string;
+  gram_panchayat_code: string;
   address: string;
   sub_district_name: string;
   district_name: string;
@@ -243,7 +245,9 @@ export interface GetGenderCountRes {
 
 export interface CityCount {
   total: string;
-  district: string;
+  workshop_name: string;
+  date: string;
+  id: string;
 }
 
 export interface GetCityCountRes {

@@ -77,6 +77,19 @@ export const ViewUser = () => {
       setDeletingUserId(null);
     }
   };
+  const safeValue = (value: any) => {
+    if (
+      value === null ||
+      value === undefined ||
+      value === "" ||
+      value === "null" ||
+      value === "NULL" ||
+      value === "undefined"
+    ) {
+      return "-";
+    }
+    return value;
+  };
 
   const fetchData = async () => {
     try {
@@ -86,25 +99,28 @@ export const ViewUser = () => {
       const sourceData = result?.data ?? [];
       const total_count = result?.count ?? 0;
       const transformed = sourceData.map((item: AllUser) => ({
-        unique_user_id: item.unique_user_id || "-",
-        csc_user_id: item.csc_user_id || "-",
-        name: item.name || "-",
-        username: item.username || "-",
-        mobile_number: item.mobile_number || "-",
-        email_id: item.email_id || "-",
-        address: item.address || "-",
-        sub_district_name: item.sub_district_name || "-",
-        specilization: item.specilization || "-",
-        degree: item.degree || "-",
-        district_name: item.district_name || "-",
-        state: item.state || "-",
-        pincode: item.pincode || "-",
-        last_log_in: item.last_log_in || "-",
-        last_log_out: item.last_log_out || "-",
-        created_at: item.created_at || "-",
-        last_login_via: item.last_login_via || "-",
-        user_type: item.user_type || "-",
-        salutations: item.salutations || "-",
+        unique_user_id: safeValue(item.unique_user_id),
+        csc_user_id: safeValue(item.csc_user_id),
+        name: safeValue(item.name),
+        username: safeValue(item.username),
+        mobile_number: safeValue(item.mobile_number),
+        email_id: safeValue(item.email_id),
+        address: safeValue(item.address),
+        sub_district_name: safeValue(item.sub_district_name),
+        specilization: safeValue(item.specilization),
+        degree: safeValue(item.degree),
+        district_name: safeValue(item.district_name),
+        block_panchayat: safeValue(item.block_panchayat),
+        gram_panchayat: safeValue(item.gram_panchayat),
+        gram_panchayat_code: safeValue(item.gram_panchayat_code),
+        state: safeValue(item.state),
+        pincode: safeValue(item.pincode),
+        last_log_in: safeValue(item.last_log_in),
+        last_log_out: safeValue(item.last_log_out),
+        created_at: safeValue(item.created_at),
+        last_login_via: safeValue(item.last_login_via),
+        user_type: safeValue(item.user_type),
+        salutations: safeValue(item.salutations),
         fullData: item,
       }));
 
@@ -118,20 +134,14 @@ export const ViewUser = () => {
     }
   };
   const tableContents: Column[] = [
-    // { key: "unique_user_id", label: "User ID", align: "center" },
     { key: "csc_user_id", label: "CSC User ID", align: "center" },
     { key: "name", label: "Name", align: "left" },
-    // { key: "created_at", label: "Created at", align: "left" },
     { key: "username", label: "Username", align: "center" },
     { key: "mobile_number", label: "Mobile Number", align: "center" },
     { key: "email_id", label: "Email ID", align: "left" },
-    { key: "address", label: "Address", align: "left" },
-    { key: "degree", label: "Degree", align: "left" },
-    { key: "specilization", label: "Specilization", align: "left" },
     { key: "district_name", label: "District", align: "center" },
-    { key: "sub_district_name", label: "Sub District", align: "center" },
-    { key: "state", label: "State", align: "center" },
-    { key: "pincode", label: "Pincode", align: "center" },
+    { key: "block_panchayat", label: "Block Panchayat", align: "center" },
+    { key: "gram_panchayat", label: "Gram Panchayat", align: "center" },
     {
       key: "action",
       label: "Action",

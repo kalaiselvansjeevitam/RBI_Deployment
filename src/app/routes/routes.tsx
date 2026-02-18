@@ -22,7 +22,6 @@ import { ViewUser } from "../../pages/Admin/ViewUser";
 import ViewManageSession from "../../pages/Admin/ManageSession/ViewManageSession";
 import TestimonyByWorkshop from "../../pages/Admin/ManageSession/shared/testimonybyworkshop";
 import CreateLocationManage from "../../pages/Admin/LocationManager/createLocationManage";
-import ViewLocationManagerPage from "../../pages/Admin/LocationManager/viewLocationManager";
 import VLEReport from "../../pages/Admin/Reports/VLEReport";
 import CitizenReport from "../../pages/Admin/Reports/CitizenReport";
 import WorkshopReport from "../../pages/Admin/Reports/WorkshopReport";
@@ -50,6 +49,7 @@ import OMAPortalFAQ from "../../pages/VLE/FAQ/OMAPortalFAQ";
 import ProjectFAQ from "../../pages/VLE/FAQ/ProjectFAQ";
 import VideoScriptsFAQ from "../../pages/VLE/FAQ/VideoScriptsFAQ";
 import RBIWorkshopReport from "../../pages/RBI/Reports/RBIWorkshopReport";
+import { CreateIEC } from "../../pages/Admin/CreateIECMaterial/CreateIEC";
 
 export const authProtectedRoutes = [
   {
@@ -126,14 +126,14 @@ export const authProtectedRoutes = [
           </RequireRole>
         ),
       },
-      {
-        path: ROUTE_URL.viewLocationManager,
-        element: (
-          <RequireRole allowedRoles={["admin"]}>
-            <ViewLocationManagerPage />
-          </RequireRole>
-        ),
-      },
+      // {
+      //   path: ROUTE_URL.viewLocationManager,
+      //   element: (
+      //     <RequireRole allowedRoles={["admin"]}>
+      //       <ViewLocationManagerPage />
+      //     </RequireRole>
+      //   ),
+      // },
       {
         path: ROUTE_URL.downloadVLEReport,
         element: (
@@ -155,6 +155,14 @@ export const authProtectedRoutes = [
         element: (
           <RequireRole allowedRoles={["admin"]}>
             <WorkshopReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.createIEC,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <CreateIEC />
           </RequireRole>
         ),
       },

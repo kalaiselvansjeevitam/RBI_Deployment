@@ -35,12 +35,13 @@ type UserCreateParams = {
   last_name: string;
   mobile_number: string;
   email_id: string;
-  address: string;
   salutations: string;
   user_type: string;
   district: string;
-  sub_district: string;
   csc_id: string;
+  block_panchayat: string;
+  gram_panchayat: string;
+  gram_panchayat_code: string;
 };
 type SchoolDetailsParams = {
   start_date: string;
@@ -50,14 +51,11 @@ type SchoolDetailsParams = {
 };
 
 type UserUpdateParams = {
-  username: string;
-  address: string;
-  sub_district_name: string;
+  name: string;
+  block_panchayat: string;
+  gram_panchayat: string;
+  gram_panchayat_code: string;
   district_name: string;
-  state: string;
-  pincode: string;
-  specilization: string;
-  degree: string;
   salutations: string;
   change_user_id: string;
 };
@@ -81,7 +79,6 @@ type CreateWorkShopParams = {
   from_time: string;
   to_time: string;
   district: string;
-  location: string;
   block_panchayat: string;
   gram_panchayat: string;
   gram_panchayat_code: string;
@@ -94,12 +91,13 @@ export const useGetUserCreateParams = () =>
       last_name,
       mobile_number,
       email_id,
-      address,
       salutations,
       user_type,
       district,
-      sub_district,
       csc_id,
+      block_panchayat,
+      gram_panchayat,
+      gram_panchayat_code,
     }: UserCreateParams) => {
       return POST<GetResponse>({
         url: API_URL.createUser,
@@ -108,12 +106,13 @@ export const useGetUserCreateParams = () =>
           last_name: last_name,
           mobile_number: mobile_number,
           email_id: email_id,
-          address: address,
           salutations: salutations,
           user_type: user_type,
           district: district,
-          sub_district: sub_district,
           csc_id: csc_id,
+          block_panchayat: block_panchayat,
+          gram_panchayat: gram_panchayat,
+          gram_panchayat_code: gram_panchayat_code,
         },
       });
     },
@@ -130,7 +129,6 @@ export const useGetCreateWorkshopParams = () =>
       block_panchayat,
       gram_panchayat,
       gram_panchayat_code,
-      location,
     }: CreateWorkShopParams) => {
       return POST<GetResponseWithId>({
         url: API_URL.createWorkShop,
@@ -143,7 +141,6 @@ export const useGetCreateWorkshopParams = () =>
           gram_panchayat_code: gram_panchayat_code,
           gram_panchayat: gram_panchayat,
           block_panchayat: block_panchayat,
-          location_manager: location,
         },
       });
     },
@@ -186,6 +183,14 @@ export const useGetWorkshopParams = () =>
     mutationFn: () => {
       return POST<GetWorkshopRes>({
         url: API_URL.getWorkshop,
+      });
+    },
+  });
+export const useGetPendingWorkshopParams = () =>
+  useMutation({
+    mutationFn: () => {
+      return POST<GetWorkshopRes>({
+        url: API_URL.getPendingWorkshop,
       });
     },
   });
@@ -350,29 +355,23 @@ export const useGetgetallusers = () =>
 export const useGetUpdateUser = () =>
   useMutation({
     mutationFn: ({
-      username,
-      address,
-      sub_district_name,
+      name,
+      block_panchayat,
+      gram_panchayat,
+      gram_panchayat_code,
       district_name,
-      state,
-      pincode,
-      specilization,
-      degree,
       salutations,
       change_user_id,
     }: UserUpdateParams) => {
       return POST<GetResponse>({
         url: API_URL.updateUsers,
         data: {
-          username: username,
-          address: address,
-          specilization: specilization,
-          sub_district_name: sub_district_name,
+          name: name,
+          block_panchayat: block_panchayat,
+          gram_panchayat: gram_panchayat,
+          gram_panchayat_code: gram_panchayat_code,
           district_name: district_name,
-          degree: degree,
           change_user_id: change_user_id,
-          state: state,
-          pincode: pincode,
           salutations: salutations,
         },
       });
@@ -541,11 +540,10 @@ export const useGetupdateWorkshopStatusByAdmin = () =>
 export const useGetCreateLoactionManager = () =>
   useMutation({
     mutationFn: (data: {
-      center_name: string;
       district: string;
-      center_address: string;
       gram_panchayat: string;
       block_panchayat: string;
+      gram_panchayat_code: string;
     }) => {
       return POST<GetResponse>({
         url: API_URL.createLocationManage,
@@ -563,7 +561,7 @@ export const useUpdateLocationManager = () =>
       gram_panchayat: string;
       gram_panchayat_code: string;
       center_address: string;
-      location_manager_id: number;
+      data_type: string;
     }) => {
       return POST<GetResponse>({
         url: API_URL.updateLocationManager,
@@ -680,6 +678,21 @@ export const usegetOccupations = () =>
     mutationFn: () => {
       return POST<occupationResponse>({
         url: API_URL.getOccupations,
+      });
+    },
+  });
+
+export const useGetReschedule = () =>
+  useMutation({
+    mutationFn: (data: {
+      workshop_id: string;
+      date: string;
+      from_time: string;
+      to_time: string;
+    }) => {
+      return POST<GetResponse>({
+        url: API_URL.rescheduleWorkshop,
+        data,
       });
     },
   });

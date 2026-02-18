@@ -207,7 +207,7 @@ export const ViewManageSession = () => {
         `${row.workshop_from_time} - ${row.workshop_to_time}`,
     },
     { key: "workshop_status", label: "Workshop Status", align: "left" },
-    { key: "workshop_centre", label: "Workshop Center", align: "left" },
+    // { key: "workshop_centre", label: "Workshop Center", align: "left" },
     { key: "workshop_district", label: "Workshop District", align: "left" },
     // { key: "workshop_pincode", label: "Workshop Pincode", align: "left" },
     { key: "vle_id", label: "VLE ID", align: "center" },
@@ -340,6 +340,7 @@ export const ViewManageSession = () => {
           `}
             >
               <option value="">Select District</option>
+              <option value="All Districts">All Districts</option>
               {districtList.map((d: any) => (
                 <option key={d.id} value={d.district}>
                   {d.district}

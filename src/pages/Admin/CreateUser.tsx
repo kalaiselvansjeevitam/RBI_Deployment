@@ -2,26 +2,42 @@ import { useEffect, useState } from "react";
 import Layout from "../../app/components/Layout/Layout";
 import { Button } from "../../app/components/ui/button";
 import {
+  useGetBlockPanchayat,
   useGetDistrictParams,
+  useGetGramPanchayat,
   useGetUserCreateParams,
 } from "../../app/core/api/Admin";
 import { Loader } from "lucide-react";
 import Swal from "sweetalert2";
-import type { District, GetDistrictListRes } from "../../app/lib/types";
+import type {
+  BlockPanchayatRes,
+  District,
+  GetDistrictListRes,
+  GramPanchayatRes,
+} from "../../app/lib/types";
 
 const CreateUser = () => {
   const { mutateAsync: userCreate } = useGetUserCreateParams();
+  const { mutateAsync: getBlockPanchayat } = useGetBlockPanchayat();
+  const { mutateAsync: getGramPanchayat } = useGetGramPanchayat();
+  const [blockPanchayats, setBlockPanchayats] = useState<BlockPanchayatRes[]>(
+    [],
+  );
+  const [gramPanchayats, setGramPanchayats] = useState<GramPanchayatRes[]>([]);
+  const [loadingdist, setLoadingdist] = useState(false);
+  const [loadingbp, setLoadingbp] = useState(false);
   const [formData, setFormData] = useState({
     salutations: "",
     first_name: "",
     last_name: "",
     mobile_number: "",
     email_id: "",
-    address: "",
     user_type: "",
     district: "",
-    sub_district: "",
     csc_id: "",
+    block_panchayat: "",
+    gram_panchayat: "",
+    gram_panchayat_code: "",
   });
   const [districts, setDistricts] = useState<District[]>([]);
   const { mutateAsync: getDistricts } = useGetDistrictParams();
@@ -42,14 +58,25 @@ const CreateUser = () => {
   }, [getDistricts]);
 
   function reSetAll() {
-    ((formData.first_name = ""),
-      (formData.last_name = ""),
-      (formData.salutations = ""),
-      (formData.mobile_number = ""),
-      (formData.email_id = ""),
-      (formData.address = ""),
-      (formData.user_type = ""));
+    setFormData((prev) => ({
+      ...prev,
+      salutations: "",
+      first_name: "",
+      last_name: "",
+      mobile_number: "",
+      email_id: "",
+      district: "",
+      user_type: "",
+      csc_id: "",
+      block_panchayat: "",
+      gram_panchayat: "",
+      gram_panchayat_code: "",
+    }));
+
+    setGramPanchayats([]);
+    setBlockPanchayats([]);
   }
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -82,15 +109,15 @@ const CreateUser = () => {
 
     if (!formData.salutations) newErrors.salutation = "Required";
     if (!formData.first_name.trim()) newErrors.firstName = "Required";
-    // if (!formData.lastName.trim()) newErrors.lastName = "Required";
     if (!/^\d{10}$/.test(formData.mobile_number))
       newErrors.mobile = "Enter valid 10 digit number";
     if (!/^\S+@\S+\.\S+$/.test(formData.email_id))
       newErrors.email = "Invalid email address";
-    if (!formData.address.trim()) newErrors.address = "Required";
     if (!formData.user_type) newErrors.user_type = "Required";
     if (!formData.district.trim()) newErrors.district = "Required";
-    if (!formData.sub_district.trim()) newErrors.sub_district = "Required";
+    if (!formData.block_panchayat.trim())
+      newErrors.block_panchayat = "Required";
+    if (!formData.gram_panchayat.trim()) newErrors.gram_panchayat = "Required";
     if (!formData.csc_id.trim()) newErrors.csc_id = "Required";
 
     setErrors(newErrors);
@@ -118,6 +145,73 @@ const CreateUser = () => {
       setLoading(false);
     }
   };
+  async function handleLocationChange(districtName: string): Promise<void> {
+    setLoadingdist(true);
+    // set district in form
+    setFormData((prev) => ({
+      ...prev,
+      district: districtName,
+      block_panchayat: "", // reset dependent field
+    }));
+
+    if (!districtName) {
+      setBlockPanchayats([]);
+      setLoadingdist(false);
+      return;
+    }
+
+    try {
+      const response = await getBlockPanchayat({
+        district: districtName, // 👈 passing district name
+      });
+
+      if (response?.result === "success") {
+        setBlockPanchayats(response.list);
+      } else {
+        setBlockPanchayats([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch block panchayat", error);
+      setBlockPanchayats([]);
+    } finally {
+      setLoadingdist(false);
+    }
+  }
+  async function handleGramPanchayatChange(
+    blockPanchayatName: string,
+  ): Promise<void> {
+    setLoadingbp(true);
+
+    // set selected block panchayat in form
+    setFormData((prev) => ({
+      ...prev,
+      block_panchayat: blockPanchayatName,
+      gram_panchayat: "", // reset dependent field
+    }));
+
+    if (!blockPanchayatName) {
+      setGramPanchayats([]);
+      setLoadingbp(false);
+      return;
+    }
+
+    try {
+      const response = await getGramPanchayat({
+        block_panchayat_name: blockPanchayatName,
+      });
+
+      if (response?.result === "success") {
+        setGramPanchayats(response.list);
+      } else {
+        setGramPanchayats([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch gram panchayat", error);
+      setGramPanchayats([]);
+    } finally {
+      setLoadingbp(false);
+    }
+  }
 
   return (
     <Layout headerTitle="Create User">
@@ -260,7 +354,7 @@ const CreateUser = () => {
               <select
                 name="district"
                 value={formData.district}
-                onChange={handleChange}
+                onChange={(e) => handleLocationChange(e.target.value)}
                 className="w-full border rounded-md px-3 py-2"
               >
                 <option value="">Select District</option>
@@ -270,6 +364,12 @@ const CreateUser = () => {
                   </option>
                 ))}
               </select>
+              {loadingdist && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Fetching data...
+                </div>
+              )}
 
               {errors.district && (
                 <p className="text-xs text-red-500">{errors.district}</p>
@@ -279,20 +379,69 @@ const CreateUser = () => {
             {/* Sub District */}
             <div>
               <label className="text-sm font-medium">
-                Sub District <span className="text-red-500">*</span>
+                Block Panchayat <span className="text-red-500">*</span>
               </label>
-              <input
-                name="sub_district"
-                value={formData.sub_district}
-                onChange={handleChange}
+
+              <select
+                name="block_panchayat"
+                value={formData.block_panchayat}
+                onChange={(e) => handleGramPanchayatChange(e.target.value)}
                 className="w-full border rounded-md px-3 py-2"
-                placeholder="Enter Sub District"
-              />
-              {errors.sub_district && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.sub_district}
-                </p>
+                disabled={!blockPanchayats.length}
+              >
+                <option value="">Select Block Panchayat</option>
+
+                {blockPanchayats.map((bp) => (
+                  <option
+                    key={bp.block_panchayat_name}
+                    value={bp.block_panchayat_name}
+                  >
+                    {bp.block_panchayat_name}
+                  </option>
+                ))}
+              </select>
+              {loadingbp && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Fetching data...
+                </div>
               )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">
+                Gram Panchayat <span className="text-red-500">*</span>
+              </label>
+
+              <select
+                name="gram_panchayat"
+                value={formData.gram_panchayat}
+                onChange={(e) => {
+                  const selectedGP = gramPanchayats.find(
+                    (gp) => gp.gram_panchayat_name === e.target.value,
+                  );
+
+                  setFormData((prev) => ({
+                    ...prev,
+                    gram_panchayat: selectedGP?.gram_panchayat_name || "",
+                    gram_panchayat_code: selectedGP?.gram_panchayat_code || "",
+                  }));
+                }}
+                className="w-full border rounded-md px-3 py-2"
+                disabled={!gramPanchayats.length || loadingdist}
+              >
+                <option value="">
+                  {loadingdist ? "Loading..." : "Select Gram Panchayat"}
+                </option>
+
+                {gramPanchayats.map((gp) => (
+                  <option
+                    key={gp.gram_panchayat_name}
+                    value={gp.gram_panchayat_name}
+                  >
+                    {gp.gram_panchayat_code} - {gp.gram_panchayat_name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* CSC ID */}
@@ -313,7 +462,7 @@ const CreateUser = () => {
             </div>
 
             {/* Address */}
-            <div>
+            {/* <div>
               <label className="text-sm font-medium">
                 Address <span className="text-red-500">*</span>
               </label>
@@ -327,7 +476,7 @@ const CreateUser = () => {
               {errors.address && (
                 <p className="text-xs text-red-500 mt-1">{errors.address}</p>
               )}
-            </div>
+            </div> */}
           </div>
 
           {/* Sticky action */}

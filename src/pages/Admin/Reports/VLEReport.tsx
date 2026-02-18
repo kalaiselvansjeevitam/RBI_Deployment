@@ -103,6 +103,7 @@ export const VLEReport = () => {
               className="border rounded-md p-2 focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select District</option>
+              <option value="All Districts">All Districts</option>
               {districtList.map((d) => (
                 <option key={d.id} value={d.district}>
                   {d.district}

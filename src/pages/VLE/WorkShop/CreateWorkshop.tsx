@@ -2,119 +2,58 @@ import { useEffect, useState } from "react";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 import {
+  useGetBlockPanchayat,
   useGetCreateWorkshopParams,
-  useGetDistrictByLocation,
-  // useGetDistrictParams,
-  useGetLocationManagerParams,
+  useGetGramPanchayat,
 } from "../../../app/core/api/Admin";
 import Swal from "sweetalert2";
 import { Loader } from "lucide-react";
 import type {
-  // District,
-  // GetDistrictListRes,
-  LocationType,
+  BlockPanchayatRes,
+  GramPanchayatRes,
 } from "../../../app/lib/types";
 
 const CreateWorkshop = () => {
   const { mutateAsync: CreateWorkshop } = useGetCreateWorkshopParams();
-  const { mutateAsync: GetLocation } = useGetLocationManagerParams();
-  const [locations, setLocations] = useState<LocationType[]>([]);
   const [formData, setFormData] = useState({
     workshop_name: "",
     date: "",
     from_time: "",
     to_time: "",
     vle_id: "",
-    location: "",
     district: "",
     block_panchayat: "",
     gram_panchayat: "",
     gram_panchayat_code: "",
   });
-  useEffect(() => {
+  const DEFAULT_WORKSHOP_NAME = "Digital Literacy Awareness Program";
+  function reSetAll() {
     setFormData((prev) => ({
       ...prev,
-      workshop_name: "Digital Literacy Awareness Program",
-    }));
-  }, []);
-
-  function reSetAll() {
-    setFormData({
-      workshop_name: "",
+      workshop_name: DEFAULT_WORKSHOP_NAME,
       date: "",
       from_time: "",
       to_time: "",
       vle_id: "",
-      location: "",
-      district: "",
-      gram_panchayat: "",
       block_panchayat: "",
+      gram_panchayat: "",
       gram_panchayat_code: "",
-    });
+    }));
   }
+
+  const { mutateAsync: getBlockPanchayat } = useGetBlockPanchayat();
+  const { mutateAsync: getGramPanchayat } = useGetGramPanchayat();
+  const [blockPanchayats, setBlockPanchayats] = useState<BlockPanchayatRes[]>(
+    [],
+  );
+  const [gramPanchayats, setGramPanchayats] = useState<GramPanchayatRes[]>([]);
+  const [loadingdist, setLoadingdist] = useState(false);
+  const [loadingbp, setLoadingbp] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   // const [districts, setDistricts] = useState<District[]>([]);
   // const { mutateAsync: getDistricts } = useGetDistrictParams();
-  const { mutateAsync: getDistrictByLocation } = useGetDistrictByLocation();
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError] = useState("");
-
-  const handleLocationChange = async (locationId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      location: locationId,
-      district: "",
-      block_panchayat: "",
-      gram_panchayat: "",
-    }));
-    setLocationError("");
-
-    if (!locationId) return;
-
-    try {
-      setLocationLoading(true);
-
-      const res = await getDistrictByLocation({
-        location_id: Number(locationId), // ✅ IMPORTANT
-      });
-
-      if (res?.result === "success" && res.list?.length > 0) {
-        setFormData((prev) => ({
-          ...prev,
-          district: res.list[0].district,
-          gram_panchayat: res.list[0].gram_panchayat,
-          block_panchayat: res.list[0].block_panchayat,
-          gram_panchayat_code: res.list[0].gram_panchayat_code,
-        }));
-      } else {
-        setLocationError("No district found for this location");
-      }
-    } catch {
-      setLocationError("Failed to fetch district details");
-    } finally {
-      setLocationLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLocations();
-  }, []);
-
-  const fetchLocations = async () => {
-    try {
-      const res = await GetLocation({
-        getBy: "all",
-        offset: 0,
-      });
-      if (res?.list) {
-        setLocations(res.list);
-      }
-    } catch {
-      Swal.fire("Error", "Failed to fetch locations", "error");
-    }
-  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -146,8 +85,6 @@ const CreateWorkshop = () => {
     if (!formData.from_time) newErrors.from_time = "From time is required";
 
     if (!formData.to_time) newErrors.to_time = "To time is required";
-
-    if (!formData.location) newErrors.location = "location is required";
 
     if (
       formData.from_time &&
@@ -181,7 +118,6 @@ const CreateWorkshop = () => {
         newErrors.to_time = "Workshop duration must be at least 2 hours";
       }
     }
-    if (!formData.location) newErrors.location = "location is required";
     // ✅ district (text only)
     if (!formData.district) newErrors.district = "district is required";
     setErrors(newErrors);
@@ -216,6 +152,79 @@ const CreateWorkshop = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      workshop_name: "Digital Literacy Awareness Program",
+    }));
+  }, []);
+  useEffect(() => {
+    const storedDistrict = sessionStorage.getItem("district");
+
+    if (!storedDistrict) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      district: storedDistrict,
+    }));
+
+    fetchBlockPanchayat(storedDistrict);
+  }, []);
+
+  const fetchBlockPanchayat = async (districtName: string) => {
+    setLoadingdist(true);
+    setBlockPanchayats([]);
+    setGramPanchayats([]);
+
+    try {
+      const response = await getBlockPanchayat({
+        district: districtName,
+      });
+
+      if (response?.result === "success") {
+        setBlockPanchayats(response.list);
+      }
+    } catch (error) {
+      console.error("Failed to fetch block panchayat", error);
+    } finally {
+      setLoadingdist(false);
+    }
+  };
+  async function handleGramPanchayatChange(
+    blockPanchayatName: string,
+  ): Promise<void> {
+    setLoadingbp(true);
+
+    // set selected block panchayat in form
+    setFormData((prev) => ({
+      ...prev,
+      block_panchayat: blockPanchayatName,
+      gram_panchayat: "", // reset dependent field
+    }));
+
+    if (!blockPanchayatName) {
+      setGramPanchayats([]);
+      setLoadingbp(false);
+      return;
+    }
+
+    try {
+      const response = await getGramPanchayat({
+        block_panchayat_name: blockPanchayatName,
+      });
+
+      if (response?.result === "success") {
+        setGramPanchayats(response.list);
+      } else {
+        setGramPanchayats([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch gram panchayat", error);
+      setGramPanchayats([]);
+    } finally {
+      setLoadingbp(false);
+    }
+  }
 
   return (
     <Layout headerTitle="Create Work Shop">
@@ -237,8 +246,9 @@ const CreateWorkshop = () => {
               <input
                 name="workshop_name"
                 value={formData.workshop_name}
-                onChange={handleChange}
-                className="w-full border rounded-md px-3 py-2"
+                readOnly
+                disabled
+                className="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
                 placeholder="Enter Your Workshop Name"
               />
               {errors.workshop_name && (
@@ -307,51 +317,14 @@ const CreateWorkshop = () => {
             </div>
             <div>
               <label className="text-sm font-medium">
-                Location <span className="text-red-500">*</span>
-              </label>
-              <div>
-                <select
-                  name="location"
-                  value={formData.location}
-                  onChange={(e) => handleLocationChange(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2"
-                >
-                  <option value="">Select Location</option>
-
-                  {locations.map((center) => (
-                    <option key={center.id} value={center.id}>
-                      {center.center_name}
-                    </option>
-                  ))}
-                </select>
-
-                {errors.location && (
-                  <p className="text-xs text-red-500 mt-1">{errors.location}</p>
-                )}
-              </div>
-            </div>
-            {locationLoading && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
-                <Loader className="w-4 h-4 animate-spin" />
-                Fetching data...
-              </div>
-            )}
-
-            {locationError && (
-              <p className="text-xs text-red-500 mt-1">{locationError}</p>
-            )}
-
-            <div>
-              <label className="text-sm font-medium">
                 District <span className="text-red-500">*</span>
               </label>
 
               <input
-                name="district"
+                type="text"
                 value={formData.district}
-                readOnly
-                className="w-full border rounded-md px-3 py-2 bg-gray-100"
-                placeholder="Auto-filled Based On Selecting Location"
+                disabled
+                className="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
               />
 
               {errors.district && (
@@ -359,41 +332,72 @@ const CreateWorkshop = () => {
               )}
             </div>
 
+            {/* Sub District */}
             <div>
               <label className="text-sm font-medium">
                 Block Panchayat <span className="text-red-500">*</span>
               </label>
-              <input
+
+              <select
                 name="block_panchayat"
                 value={formData.block_panchayat}
-                readOnly
-                className="w-full border rounded-md px-3 py-2 bg-gray-100"
-                placeholder="Auto-filled Based On Selecting Location"
-              />
+                onChange={(e) => handleGramPanchayatChange(e.target.value)}
+                className="w-full border rounded-md px-3 py-2"
+                disabled={!blockPanchayats.length}
+              >
+                <option value="">Select Block Panchayat</option>
 
-              {errors.block_panchayat && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.block_panchayat}
-                </p>
+                {blockPanchayats.map((bp) => (
+                  <option
+                    key={bp.block_panchayat_name}
+                    value={bp.block_panchayat_name}
+                  >
+                    {bp.block_panchayat_name}
+                  </option>
+                ))}
+              </select>
+              {loadingbp && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Fetching data...
+                </div>
               )}
             </div>
             <div>
               <label className="text-sm font-medium">
                 Gram Panchayat <span className="text-red-500">*</span>
               </label>
-              <input
+
+              <select
                 name="gram_panchayat"
                 value={formData.gram_panchayat}
-                readOnly
-                className="w-full border rounded-md px-3 py-2 bg-gray-100"
-                placeholder="Auto-filled Based On Selecting Location"
-              />
+                onChange={(e) => {
+                  const selectedGP = gramPanchayats.find(
+                    (gp) => gp.gram_panchayat_name === e.target.value,
+                  );
 
-              {errors.gram_panchayat && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.gram_panchayat}
-                </p>
-              )}
+                  setFormData((prev) => ({
+                    ...prev,
+                    gram_panchayat: selectedGP?.gram_panchayat_name || "",
+                    gram_panchayat_code: selectedGP?.gram_panchayat_code || "",
+                  }));
+                }}
+                className="w-full border rounded-md px-3 py-2"
+                disabled={!gramPanchayats.length || loadingdist}
+              >
+                <option value="">
+                  {loadingdist ? "Loading..." : "Select Gram Panchayat"}
+                </option>
+
+                {gramPanchayats.map((gp) => (
+                  <option
+                    key={gp.gram_panchayat_name}
+                    value={gp.gram_panchayat_name}
+                  >
+                    {gp.gram_panchayat_code} - {gp.gram_panchayat_name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

@@ -17,6 +17,7 @@ import {
 import SchoolSheet from "./Shared/SchoolSheet";
 import { Button } from "../../../app/components/ui/button";
 import type { WorkshopByFiltersData } from "../../../app/lib/types";
+import RescheduleSheet from "./Shared/RescheduleSheet";
 
 export const ViewWorkshop = () => {
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -41,10 +42,16 @@ export const ViewWorkshop = () => {
   const getOffsetForPage = (page: number): number => {
     return page * itemsPerPage;
   };
-  const [open, setOpen] = useState(false);
+  const [schoolSheetOpen, setSchoolSheetOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(
     null,
   );
+  const [rescheduleSheetData, setRescheduleSheetData] = useState<
+    WorkshopByFiltersData[]
+  >([]);
+
   // const [selectedWorkshop, setSelectedWorkshop] =
   //   useState<WorkshopByFiltersData | null>(null);
 
@@ -67,7 +74,6 @@ export const ViewWorkshop = () => {
         block_panchayat: item.block_panchayat || "-",
         gram_panchayat: item.gram_panchayat || "-",
         gram_panchayat_code: item.gram_panchayat_code || "-",
-        location: item.location || "-",
         checklist: item.checklist || "",
         total_citizens: item.total_citizens || "0",
         videos_count: item.videos_count || "0",
@@ -124,7 +130,6 @@ export const ViewWorkshop = () => {
         block_panchayat: item.block_panchayat || "-",
         gram_panchayat: item.gram_panchayat || "-",
         gram_panchayat_code: item.gram_panchayat_code || "-",
-        location: item.location || "-",
         checklist: item.checklist || "",
         total_citizens: item.total_citizens || "0",
         videos_count: item.videos_count || "0",
@@ -173,7 +178,12 @@ export const ViewWorkshop = () => {
       setFilterApplied(false);
     }
   }, [startDate, endDate]);
-  const STATUS_OPTIONS = ["Completed", "Cancelled"];
+  const STATUS_OPTIONS = [
+    {
+      label: "Completed",
+      value: "Pending for Approval",
+    },
+  ];
 
   const StatusUpdater = ({ row }: { row: WorkshopByFiltersData }) => {
     const [loading, setLoading] = useState(false);
@@ -204,9 +214,9 @@ export const ViewWorkshop = () => {
       style="height:32px;font-size:13px;color:#111827;border:1px solid #9ca3af"
     >
       <option value="">Select Status</option>
-      ${STATUS_OPTIONS.map((s) => `<option value="${s}">${s}</option>`).join(
-        "",
-      )}
+${STATUS_OPTIONS.map(
+  (s) => `<option value="${s.value}">${s.label}</option>`,
+).join("")}
     </select>
 
     <label style="font-weight:600;font-size:12px;margin-top:6px">
@@ -327,7 +337,6 @@ export const ViewWorkshop = () => {
     },
     { key: "vle_name", label: "VLE Name", align: "center" },
     { key: "work_shop_status", label: "Workshop Status", align: "center" },
-    { key: "location", label: "Location", align: "center" },
     { key: "district", label: "District", align: "center" },
     { key: "block_panchayat", label: "Block Panchayat", align: "center" },
     {
@@ -346,13 +355,30 @@ export const ViewWorkshop = () => {
           size="sm"
           onClick={() => {
             setSelectedWorkshopId(row.id);
-            setOpen(true);
+            setSchoolSheetOpen(true);
           }}
         >
           View
         </Button>
       ),
     },
+    {
+      key: "reschedule",
+      label: "Reschedule",
+      align: "center",
+      render: (_value, row) => (
+        <Button
+          size="sm"
+          onClick={() => {
+            setRescheduleSheetData([row]); // ✅ ONLY ONE
+            setRescheduleOpen(true);
+          }}
+        >
+          Reschedule
+        </Button>
+      ),
+    },
+
     {
       key: "status",
       label: "Update Status",
@@ -451,12 +477,12 @@ export const ViewWorkshop = () => {
               className="border border-gray-700 rounded-md p-1 text-sm w-[150px]"
             >
               <option value="">Select Status</option>
-              <option value="Completed">Completed</option>
+              {/* <option value="Completed">Completed</option> */}
               <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
-              <option value="Cancelled">Cancelled</option>
-              {/* <option value="PendingforApproval">Pending for Approval</option> */}
+              <option value="Pending for Approval">Pending for Approval</option>
+              <option value="Rescheduled">Rescheduled</option>
             </select>
           </label>
 
@@ -487,9 +513,15 @@ export const ViewWorkshop = () => {
       </div>
 
       <SchoolSheet
-        open={open}
+        open={schoolSheetOpen}
         workshopId={selectedWorkshopId}
-        openClose={() => setOpen(false)}
+        openClose={() => setSchoolSheetOpen(false)}
+      />
+
+      <RescheduleSheet
+        open={rescheduleOpen}
+        workshop={rescheduleSheetData}
+        openClose={() => setRescheduleOpen(false)}
       />
     </Layout>
   );

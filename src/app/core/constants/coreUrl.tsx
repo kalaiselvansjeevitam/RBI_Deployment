@@ -24,6 +24,7 @@ export const ROUTE_URL = {
   downloadCitizenReport: "/rbi-deployment/admin/DownloadCitizenReport",
   downloadWorkshopReport: "/rbi-deployment/admin/DownloadWorkshopReport",
   subAdminDashboard: "/rbi-deployment/admin/sub-admin-dashboard",
+  createIEC: "/rbi-deployment/admin/create-IEC-Material",
 
   vleIecMaterials: "/rbi-deployment/admin/vle/iec-materials",
   vleFaq: "/rbi-deployment/admin/vle/faq",
@@ -71,6 +72,7 @@ export const API_URL = {
   createWorkShop: "/createWorkShop",
   createCitizen: "/createCitizens",
   getWorkshop: "/getWorkshop",
+  getPendingWorkshop: "/getPendingWorkshop",
   getworkshoptestimonyCount: "/workshop-testimony-count",
   uploadCitizens: "/uploadCitizens",
   uploadTestimony: "/update-testimony",
@@ -109,6 +111,7 @@ export const API_URL = {
   getBlockPanchayat: "/getBlockPanchayat",
   getGramPanchayat: "/getGramPanchayat",
   getOccupations: "/getOccupations",
+  rescheduleWorkshop: "/rescheduleWorkShop",
 
   // RBI Reports (DOWNLOAD)
   downloadDistrictWiseWorkshopReport: "/download-district-wise-workshop-report",

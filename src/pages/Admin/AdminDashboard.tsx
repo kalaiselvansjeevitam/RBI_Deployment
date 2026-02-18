@@ -96,28 +96,32 @@ export default function AdminDashboard() {
         value: toNumberSafe(cardsRaw.total_work_shop),
       },
       {
-        title: "Total Workshop Completed",
+        title: "Total Workshop Pending for Approval",
         value: toNumberSafe(cardsRaw.total_completed),
+        from: "from-pink-300",
+        to: "to-rose-400",
       },
       {
         title: "Total Workshop Pending",
         value: toNumberSafe(cardsRaw.total_pending),
+        from: "from-amber-300",
+        to: "to-orange-400",
       },
       {
         title: "Total Workshop Approved",
         value: toNumberSafe(cardsRaw.total_approved),
+        from: "from-green-400",
+        to: "to-green-500",
       },
       {
         title: "Total Workshop Rejected",
         value: toNumberSafe(cardsRaw.total_rejected),
+        from: "from-red-300",
+        to: "to-red-400",
       },
       {
         title: "Avg Approval Days",
         value: toNumberSafe(cardsRaw.avg_approval_days),
-      },
-      {
-        title: "Total Workshop Cancelled",
-        value: toNumberSafe(cardsRaw.total_cancelled),
       },
     ];
   }, [cardsRaw]);
@@ -182,7 +186,13 @@ export default function AdminDashboard() {
         {/* Cards */}
         <div className="flex flex-wrap gap-6">
           {cards.map((c) => (
-            <SchoolCardStatus key={c.title} title={c.title} total={c.value} />
+            <SchoolCardStatus
+              key={c.title}
+              title={c.title}
+              total={c.value}
+              from={c.from}
+              to={c.to}
+            />
           ))}
         </div>
 

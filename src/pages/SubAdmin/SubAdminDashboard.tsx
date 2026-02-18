@@ -13,12 +13,12 @@ import {
 import DonutChartSubAdminComponent from "./Shared/Donutsubadmin";
 
 /* -------------------- TYPES -------------------- */
-type DistrictRow = {
-  id?: string | number;
-  district?: string;
-  name?: string;
-  district_name?: string;
-};
+// type DistrictRow = {
+//   id?: string | number;
+//   district?: string;
+//   name?: string;
+//   district_name?: string;
+// };
 
 type CardCounts = {
   total_workshops: string;
@@ -52,9 +52,9 @@ function toNumberSafe(v: any, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
-function normalizeDistrictName(d: any): string {
-  return String(d?.district ?? d?.name ?? d?.district_name ?? d ?? "").trim();
-}
+// function normalizeDistrictName(d: any): string {
+//   return String(d?.district ?? d?.name ?? d?.district_name ?? d ?? "").trim();
+// }
 
 /**
  * Supports:
@@ -102,13 +102,8 @@ const DashboardSubAdmin = () => {
   const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: getCardsApi } = useGetallStatusCountersParams();
   const { mutateAsync: getGenderCountsApi } = useGetgenderWiseDonutParams();
-
-  const [district, setDistrict] = useState<string>("");
-<<<<<<< HEAD
   // const [districtList, setDistrictList] = useState<string[]>([]);
-=======
-  const [districtList, setDistrictList] = useState<string[]>([]);
->>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
+  // const [selectedDistrict, setSelectedDistrict] = useState<string>("");
 
   const [cards, setCards] = useState<CardCounts | null>(null);
   const [genderCounts, setGenderCounts] = useState<GenderCount[]>([]);
@@ -119,27 +114,41 @@ const DashboardSubAdmin = () => {
     if (!cards) return [];
     return [
       { title: "Total Workshops", value: String(cards.total_workshops ?? "0") },
-      { title: "Pending", value: String(cards.pending_count ?? "0") },
-      { title: "Completed", value: String(cards.completed_count ?? "0") },
-      { title: "Approved", value: String(cards.approved_count ?? "0") },
-      { title: "Rejected", value: String(cards.rejected_count ?? "0") },
-      { title: "Cancelled", value: String(cards.cancelled_count ?? "0") },
       {
-        title: "Location Managers",
-        value: String(cards.total_location_managers ?? "0"),
+        title: "Pending",
+        value: String(cards.pending_count ?? "0"),
+        from: "from-amber-300",
+        to: "to-orange-400",
+      },
+      {
+        title: "Total Workshop Pending for Approval",
+        value: String(cards.completed_count ?? "0"),
+        from: "from-pink-300",
+        to: "to-rose-400",
+      },
+      {
+        title: "Approved",
+        value: String(cards.approved_count ?? "0"),
+        from: "from-green-400",
+        to: "to-green-500",
+      },
+      {
+        title: "Rejected",
+        value: String(cards.rejected_count ?? "0"),
+        from: "from-red-400",
+        to: "to-red-500",
       },
     ];
   }, [cards]);
 
   useEffect(() => {
     let alive = true;
-
     const load = async () => {
       try {
         setLoading(true);
 
-        const [districtRes, cardRes, genderRes] = await Promise.all([
-          getDistricts(),
+        const [cardRes, genderRes] = await Promise.all([
+          // getDistricts(),
           getCardsApi(),
           getGenderCountsApi(),
         ]);
@@ -147,17 +156,12 @@ const DashboardSubAdmin = () => {
         if (!alive) return;
 
         // Districts (kept in state in case you want to show district later)
-        const rawDistricts: DistrictRow[] = districtRes?.list ?? [];
-        const names = Array.isArray(rawDistricts)
-          ? rawDistricts.map(normalizeDistrictName).filter(Boolean)
-          : [];
+        // const rawDistricts: DistrictRow[] = districtRes?.list ?? [];
+        // const names = Array.isArray(rawDistricts)
+        //   ? rawDistricts.map(normalizeDistrictName).filter(Boolean)
+        //   : [];
 
-<<<<<<< HEAD
         // setDistrictList(names);
-=======
-        setDistrictList(names);
->>>>>>> 5a9a25091a8556c02a091d72999d59bbe4e38981
-        setDistrict(names[0] ?? "");
 
         // Cards
         setCards(cardRes?.list?.[0] ?? null);
@@ -201,9 +205,15 @@ const DashboardSubAdmin = () => {
               <h2 className="text-lg font-semibold mb-4">Overall Summary</h2>
 
               {cards ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {statCards.map((c) => (
-                    <Card key={c.title} title={c.title} value={c.value} />
+                    <Card
+                      key={c.title}
+                      title={c.title}
+                      value={c.value}
+                      from={c.from}
+                      to={c.to}
+                    />
                   ))}
                 </div>
               ) : (
@@ -221,11 +231,18 @@ const DashboardSubAdmin = () => {
                 </h2>
 
                 {/* district kept in state; not shown unless you want */}
-                {district ? (
-                  <span className="text-xs text-gray-500">
-                    District: {district}
-                  </span>
-                ) : null}
+                {/* <select
+  value={selectedDistrict}
+  onChange={(e) => setSelectedDistrict(e.target.value)}
+  className="border rounded-md px-2 py-1 text-sm bg-white"
+>
+  <option value="">All Districts</option>
+  {districtList.map((d) => (
+    <option key={d} value={d}>
+      {d}
+    </option>
+  ))}
+</select> */}
               </div>
 
               <div className="bg-white rounded-xl p-4 shadow h-[260px]">
@@ -244,10 +261,23 @@ const DashboardSubAdmin = () => {
     </Layout>
   );
 };
+type CardProps = {
+  title: string;
+  value: string;
+  from?: string;
+  to?: string;
+};
 
 /* -------------------- CARD COMPONENT -------------------- */
-const Card = ({ title, value }: { title: string; value: string }) => (
-  <div className="bg-gradient-to-br from-sky-300 to-blue-400 rounded-2xl shadow p-5 text-center">
+const Card = ({
+  title,
+  value,
+  from = "from-sky-300",
+  to = "to-blue-400",
+}: CardProps) => (
+  <div
+    className={`bg-gradient-to-br ${from} ${to} rounded-2xl shadow p-5 text-center`}
+  >
     <p className="text-sm font-semibold text-white/90">{title}</p>
     <p className="text-2xl font-bold mt-2 text-white">
       {toNumberSafe(value, 0)}

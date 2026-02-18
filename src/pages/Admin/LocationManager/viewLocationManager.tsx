@@ -41,6 +41,10 @@ export const ViewLocationManagerPage = () => {
   const [gramPanchayats, setGramPanchayats] = useState<GramPanchayatRes[]>([]);
   const [loadingdist, setLoadingdist] = useState(false);
   const [loadingbp, setLoadingbp] = useState(false);
+  const [isNewEditDistrict, setIsNewEditDistrict] = useState(false);
+  const [isNewEditBlock, setIsNewEditBlock] = useState(false);
+  const [isNewEditGram, setIsNewEditGram] = useState(false);
+
   useEffect(() => {
     const loadDistricts = async () => {
       try {
@@ -285,9 +289,28 @@ export const ViewLocationManagerPage = () => {
             </div>
             <div>
               <label className="text-sm font-medium">District</label>
+
               <select
-                value={selectedLocation.district}
-                onChange={(e) => handleEditDistrictChange(e.target.value)}
+                value={
+                  isNewEditDistrict ? "__new__" : selectedLocation.district
+                }
+                onChange={(e) => {
+                  if (e.target.value === "__new__") {
+                    setIsNewEditDistrict(true);
+                    setIsNewEditBlock(true);
+                    setIsNewEditGram(true);
+                    setSelectedLocation({
+                      ...selectedLocation,
+                      district: "",
+                      block_panchayat: "",
+                      gram_panchayat: "",
+                      gram_panchayat_code: "",
+                    });
+                  } else {
+                    setIsNewEditDistrict(false);
+                    handleEditDistrictChange(e.target.value);
+                  }
+                }}
                 className="w-full border p-2 rounded"
               >
                 <option value="">Select District</option>
@@ -296,19 +319,56 @@ export const ViewLocationManagerPage = () => {
                     {d.district}
                   </option>
                 ))}
+                <option value="__new__">+ Add New District</option>
               </select>
+              {loadingdist && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Fetching data...
+                </div>
+              )}
+
+              {isNewEditDistrict && (
+                <input
+                  className="mt-2 w-full border p-2 rounded"
+                  placeholder="Enter District"
+                  value={selectedLocation.district}
+                  onChange={(e) =>
+                    setSelectedLocation({
+                      ...selectedLocation,
+                      district: e.target.value,
+                    })
+                  }
+                />
+              )}
             </div>
+
             <div>
               <label className="text-sm font-medium">Block Panchayat</label>
+
               <select
-                value={selectedLocation.block_panchayat}
-                onChange={(e) => handleEditBlockChange(e.target.value)}
+                value={
+                  isNewEditBlock ? "__new__" : selectedLocation.block_panchayat
+                }
+                disabled={!selectedLocation.district || isNewEditDistrict}
+                onChange={(e) => {
+                  if (e.target.value === "__new__") {
+                    setIsNewEditBlock(true);
+                    setIsNewEditGram(true);
+                    setSelectedLocation({
+                      ...selectedLocation,
+                      block_panchayat: "",
+                      gram_panchayat: "",
+                      gram_panchayat_code: "",
+                    });
+                  } else {
+                    setIsNewEditBlock(false);
+                    handleEditBlockChange(e.target.value);
+                  }
+                }}
                 className="w-full border p-2 rounded"
-                disabled={!blockPanchayats.length || loadingbp}
               >
-                <option value="">
-                  {loadingbp ? "Loading..." : "Select Block Panchayat"}
-                </option>
+                <option value="">Select Block Panchayat</option>
                 {blockPanchayats.map((bp) => (
                   <option
                     key={bp.block_panchayat_name}
@@ -317,43 +377,89 @@ export const ViewLocationManagerPage = () => {
                     {bp.block_panchayat_name}
                   </option>
                 ))}
+                <option value="__new__">+ Add New Block Panchayat</option>
               </select>
+              {loadingbp && (
+                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  Fetching data...
+                </div>
+              )}
+
+              {isNewEditBlock && (
+                <input
+                  className="mt-2 w-full border p-2 rounded"
+                  placeholder="Enter Block Panchayat"
+                  value={selectedLocation.block_panchayat}
+                  onChange={(e) =>
+                    setSelectedLocation({
+                      ...selectedLocation,
+                      block_panchayat: e.target.value,
+                    })
+                  }
+                />
+              )}
             </div>
+
             <div>
               <label className="text-sm font-medium">Gram Panchayat</label>
+
               <select
-                value={selectedLocation.gram_panchayat}
+                value={
+                  isNewEditGram ? "__new__" : selectedLocation.gram_panchayat
+                }
+                disabled={
+                  !selectedLocation.block_panchayat ||
+                  isNewEditDistrict ||
+                  isNewEditBlock
+                }
                 onChange={(e) => {
-                  const selectedGP = gramPanchayats.find(
-                    (gp) => gp.gram_panchayat_name === e.target.value,
-                  );
-
-                  setSelectedLocation((prev) => {
-                    if (!prev) return prev;
-
-                    return {
-                      ...prev,
-                      gram_panchayat: selectedGP?.gram_panchayat_name ?? "",
-                      gram_panchayat_code:
-                        selectedGP?.gram_panchayat_code ?? "",
-                    };
-                  });
+                  if (e.target.value === "__new__") {
+                    setIsNewEditGram(true);
+                    setSelectedLocation({
+                      ...selectedLocation,
+                      gram_panchayat: "",
+                      gram_panchayat_code: "",
+                    });
+                  } else {
+                    setIsNewEditGram(false);
+                    const gp = gramPanchayats.find(
+                      (g) => g.gram_panchayat_name === e.target.value,
+                    );
+                    setSelectedLocation({
+                      ...selectedLocation,
+                      gram_panchayat: gp?.gram_panchayat_name ?? "",
+                      gram_panchayat_code: gp?.gram_panchayat_code ?? "",
+                    });
+                  }
                 }}
                 className="w-full border p-2 rounded"
-                disabled={!gramPanchayats.length || loadingdist}
               >
-                <option value="">
-                  {loadingdist ? "Loading..." : "Select Gram Panchayat"}
-                </option>
+                <option value="">Select Gram Panchayat</option>
                 {gramPanchayats.map((gp) => (
                   <option
                     key={gp.gram_panchayat_name}
                     value={gp.gram_panchayat_name}
                   >
-                    {gp.gram_panchayat_code} - {gp.gram_panchayat_name}
+                    {gp.gram_panchayat_name}
                   </option>
                 ))}
+                <option value="__new__">+ Add New Gram Panchayat</option>
               </select>
+
+              {isNewEditGram && (
+                <input
+                  className="mt-2 w-full border p-2 rounded"
+                  placeholder="Enter Gram Panchayat"
+                  value={selectedLocation.gram_panchayat}
+                  onChange={(e) =>
+                    setSelectedLocation({
+                      ...selectedLocation,
+                      gram_panchayat: e.target.value,
+                    })
+                  }
+                />
+              )}
             </div>
 
             <div className="flex justify-end gap-2">
@@ -367,14 +473,18 @@ export const ViewLocationManagerPage = () => {
               <button
                 onClick={async () => {
                   try {
+                    const data_type =
+                      isNewEditDistrict || isNewEditBlock || isNewEditGram
+                        ? "New"
+                        : "Existing";
                     const Res = await updateLocation({
-                      location_manager_id: Number(selectedLocation.id),
                       center_name: selectedLocation.center_name,
                       district: selectedLocation.district,
                       block_panchayat: selectedLocation.block_panchayat,
                       gram_panchayat: selectedLocation.gram_panchayat,
                       gram_panchayat_code: selectedLocation.gram_panchayat_code,
                       center_address: selectedLocation.center_address,
+                      data_type: data_type,
                     });
 
                     Swal.fire("Success", Res.message, "success");

@@ -5,16 +5,13 @@ import Swal from "sweetalert2";
 import {
   useGetBlockPanchayat,
   useGetCreateCitizenParams,
-  useGetDistrictParams,
   useGetGramPanchayat,
   usegetOccupations,
-  useGetWorkshopParams,
+  useGetPendingWorkshopParams,
 } from "../../../app/core/api/Admin";
 import { Loader } from "lucide-react";
 import type {
   BlockPanchayatRes,
-  District,
-  GetDistrictListRes,
   GetWorkshopRes,
   GramPanchayatRes,
   occupationRes,
@@ -43,10 +40,8 @@ interface WorkshopOption {
 const CreateCitizen = () => {
   const { mutateAsync: CreateCitizen } = useGetCreateCitizenParams();
   const [workshops, setWorkshops] = useState<WorkshopOption[]>([]);
-  const { mutateAsync: Workshop } = useGetWorkshopParams();
-  const [districts, setDistricts] = useState<District[]>([]);
+  const { mutateAsync: Workshop } = useGetPendingWorkshopParams();
   const [occupation, setoccupation] = useState<occupationRes[]>([]);
-  const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: getBlockPanchayat } = useGetBlockPanchayat();
   const { mutateAsync: getOccupations } = usegetOccupations();
   const { mutateAsync: getGramPanchayat } = useGetGramPanchayat();
@@ -78,12 +73,8 @@ const CreateCitizen = () => {
         }));
 
         setWorkshops(mappedWorkshops);
-        const res: GetDistrictListRes = await getDistricts();
-        if (res?.result === "success") {
-          setDistricts(res.list);
-        }
         const responseoccupdation: occupationResponse = await getOccupations();
-        if (res?.result === "success") {
+        if (responseoccupdation?.result === "success") {
           setoccupation(responseoccupdation.list);
         }
       } catch (error) {
@@ -107,18 +98,20 @@ const CreateCitizen = () => {
     gram_panchayat_code: "",
   });
   function reSetAll() {
-    ((formData.name = ""),
-      (formData.mobile_number = ""),
-      (formData.work_shop_id = ""),
-      (formData.age = 0),
-      (formData.gender = ""),
-      (formData.occupation = ""),
-      (formData.district = ""),
-      (formData.block_panchayat_name = ""),
-      (formData.gram_panchayat_name = ""),
-      (formData.gram_panchayat_code = ""));
+    setFormData((prev) => ({
+      ...prev,
+      name: "",
+      mobile_number: "",
+      age: 0,
+      gender: "",
+      occupation: "",
+      work_shop_id: "",
+      block_panchayat_name: "",
+      gram_panchayat_name: "",
+      gram_panchayat_code: "",
+    }));
+    setAcceptedDisclaimer(false);
   }
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -173,10 +166,15 @@ const CreateCitizen = () => {
     if (!formData.gram_panchayat_name)
       newErrors.gram_panchayat_name = "Required";
     if (!formData.occupation) newErrors.occupation = "Required";
+    if (!acceptedDisclaimer) {
+      newErrors.disclaimer =
+        "You must accept the disclaimer to submit this form";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  const [acceptedDisclaimer, setAcceptedDisclaimer] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,38 +205,37 @@ const CreateCitizen = () => {
     }
   };
 
-  async function handleLocationChange(districtName: string): Promise<void> {
-    setLoadingdist(true);
-    // set district in form
+  useEffect(() => {
+    const storedDistrict = sessionStorage.getItem("district");
+
+    if (!storedDistrict) return;
+
     setFormData((prev) => ({
       ...prev,
-      district: districtName,
-      block_panchayat_name: "", // reset dependent field
+      district: storedDistrict,
     }));
 
-    if (!districtName) {
-      setBlockPanchayats([]);
-      setLoadingdist(false);
-      return;
-    }
+    fetchBlockPanchayat(storedDistrict);
+  }, []);
+  const fetchBlockPanchayat = async (districtName: string) => {
+    setLoadingdist(true);
+    setBlockPanchayats([]);
+    setGramPanchayats([]);
 
     try {
       const response = await getBlockPanchayat({
-        district: districtName, // 👈 passing district name
+        district: districtName,
       });
 
       if (response?.result === "success") {
         setBlockPanchayats(response.list);
-      } else {
-        setBlockPanchayats([]);
       }
     } catch (error) {
       console.error("Failed to fetch block panchayat", error);
-      setBlockPanchayats([]);
     } finally {
       setLoadingdist(false);
     }
-  }
+  };
   async function handleGramPanchayatChange(
     blockPanchayatName: string,
   ): Promise<void> {
@@ -357,7 +354,7 @@ const CreateCitizen = () => {
                 <option value="">Select</option>
                 {workshops.map((workshop) => (
                   <option key={workshop.id} value={workshop.id}>
-                    {workshop.workshop_name} - {workshop.date}
+                    {workshop.id} - {workshop.workshop_name} - {workshop.date}
                   </option>
                 ))}
               </select>
@@ -422,25 +419,12 @@ const CreateCitizen = () => {
                 District <span className="text-red-500">*</span>
               </label>
 
-              <select
-                name="district"
+              <input
+                type="text"
                 value={formData.district}
-                onChange={(e) => handleLocationChange(e.target.value)}
-                className="w-full border rounded-md px-3 py-2"
-              >
-                <option value="">Select District</option>
-                {districts.map((d) => (
-                  <option key={d.id} value={d.district}>
-                    {d.district}
-                  </option>
-                ))}
-              </select>
-              {loadingdist && (
-                <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
-                  <Loader className="w-4 h-4 animate-spin" />
-                  Fetching data...
-                </div>
-              )}
+                disabled
+                className="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
+              />
 
               {errors.district && (
                 <p className="text-xs text-red-500">{errors.district}</p>
@@ -524,15 +508,38 @@ const CreateCitizen = () => {
             </div>
           </div>
 
-          <div className="flex justify-center">
-            <Button type="submit" className="bg-purple" disabled={loading}>
-              {loading ? (
-                <div className=" flex justify-center">
-                  <Loader className=" animate-spin" />
-                </div>
-              ) : (
-                "Create Citizen"
-              )}
+          <div className="border border-yellow-400 bg-yellow-50 rounded p-4 text-sm space-y-2 ">
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={acceptedDisclaimer}
+                onChange={(e) => setAcceptedDisclaimer(e.target.checked)}
+                className="mt-1"
+              />
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold text-yellow-800">
+                  Disclaimer:
+                </span>{" "}
+                I confirm that the uploaded data has been shared with valid
+                consent and is in compliance with the{" "}
+                <a
+                  href="https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9f04e6fb4f8fef35e82c42aa5.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  Digital Personal Data Protection (DPDP) Act, 2023
+                </a>
+                . *
+              </p>
+            </div>
+            {errors.gram_panchayat_name && (
+              <p className="text-xs text-red-500">{errors.disclaimer}</p>
+            )}
+          </div>
+          <div className="flex justify-center pt-1">
+            <Button type="submit" disabled={loading || !acceptedDisclaimer}>
+              {loading ? <Loader className="animate-spin" /> : "Create Citizen"}
             </Button>
           </div>
         </form>

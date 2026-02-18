@@ -7,7 +7,7 @@ interface SchoolCardProps {
   to?: string;
 }
 
-const SchoolCardStatus: React.FC<SchoolCardProps> = ({
+const CardStatus: React.FC<SchoolCardProps> = ({
   title,
   total,
   male,
@@ -19,14 +19,11 @@ const SchoolCardStatus: React.FC<SchoolCardProps> = ({
 
   return (
     <div
-      className={`
-    w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]
-    h-[180px] rounded-2xl p-4
-    bg-gradient-to-br ${from} ${to}
-    shadow-xl border border-white/20
-    text-white
-    flex flex-col ${hasSplit ? "gap-3" : "gap-2 justify-center"}
-  `}
+      className={`flex-1 min-w-[280px] h-[180px] rounded-2xl p-4
+      bg-gradient-to-br ${from} ${to}
+      shadow-xl border border-white/20
+      text-white
+      flex flex-col ${hasSplit ? "gap-3" : "gap-2 justify-center"}`}
     >
       {/* Title */}
       <h4 className="text-center text-sm font-semibold uppercase tracking-wide opacity-90 whitespace-pre-line">
@@ -54,4 +51,4 @@ const SchoolCardStatus: React.FC<SchoolCardProps> = ({
   );
 };
 
-export default SchoolCardStatus;
+export default CardStatus;
