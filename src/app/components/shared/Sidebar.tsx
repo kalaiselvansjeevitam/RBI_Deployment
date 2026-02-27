@@ -85,6 +85,18 @@ const Sidebar: React.FC<SidebarProps> = ({
       ],
     });
     sidebarItems.splice(3, 0, {
+      icon: FileText,
+      label: "Reports",
+      href: ROUTE_URL.subAdminReportWorkshopsLt50,
+      children: [
+        {
+          label: "< 50 Attendees",
+          href: ROUTE_URL.subAdminReportWorkshopsLt50,
+          icon: View,
+        },
+      ],
+    });
+    sidebarItems.splice(4, 0, {
       icon: Home,
       label: "Manage Session",
       href: ROUTE_URL.viewSession,
@@ -96,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     });
-    sidebarItems.splice(3, 0, {
+    sidebarItems.splice(5, 0, {
       icon: Locate,
       label: "Location Manager",
       href: ROUTE_URL.createLoactionManager,
@@ -113,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         // },
       ],
     });
-    sidebarItems.splice(4, 0, {
+    sidebarItems.splice(6, 0, {
       icon: File,
       label: "Report",
       href: ROUTE_URL.downloadVLEReport,
@@ -135,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     });
-    // sidebarItems.splice(5, 0, {
+    // sidebarItems.splice(7, 0, {
     //   icon: UserPlus,
     //   label: "Create IEC",
     //   href: ROUTE_URL.createIEC,
@@ -282,6 +294,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       href: ROUTE_URL.subAdminDashboard,
     });
     sidebarItems.splice(2, 0, {
+      label: "Create Users",
+      href: ROUTE_URL.subcreateUser,
+      icon: User,
+    });
+    sidebarItems.splice(3, 0, {
       icon: FileText,
       label: "Reports",
       href: ROUTE_URL.subAdminReportDistrictStatus,

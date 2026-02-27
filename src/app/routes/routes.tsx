@@ -50,6 +50,7 @@ import ProjectFAQ from "../../pages/VLE/FAQ/ProjectFAQ";
 import VideoScriptsFAQ from "../../pages/VLE/FAQ/VideoScriptsFAQ";
 import RBIWorkshopReport from "../../pages/RBI/Reports/RBIWorkshopReport";
 import { CreateIEC } from "../../pages/Admin/CreateIECMaterial/CreateIEC";
+import SubCreateUser from "../../pages/SubAdmin/CreateUser";
 
 export const authProtectedRoutes = [
   {
@@ -113,7 +114,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.testimonyByWorkshop,
         element: (
-          <RequireRole allowedRoles={["admin"]}>
+          <RequireRole allowedRoles={["admin", "rbi"]}>
             <TestimonyByWorkshop />
           </RequireRole>
         ),
@@ -265,7 +266,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.viewCitizenByCard,
         element: (
-          <RequireRole allowedRoles={["vle", "admin"]}>
+          <RequireRole allowedRoles={["vle", "admin", "rbi"]}>
             <ViewCitizenByCard />
           </RequireRole>
         ),
@@ -376,6 +377,14 @@ export const authProtectedRoutes = [
         ),
       },
       {
+        path: ROUTE_URL.subcreateUser,
+        element: (
+          <RequireRole allowedRoles={["sub_admin"]}>
+            <SubCreateUser />
+          </RequireRole>
+        ),
+      },
+      {
         path: ROUTE_URL.subAdminReportDistrictStatus,
         element: (
           <RequireRole allowedRoles={["sub_admin"]}>
@@ -418,7 +427,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.subAdminReportWorkshopsLt50,
         element: (
-          <RequireRole allowedRoles={["sub_admin"]}>
+          <RequireRole allowedRoles={["sub_admin", "admin"]}>
             <SubWorkshopsLt50Report />
           </RequireRole>
         ),

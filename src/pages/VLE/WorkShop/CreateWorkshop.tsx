@@ -25,8 +25,10 @@ const CreateWorkshop = () => {
     block_panchayat: "",
     gram_panchayat: "",
     gram_panchayat_code: "",
+    location: "",
   });
-  const DEFAULT_WORKSHOP_NAME = "Digital Literacy Awareness Program";
+  const DEFAULT_WORKSHOP_NAME =
+    "Direct Contact Awareness Programs on Digital Payments";
   function reSetAll() {
     setFormData((prev) => ({
       ...prev,
@@ -38,6 +40,7 @@ const CreateWorkshop = () => {
       block_panchayat: "",
       gram_panchayat: "",
       gram_panchayat_code: "",
+      location: "",
     }));
   }
 
@@ -56,7 +59,9 @@ const CreateWorkshop = () => {
   // const { mutateAsync: getDistricts } = useGetDistrictParams();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value } = e.target;
     if (name === "workshop_name") {
@@ -68,7 +73,7 @@ const CreateWorkshop = () => {
   };
   const getMinDate = () => {
     const today = new Date();
-    today.setDate(today.getDate() + 3);
+    today.setDate(today.getDate());
     return today.toISOString().split("T")[0]; // yyyy-mm-dd
   };
 
@@ -85,6 +90,7 @@ const CreateWorkshop = () => {
     if (!formData.from_time) newErrors.from_time = "From time is required";
 
     if (!formData.to_time) newErrors.to_time = "To time is required";
+    if (!formData.location) newErrors.location = "Location is required";
 
     if (
       formData.from_time &&
@@ -155,7 +161,7 @@ const CreateWorkshop = () => {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      workshop_name: "Digital Literacy Awareness Program",
+      workshop_name: "Direct Contact Awareness Programs on Digital Payments",
     }));
   }, []);
   useEffect(() => {
@@ -394,10 +400,28 @@ const CreateWorkshop = () => {
                     key={gp.gram_panchayat_name}
                     value={gp.gram_panchayat_name}
                   >
-                    {gp.gram_panchayat_code} - {gp.gram_panchayat_name}
+                    {gp.gram_panchayat_name}
                   </option>
                 ))}
               </select>
+            </div>
+            {/* Workshop Location */}
+            <div>
+              <label className="text-sm font-medium">
+                Location (Center name and Center address){" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                rows={3}
+                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter workshop location (Center name and Center address)"
+              />
+              {errors.location && (
+                <p className="text-xs text-red-500 mt-1">{errors.location}</p>
+              )}
             </div>
           </div>
 

@@ -343,8 +343,7 @@ ${STATUS_OPTIONS.map(
       key: "gram_panchayat_",
       label: "Gram Panchayat",
       align: "center",
-      render: (_value, row) =>
-        `${row.gram_panchayat_code} - ${row.gram_panchayat}`,
+      render: (_value, row) => `${row.gram_panchayat}`,
     },
     {
       key: "view",

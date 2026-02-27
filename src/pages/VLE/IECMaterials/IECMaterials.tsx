@@ -5,10 +5,11 @@ import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
 
 import banner from "../../../assets/images/RBIbanner.pdf";
-
+import script_1 from "../../../assets/images/Hindi - Script on How to Guide About UPI123PAY.pdf";
+import script_2 from "../../../assets/images/HIndi - Script on How to Guide about UPI.pdf";
 type Language = "Hindi" | "Marathi";
 
-type MaterialType = "Handbook" | "Banner" | "Videos";
+type MaterialType = "Handbook" | "Banner" | "Videos" | "Script Files";
 
 type MaterialConfig = {
   title: MaterialType;
@@ -28,13 +29,14 @@ const downloadFile = (url: string, filename: string) => {
 const IECMaterials = () => {
   const [handbookLang, setHandbookLang] = useState<Language>("Hindi");
   const [bannerLang, setBannerLang] = useState<Language>("Hindi");
+  const [scriptLang, setscriptLang] = useState<Language>("Hindi");
   const [videosLang, setVideosLang] = useState<Language>("Hindi");
 
   const materials = useMemo<MaterialConfig[]>(
     () => [
       {
         title: "Handbook",
-        description: "Download participant handbooks (placeholder for now).",
+        description: "Download participant handbooks.",
         downloads: {
           Hindi: [{ label: "Handbook (Hindi) - Coming soon", href: null }],
           Marathi: [{ label: "Handbook (Marathi) - Coming soon", href: null }],
@@ -42,11 +44,31 @@ const IECMaterials = () => {
       },
       {
         title: "Banner",
-        description:
-          "Download banners for session venue (placeholder for now).",
+        description: "Download banners for session venue.",
         downloads: {
           Hindi: [{ label: "Banner (Hindi) - Coming soon", href: null }],
+
           Marathi: [{ label: "Banner (Marathi)", href: banner }],
+        },
+      },
+      {
+        title: "Script Files",
+        description: "Download Script Files.",
+        downloads: {
+          Hindi: [
+            {
+              label: "Script on How to Guide about UPI - Part 1",
+              href: script_1,
+            },
+            {
+              label: "Script on How to Guide about UPI - Part 2",
+              href: script_2,
+            },
+          ],
+
+          Marathi: [
+            { label: "Script File(Marathi) - Coming soon", href: banner },
+          ],
         },
       },
       {
@@ -166,7 +188,7 @@ const IECMaterials = () => {
                   disabled={disabled}
                   onClick={() => {
                     if (!d.href) return;
-                    downloadFile(d.href, "RBI_Banner.pdf");
+                    downloadFile(d.href, d.label);
                   }}
                 >
                   Download
@@ -184,6 +206,8 @@ const IECMaterials = () => {
   const bannerItems = materials.find((m) => m.title === "Banner")!.downloads[
     bannerLang
   ];
+  const scriptItem = materials.find((m) => m.title === "Script Files")!
+    .downloads[scriptLang];
   const videoItems = materials.find((m) => m.title === "Videos")!.downloads[
     videosLang
   ];
@@ -207,6 +231,15 @@ const IECMaterials = () => {
           lang={bannerLang}
           onLangChange={setBannerLang}
           items={bannerItems}
+        />
+        <SectionCard
+          title="Script Files"
+          description={
+            materials.find((m) => m.title === "Script Files")!.description
+          }
+          lang={scriptLang}
+          onLangChange={setscriptLang}
+          items={scriptItem}
         />
 
         <SectionCard

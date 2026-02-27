@@ -438,7 +438,7 @@ const RescheduleSheet = ({ open, workshop, openClose }: StudentSheetProps) => {
                       key={gp.gram_panchayat_name}
                       value={gp.gram_panchayat_name}
                     >
-                      {gp.gram_panchayat_code} - {gp.gram_panchayat_name}
+                      {gp.gram_panchayat_name}
                     </option>
                   ))}
                 </select>

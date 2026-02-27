@@ -174,6 +174,7 @@ export interface WorkshopDetails {
   vle_name: string;
   work_shop_status: string;
   checklist: string;
+  location: string;
   total_citizens: string;
   videos_count: string;
   images_count: string;
@@ -266,6 +267,22 @@ export interface GetDistrictListRes {
   result: string;
   message: string;
   list: District[];
+}
+
+export interface VLEList {
+  id: string;
+  unique_user_id: string;
+  user_type: string;
+  csc_user_id: string;
+  first_name: string;
+  last_name: string;
+  mobile_number: string;
+}
+
+export interface VLEListResponse {
+  result: string;
+  message: string;
+  data: VLEList[];
 }
 
 export interface Workshop {

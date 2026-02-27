@@ -64,6 +64,7 @@ export const useDownloadCitizenDataByDistrictReport = () =>
       start_date?: string;
       end_date?: string;
       work_shop_id?: string;
+      vle_id?: string;
     }) =>
       POST<{
         result: string; // "success"
@@ -113,6 +114,8 @@ export const useDownloadRBIWorkshopReport = () =>
       end_date: string;
       block_panchayat: string;
       gram_panchayat: string;
+      vle_id: string;
+      workshop_status: string;
     }) => {
       return POST<DownloadReportResponse>({
         url: API_URL.downloadRBIWorkshopReport,
@@ -271,6 +274,7 @@ export type RBIWorkshopReportRow = {
   workshop_approved_date: string;
   workshop_rejected_reason: string;
   vle_name: string;
+  csc_id: string;
   approver_name: string;
   workshop_id: string;
   workshop_center_name: string;
@@ -297,6 +301,7 @@ export const useViewCitizenDataByDistrictReport = () =>
       end_date: string;
       work_shop_id?: string;
       offset: number;
+      vle_id: string;
     }) => {
       return POST<ViewCitizenResponse>({
         url: API_URL.viewCitizenDataByDistrictReport,
@@ -308,6 +313,7 @@ export const useViewCitizenDataByDistrictReport = () =>
           end_date: payload.end_date,
           work_shop_id: payload.work_shop_id,
           offset: payload.offset,
+          vle_id: payload.vle_id,
         },
       });
     },
@@ -344,6 +350,8 @@ export const useViewWorkshopReport = () =>
       start_date: string;
       end_date: string;
       offset: number;
+      workshop_status: string;
+      vle_id: string;
     }) => {
       return POST<RBIWorkshopReportResponse>({
         url: API_URL.viewWorkShopReport,
@@ -354,6 +362,8 @@ export const useViewWorkshopReport = () =>
           start_date: payload.start_date,
           end_date: payload.end_date,
           offset: payload.offset,
+          vle_id: payload.vle_id,
+          workshop_status: payload.workshop_status,
         },
       });
     },

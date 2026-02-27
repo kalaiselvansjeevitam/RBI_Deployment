@@ -10,12 +10,15 @@ import {
   useGetBlockPanchayat,
   useGetDistrictParams,
   useGetGramPanchayat,
+  useGetVLEParams,
+  useGetWorkShopParams,
 } from "../../../app/core/api/Admin";
 import {
   useDownloadRBIWorkshopReport,
   useViewWorkshopReport,
   type RBIWorkshopReportRow,
 } from "../../../app/core/api/RBIReports";
+import RBIViewSheet from "./shared/AdminViewSheet";
 
 const PAGE_SIZE = 10;
 const TABLE_COLS = 14;
@@ -29,11 +32,11 @@ const isSuccess = (x: any) =>
     .toLowerCase() === "success";
 
 const normalizeDate = (d: string) => String(d ?? "").trim(); // YYYY-MM-DD
-const isValidDateRange = (start: string, end: string) => {
-  if (!!start !== !!end) return false; // one set => both required
-  if (!start && !end) return true;
-  return start <= end; // lexical works for YYYY-MM-DD
-};
+// const isValidDateRange = (start: string, end: string) => {
+//   if (!!start !== !!end) return false; // one set => both required
+//   if (!start && !end) return true;
+//   return start <= end; // lexical works for YYYY-MM-DD
+// };
 
 function safeText(v: unknown): string {
   if (v == null) return "";
@@ -95,14 +98,14 @@ function ExpandableText({
 
 export default function RBIWorkshopReport() {
   const navigate = useNavigate();
-
+  const [distLoad, setDistLoad] = useState(false);
   const { mutateAsync: fetchView } = useViewWorkshopReport();
   const { mutateAsync: downloadWorkshop } = useDownloadRBIWorkshopReport();
-
+  const { mutateAsync: getWorkshopStatuses } = useGetWorkShopParams();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: getBlocks } = useGetBlockPanchayat();
   const { mutateAsync: getGrams } = useGetGramPanchayat();
-
+  const [statusList, setStatusList] = useState<string[]>([]);
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedBlock, setSelectedBlock] = useState("");
@@ -124,17 +127,45 @@ export default function RBIWorkshopReport() {
   const [gramList, setGramList] = useState<GramItem[]>([]);
 
   // Optional session_id support (no UI input currently)
-  const [sessionId, setSessionId] = useState("");
+  // const [sessionId, setSessionId] = useState("");
+  const [open, setOpen] = useState(false);
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(
+    null,
+  );
 
+  const [workshopStatusfilter, setWorkshopStatusFilter] = useState<string>("");
+  const { mutateAsync: getVLE } = useGetVLEParams();
+  const [vleList, setVleList] = useState<any[]>([]);
+  const [selectedVleId, setSelectedVleId] = useState("");
   // Requirement: district+block+gram required; date optional but must be valid pair if used
-  const hasValidDates = isValidDateRange(startDate, endDate);
-  const canSubmit = Boolean(selectedDistrict && selectedBlock && selectedGram);
-  const canSubmitDownload = Boolean(canSubmit && hasValidDates);
+  // const hasValidDates = isValidDateRange(startDate, endDate);
+  const hasVle = Boolean(selectedVleId);
+
+  // any one location field selected
+  const hasAnyLocation = Boolean(
+    selectedDistrict || selectedBlock || selectedGram,
+  );
+
+  // full location selected
+  const hasFullLocation = Boolean(
+    selectedDistrict && selectedBlock && selectedGram,
+  );
+
+  const canSubmit =
+    // VLE ONLY (no location fields touched)
+    (hasVle && !hasAnyLocation) ||
+    // FULL location ONLY (no VLE)
+    (!hasVle && hasFullLocation);
 
   /* ---------------- Load districts ---------------- */
   useEffect(() => {
     (async () => {
+      setDistLoad(true);
       try {
+        const workStatusres = getWorkshopStatuses();
+        setStatusList((await workStatusres).data);
+        const VLEres = await getVLE({ get_by: "All" });
+        setVleList(VLEres?.data ?? []);
         const res = await getDistricts();
         const list = res?.list ?? [];
         const names = Array.isArray(list)
@@ -144,9 +175,13 @@ export default function RBIWorkshopReport() {
               .filter(Boolean)
           : [];
         setDistrictList(names);
+        setDistLoad(false);
       } catch (e) {
+        setDistLoad(false);
         console.error("Failed to load districts:", e);
         setDistrictList([]);
+      } finally {
+        setDistLoad(false);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,6 +194,11 @@ export default function RBIWorkshopReport() {
       setGramList([]);
       setSelectedBlock("");
       setSelectedGram("");
+      return;
+    }
+    if (selectedDistrict == "All Districts") {
+      setSelectedBlock("All Blocks");
+      setSelectedGram("All Gram Panchayats");
       return;
     }
 
@@ -186,6 +226,11 @@ export default function RBIWorkshopReport() {
     if (!selectedBlock) {
       setGramList([]);
       setSelectedGram("");
+      return;
+    }
+    if (selectedBlock == "All Blocks") {
+      setGramList([]);
+      setSelectedGram("All Gram Panchayats");
       return;
     }
 
@@ -219,14 +264,6 @@ export default function RBIWorkshopReport() {
       return;
     }
 
-    if (!hasValidDates) {
-      setError("Please select both Start and End date (and End >= Start).");
-      setRows([]);
-      setTotal(0);
-      setOffset(0);
-      return;
-    }
-
     const nextOffset = opts?.offsetOverride ?? (opts?.reset ? 0 : offset);
 
     try {
@@ -235,6 +272,8 @@ export default function RBIWorkshopReport() {
 
       const payload: any = {
         district: selectedDistrict,
+        vle_id: selectedVleId,
+        workshop_status: workshopStatusfilter,
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
         offset: nextOffset,
@@ -272,10 +311,6 @@ export default function RBIWorkshopReport() {
       );
       return;
     }
-    if (!hasValidDates) {
-      toast.error("Please select both Start and End date (and End >= Start).");
-      return;
-    }
 
     try {
       setLoading(true);
@@ -284,6 +319,8 @@ export default function RBIWorkshopReport() {
         district: selectedDistrict,
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
+        vle_id: selectedVleId,
+        workshop_status: workshopStatusfilter,
       };
 
       const s = normalizeDate(startDate);
@@ -292,7 +329,7 @@ export default function RBIWorkshopReport() {
         payload.start_date = s;
         payload.end_date = e;
       }
-      if (sessionId) payload.session_id = sessionId;
+      // if (sessionId) payload.session_id = sessionId;
 
       const res = await downloadWorkshop(payload);
 
@@ -335,8 +372,10 @@ export default function RBIWorkshopReport() {
           </div>
 
           {/* Filters */}
-          <div className="mb-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+              {/* ================= ROW 1 ================= */}
+
               {/* District */}
               <div>
                 <label className="text-sm text-gray-600">
@@ -345,9 +384,19 @@ export default function RBIWorkshopReport() {
                 <select
                   className="border rounded-md h-10 px-3 w-full"
                   value={selectedDistrict}
-                  onChange={(e) => setSelectedDistrict(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setSelectedDistrict(value);
+                    if (value) {
+                      setSelectedVleId("");
+                    }
+                  }}
                 >
-                  <option value="">Select district</option>
+                  <option value="">
+                    {distLoad ? "Loading..." : "Select District"}
+                  </option>
+                  <option value="All Districts">All Districts</option>
                   {districtList.map((d) => (
                     <option key={d} value={d}>
                       {d}
@@ -364,12 +413,22 @@ export default function RBIWorkshopReport() {
                 <select
                   className="border rounded-md h-10 px-3 w-full"
                   value={selectedBlock}
-                  onChange={(e) => setSelectedBlock(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setSelectedBlock(value);
+
+                    // 🔴 Clear VLE if block selected
+                    if (value) {
+                      setSelectedVleId("");
+                    }
+                  }}
                   disabled={!selectedDistrict || loadingBlock}
                 >
                   <option value="">
-                    {loadingBlock ? "Loading blocks..." : "All blocks"}
+                    {loadingBlock ? "Loading blocks..." : "Select block"}
                   </option>
+                  <option value="All Blocks">All Blocks</option>
                   {blockList.map((b) => (
                     <option
                       key={b.block_panchayat_name}
@@ -389,11 +448,25 @@ export default function RBIWorkshopReport() {
                 <select
                   className="border rounded-md h-10 px-3 w-full"
                   value={selectedGram}
-                  onChange={(e) => setSelectedGram(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setSelectedGram(value);
+
+                    // 🔴 Clear VLE if gram selected
+                    if (value) {
+                      setSelectedVleId("");
+                    }
+                  }}
                   disabled={!selectedBlock || loadingGram}
                 >
                   <option value="">
-                    {loadingGram ? "Loading grams..." : "All gram panchayats"}
+                    {loadingGram
+                      ? "Loading grams..."
+                      : "Select gram panchayats"}
+                  </option>
+                  <option value="All Gram Panchayats">
+                    All Gram panchayats
                   </option>
                   {gramList.map((g) => (
                     <option
@@ -429,62 +502,118 @@ export default function RBIWorkshopReport() {
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
-            </div>
 
-            {/* Actions */}
-            <div className="flex justify-end gap-3">
-              <Button
-                onClick={() => fetchData({ reset: true })}
-                disabled={loading || !canSubmit || !hasValidDates}
-              >
-                {loading ? <Loader className="w-4 h-4 animate-spin" /> : "View"}
-              </Button>
+              {/* ================= ROW 2 ================= */}
 
-              <Button
-                onClick={handleDownload}
-                disabled={loading || !canSubmitDownload}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
+              {/* Status */}
+              <div>
+                <label className="text-sm text-gray-600">
+                  Status (optional)
+                </label>
+                <select
+                  value={workshopStatusfilter}
+                  onChange={(e) => setWorkshopStatusFilter(e.target.value)}
+                  className="border rounded-md h-10 px-3 w-full"
+                >
+                  <option value="">Select Status</option>
+                  {statusList.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* VLE ID */}
+              <div>
+                <label className="text-sm text-gray-600">
+                  VLE ID (required)
+                </label>
+                <select
+                  className="border rounded-md h-10 px-3 w-full"
+                  value={selectedVleId}
+                  onChange={(e) => {
+                    const vleId = e.target.value;
+
+                    setSelectedVleId(vleId);
+
+                    // 🔴 Clear location fields when VLE is selected
+                    if (vleId) {
+                      setSelectedDistrict("");
+                      setSelectedBlock("");
+                      setSelectedGram("");
+                    }
+                  }}
+                  disabled={!vleList.length}
+                >
+                  <option value="">
+                    {distLoad ? "Loading..." : "Select VLE"}
+                  </option>
+                  {vleList.map((vle) => (
+                    <option key={vle.id} value={vle.id}>
+                      {vle.id} - {vle.first_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* View */}
+              <div>
+                <Button
+                  className="w-full h-10"
+                  onClick={() => fetchData({ reset: true })}
+                  disabled={loading || !canSubmit}
+                >
+                  {loading ? (
                     <Loader className="w-4 h-4 animate-spin" />
-                    Downloading
-                  </span>
-                ) : (
-                  "Download Excel"
-                )}
-              </Button>
+                  ) : (
+                    "View"
+                  )}
+                </Button>
+              </div>
 
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSelectedDistrict("");
-                  setSelectedBlock("");
-                  setSelectedGram("");
-                  setStartDate("");
-                  setEndDate("");
-                  setRows([]);
-                  setTotal(0);
-                  setOffset(0);
-                  setError("");
-                  setSessionId("");
-                }}
-              >
-                Clear
-              </Button>
+              {/* Download */}
+              <div>
+                <Button
+                  className="w-full h-10"
+                  onClick={handleDownload}
+                  disabled={loading || !canSubmit}
+                >
+                  {loading ? "Downloading..." : "Download Excel"}
+                </Button>
+              </div>
+
+              {/* Clear */}
+              {/* <div>
+                <Button
+                  className="w-full h-10"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedDistrict("");
+                    setSelectedBlock("");
+                    setSelectedGram("");
+                    setStartDate("");
+                    setEndDate("");
+                    setVleList([]);
+                    setWorkshopStatusFilter("");
+                    setRows([]);
+                    setTotal(0);
+                    setOffset(0);
+                    setError("");
+                    setSessionId("");
+                  }}
+                >
+                  Clear
+                </Button>
+              </div> */}
             </div>
           </div>
 
           {/* Messages */}
           {!canSubmit && (
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm">
-              Please fill District, Block Panchayat, and Gram Panchayat.
-            </div>
-          )}
-
-          {canSubmit && !hasValidDates && (
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm">
-              Please select both Start and End date (and End date must be after
-              Start date).
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded font-semibold text-amber-900">
+              Please select either a VLE ID <b>or</b> District, Block Panchayat,
+              Gram Panchayat
             </div>
           )}
 
@@ -528,13 +657,16 @@ export default function RBIWorkshopReport() {
                     Workshop ID
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Workshop Name
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop date
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Workshop Time
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Status
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    CSC ID
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     VLE Name
@@ -567,6 +699,9 @@ export default function RBIWorkshopReport() {
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Gram Panchayat
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    View
                   </th>
                 </tr>
               </thead>
@@ -601,10 +736,14 @@ export default function RBIWorkshopReport() {
                     >
                       <td className="px-4 py-3">{r.workshop_id ?? "-"}</td>
 
-                      <td className="px-4 py-3">{r.workshop_name ?? "-"}</td>
                       <td className="px-4 py-3">{r.workshop_date ?? "-"}</td>
+                      <td className="px-4 py-3">
+                        {r.workshop_from_time ?? "-"} -{" "}
+                        {r.workshop_to_time ?? "-"}
+                      </td>
 
                       <td className="px-4 py-3">{r.workshop_status ?? "-"}</td>
+                      <td className="px-4 py-3">{r.csc_id ?? "-"}</td>
                       <td className="px-4 py-3">
                         {(r as any).vle_name ?? "-"}
                       </td>
@@ -647,12 +786,28 @@ export default function RBIWorkshopReport() {
                       <td className="px-4 py-3">
                         {r.workshop_gram_panchayat ?? "-"}
                       </td>
+                      <td className="px-4 py-3">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedWorkshopId(r.workshop_id);
+                            setOpen(true);
+                          }}
+                        >
+                          View
+                        </Button>
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
+          <RBIViewSheet
+            open={open}
+            workshopId={selectedWorkshopId}
+            openClose={() => setOpen(false)}
+          />
         </div>
       </div>
     </Layout>

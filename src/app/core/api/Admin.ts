@@ -25,6 +25,7 @@ import type {
   occupationResponse,
   TestimonyResponse,
   VLEDashboardResponse,
+  VLEListResponse,
   VLEUsersResponse,
   WorkshopsResponse,
   WorkshopStatusResponse,
@@ -82,6 +83,7 @@ type CreateWorkShopParams = {
   block_panchayat: string;
   gram_panchayat: string;
   gram_panchayat_code: string;
+  location: string;
 };
 
 export const useGetUserCreateParams = () =>
@@ -129,6 +131,7 @@ export const useGetCreateWorkshopParams = () =>
       block_panchayat,
       gram_panchayat,
       gram_panchayat_code,
+      location,
     }: CreateWorkShopParams) => {
       return POST<GetResponseWithId>({
         url: API_URL.createWorkShop,
@@ -141,6 +144,7 @@ export const useGetCreateWorkshopParams = () =>
           gram_panchayat_code: gram_panchayat_code,
           gram_panchayat: gram_panchayat,
           block_panchayat: block_panchayat,
+          location: location,
         },
       });
     },
@@ -442,6 +446,15 @@ export const useGetDistrictParams = () =>
       });
     },
   });
+export const useGetVLEParams = () =>
+  useMutation({
+    mutationFn: (data: { get_by: string }) => {
+      return POST<VLEListResponse>({
+        url: API_URL.getAllVles,
+        data,
+      });
+    },
+  });
 
 // export const useGetWorkshopIdParams = () =>
 //   useMutation({
@@ -693,6 +706,19 @@ export const useGetReschedule = () =>
       return POST<GetResponse>({
         url: API_URL.rescheduleWorkshop,
         data,
+      });
+    },
+  });
+
+export const useGetcreateIECMaterial = () =>
+  useMutation({
+    mutationFn: (formData: FormData) => {
+      return POST<GetResponsewithFile>({
+        url: API_URL.createIECMaterial,
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
     },
   });

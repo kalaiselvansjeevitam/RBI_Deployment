@@ -115,9 +115,9 @@ export default function RBIDashboard() {
   const [donutPendingCompleted, setDonutPendingCompleted] = useState<
     { name: string; value: number }[]
   >([]);
-  const [donutScheduledCancelled, setDonutScheduledCancelled] = useState<
-    { name: string; value: number }[]
-  >([]);
+  // const [donutScheduledCancelled, setDonutScheduledCancelled] = useState<
+  //   { name: string; value: number }[]
+  // >([]);
   const [donutMaleFemale, setDonutMaleFemale] = useState<
     { name: string; value: number }[]
   >([]);
@@ -166,17 +166,6 @@ export default function RBIDashboard() {
         ]),
       },
       {
-        title: "Total Workshop Pending for Approval",
-        value: cardValueInt([
-          "total_completed",
-          "completed",
-          "totalWorkshopCompleted",
-          "total_workshop_completed",
-        ]),
-        from: "from-pink-400",
-        to: "to-rose-500",
-      },
-      {
         title: "Under the Schedule\n(Total workshop pending)",
         value: cardValueInt([
           "total_pending",
@@ -186,6 +175,17 @@ export default function RBIDashboard() {
         ]),
         from: "from-amber-300",
         to: "to-orange-400",
+      },
+      {
+        title: "Total Workshop Pending for Approval",
+        value: cardValueInt([
+          "total_completed",
+          "completed",
+          "totalWorkshopCompleted",
+          "total_workshop_completed",
+        ]),
+        from: "from-pink-400",
+        to: "to-rose-500",
       },
       {
         title: "Total Workshop Approved",
@@ -288,7 +288,7 @@ export default function RBIDashboard() {
         const [
           cardsRes,
           pRes,
-          sRes,
+          // sRes,
           mRes,
           districtRes,
           // unused but kept (programs/top5)
@@ -305,10 +305,10 @@ export default function RBIDashboard() {
             toDonutData(pRes?.list?.[0] ?? pRes?.list ?? pRes),
           );
 
-        if (sRes && isSuccess(sRes))
-          setDonutScheduledCancelled(
-            toDonutData(sRes?.list?.[0] ?? sRes?.list ?? sRes),
-          );
+        // if (sRes && isSuccess(sRes))
+        //   setDonutScheduledCancelled(
+        //     toDonutData(sRes?.list?.[0] ?? sRes?.list ?? sRes),
+        //   );
 
         if (mRes && isSuccess(mRes))
           setDonutMaleFemale(
@@ -405,16 +405,9 @@ export default function RBIDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
             <h4 className="text-lg font-semibold text-gray-700 mb-4">
-              Planned vs Completed %
+              Achieved vs Target
             </h4>
             <DonutChartComponent data={donutPendingCompleted} />
-          </div>
-
-          <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
-            <h4 className="text-lg font-semibold text-gray-700 mb-4">
-              Scheduled vs Cancelled %
-            </h4>
-            <DonutChartComponent data={donutScheduledCancelled} />
           </div>
 
           <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">

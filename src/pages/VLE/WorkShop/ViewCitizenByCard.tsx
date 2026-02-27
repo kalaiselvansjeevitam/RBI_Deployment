@@ -65,8 +65,7 @@ const ViewCitizenByCard = () => {
       key: "gram_panchayat_",
       label: "Gram Panchayat",
       align: "center",
-      render: (_value, row) =>
-        `${row.gram_panchayat_code} - ${row.gram_panchayat}`,
+      render: (_value, row) => `${row.gram_panchayat}`,
     },
     { key: "block_panchayat", label: "Block Panchayat", align: "center" },
     { key: "created_at", label: "Registered On", align: "center" },

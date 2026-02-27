@@ -201,7 +201,8 @@ export default function LocationScheduleReport() {
                 value={selectedDistrict}
                 onChange={(e) => setSelectedDistrict(e.target.value)}
               >
-                <option value="">Select district</option>
+                <option value="">Select</option>
+                <option value="All Districts">All Districts</option>
                 {districtList.map((d) => (
                   <option key={d} value={d}>
                     {d}

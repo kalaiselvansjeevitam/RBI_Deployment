@@ -10,6 +10,7 @@ import {
   useGetBlockPanchayat,
   useGetDistrictParams,
   useGetGramPanchayat,
+  useGetVLEParams,
 } from "../../../app/core/api/Admin";
 import {
   getWorkshopList,
@@ -31,10 +32,12 @@ export default function CitizenDataReport() {
   const { mutateAsync: fetchView } = useViewCitizenDataByDistrictReport();
   const { mutateAsync: download } = useDownloadCitizenDataByDistrictReport();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
+  const { mutateAsync: getVLE } = useGetVLEParams();
   const { mutateAsync: fetchWorkshopsApi } = getWorkshopList();
 
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [distLoad, setdistLoad] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -58,16 +61,37 @@ export default function CitizenDataReport() {
   const [workshopList, setWorkshopList] = useState<WorkshopItem[]>([]);
   const [loadingWorkshops, setLoadingWorkshops] = useState(false);
   const [workshopId, setWorkshopId] = useState<string>("");
+  const [vleList, setVleList] = useState<any[]>([]);
+  const [selectedVleId, setSelectedVleId] = useState("");
 
-  const canSubmit = Boolean(
-    selectedDistrict && startDate && endDate && selectedBlock && selectedGram,
+  const hasVle = Boolean(selectedVleId);
+
+  // any one location field selected
+  const hasAnyLocation = Boolean(
+    selectedDistrict || selectedBlock || selectedGram,
   );
+
+  // full location selected
+  const hasFullLocation = Boolean(
+    selectedDistrict && selectedBlock && selectedGram,
+  );
+
+  const hasDates = Boolean(startDate && endDate);
+
+  const canSubmit =
+    // VLE ONLY (no location fields touched)
+    (hasVle && !hasAnyLocation) ||
+    // FULL location ONLY (no VLE)
+    (hasDates && !hasVle && hasFullLocation);
 
   /* ---------------- Load districts ---------------- */
   useEffect(() => {
     (async () => {
+      setdistLoad(true);
       try {
         const res = await getDistricts();
+        const VLEres = await getVLE({ get_by: "All" });
+        setVleList(VLEres?.data ?? []);
         const list = res?.list ?? [];
         const names = Array.isArray(list)
           ? list
@@ -76,9 +100,13 @@ export default function CitizenDataReport() {
               .filter(Boolean)
           : [];
         setDistrictList(names);
+        setdistLoad(false);
       } catch (e) {
         console.error("Failed to load districts:", e);
         setDistrictList([]);
+        setdistLoad(false);
+      } finally {
+        setdistLoad(false);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,6 +119,10 @@ export default function CitizenDataReport() {
       setGramList([]);
       setSelectedBlock("");
       setSelectedGram("");
+      return;
+    }
+    if (selectedDistrict == "All Districts") {
+      setSelectedBlock("All Blocks");
       return;
     }
 
@@ -114,6 +146,11 @@ export default function CitizenDataReport() {
       setSelectedGram("");
       return;
     }
+    if (selectedBlock == "All Blocks") {
+      setGramList([]);
+      setSelectedGram("All Gram Panchayats");
+      return;
+    }
 
     (async () => {
       try {
@@ -135,7 +172,6 @@ export default function CitizenDataReport() {
       try {
         setLoadingWorkshops(true);
         const res = await fetchWorkshopsApi();
-
         setWorkshopList(res.data ?? []);
       } catch (e) {
         console.error("Failed to load workshops:", e);
@@ -171,6 +207,7 @@ export default function CitizenDataReport() {
         block_panchayat: selectedBlock,
         gram_panchayat: selectedGram,
         start_date: startDate,
+        vle_id: selectedVleId,
         end_date: endDate,
         offset: nextOffset,
       };
@@ -215,6 +252,7 @@ export default function CitizenDataReport() {
         gram_panchayat: selectedGram,
         start_date: startDate,
         end_date: endDate,
+        vle_id: selectedVleId,
       };
 
       // ✅ optional workshop_id (kept as session_id)
@@ -280,9 +318,19 @@ export default function CitizenDataReport() {
                 <select
                   className="border rounded-md h-10 px-3 w-full"
                   value={selectedDistrict}
-                  onChange={(e) => setSelectedDistrict(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setSelectedDistrict(value);
+                    if (value) {
+                      setSelectedVleId("");
+                    }
+                  }}
                 >
-                  <option value="">Select district</option>
+                  <option value="">
+                    {distLoad ? "Loading..." : "Select District"}
+                  </option>
+                  <option value="All Districts">All Districts</option>
                   {districtList.map((d) => (
                     <option key={d} value={d}>
                       {d}
@@ -299,12 +347,22 @@ export default function CitizenDataReport() {
                 <select
                   className="border rounded-md h-10 px-3 w-full"
                   value={selectedBlock}
-                  onChange={(e) => setSelectedBlock(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setSelectedBlock(value);
+
+                    // 🔴 Clear VLE if block selected
+                    if (value) {
+                      setSelectedVleId("");
+                    }
+                  }}
                   disabled={!selectedDistrict || loadingBlock}
                 >
                   <option value="">
-                    {loadingBlock ? "Loading blocks..." : "All blocks"}
+                    {loadingBlock ? "Loading blocks..." : "Select block"}
                   </option>
+                  <option value="All Blocks">All Blocks</option>
                   {blockList.map((b) => (
                     <option
                       key={b.block_panchayat_name}
@@ -324,11 +382,25 @@ export default function CitizenDataReport() {
                 <select
                   className="border rounded-md h-10 px-3 w-full"
                   value={selectedGram}
-                  onChange={(e) => setSelectedGram(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setSelectedGram(value);
+
+                    // 🔴 Clear VLE if gram selected
+                    if (value) {
+                      setSelectedVleId("");
+                    }
+                  }}
                   disabled={!selectedBlock || loadingGram}
                 >
                   <option value="">
-                    {loadingGram ? "Loading grams..." : "All gram panchayats"}
+                    {loadingGram
+                      ? "Loading grams..."
+                      : "Select gram panchayats"}
+                  </option>
+                  <option value="All Gram Panchayats">
+                    All Gram panchayats
                   </option>
                   {gramList.map((g) => (
                     <option
@@ -389,6 +461,43 @@ export default function CitizenDataReport() {
                 />
               </div>
 
+              {/* VLE ID */}
+              <div className="md:col-span-3">
+                <label className="text-sm text-gray-600">
+                  VLE ID (required)
+                </label>
+
+                <select
+                  className="border rounded-md h-10 px-3 w-full"
+                  value={selectedVleId}
+                  onChange={(e) => {
+                    const vleId = e.target.value;
+
+                    setSelectedVleId(vleId);
+
+                    // 🔴 Clear location fields when VLE is selected
+                    if (vleId) {
+                      setSelectedDistrict("");
+                      setSelectedBlock("");
+                      setSelectedGram("");
+                      setStartDate("");
+                      setEndDate("");
+                    }
+                  }}
+                  disabled={!vleList.length}
+                >
+                  <option value="">
+                    {distLoad ? "Loading..." : "Select VLE"}
+                  </option>
+
+                  {vleList.map((vle) => (
+                    <option key={vle.id} value={vle.id}>
+                      {vle.id} - {vle.first_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* View Button */}
               <div className="md:col-span-2">
                 <Button
@@ -423,7 +532,7 @@ export default function CitizenDataReport() {
               </div>
 
               {/* Clear Button */}
-              <div className="md:col-span-2">
+              {/* <div className="md:col-span-2">
                 <Button
                   className="w-full h-10"
                   variant="outline"
@@ -442,15 +551,15 @@ export default function CitizenDataReport() {
                 >
                   Clear
                 </Button>
-              </div>
+              </div> */}
             </div>
           </div>
 
           {/* Messages */}
           {!canSubmit && (
-            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm">
-              Please fill district, block panchayat, gram panchayat, start date,
-              and end date.
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded font-semibold text-amber-900">
+              Please select either a VLE ID <b>or</b> District, Block Panchayat,
+              Gram Panchayat and Both start and end Dates.
             </div>
           )}
 
@@ -506,12 +615,6 @@ export default function CitizenDataReport() {
                     Citizen Name
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Center Name
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Centre Address
-                  </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Date
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
@@ -552,8 +655,6 @@ export default function CitizenDataReport() {
                       <td className="px-4 py-3">{r.block_panchayat}</td>
                       <td className="px-4 py-3">{r.gram_panchayat}</td>
                       <td className="px-4 py-3">{r.citizen_name}</td>
-                      <td className="px-4 py-3">{r.centre_name}</td>
-                      <td className="px-4 py-3">{r.centre_address}</td>
                       <td className="px-4 py-3">{r.workshop_date}</td>
                       <td className="px-4 py-3">{r.mobile_number}</td>
                       <td className="px-4 py-3">{r.gender}</td>

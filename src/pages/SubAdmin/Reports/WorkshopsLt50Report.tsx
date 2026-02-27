@@ -250,7 +250,8 @@ export default function SubWorkshopsLt50Report() {
                   value={selectedDistrict}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
                 >
-                  <option value="">All districts</option>
+                  <option value="">Select</option>
+                  <option value="All Districts">All Districts</option>
                   {districtList.map((d) => (
                     <option key={d} value={d}>
                       {d}
@@ -397,9 +398,9 @@ export default function SubWorkshopsLt50Report() {
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     District
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  {/* <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Location
-                  </th>
+                  </th> */}
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Date
                   </th>
@@ -435,7 +436,7 @@ export default function SubWorkshopsLt50Report() {
                       <td className="py-3 px-4">{r.id}</td>
                       <td className="py-3 px-4">{r.vle_name}</td>
                       <td className="py-3 px-4">{r.district}</td>
-                      <td className="py-3 px-4">{r.location}</td>
+                      {/* <td className="py-3 px-4">{r.location}</td> */}
                       <td className="py-3 px-4">{r.date}</td>
                       <td className="py-3 px-4">
                         {Number(r.citizens_count ?? 0)}

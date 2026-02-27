@@ -16,7 +16,7 @@ import type {
   GramPanchayatRes,
 } from "../../app/lib/types";
 
-const CreateUser = () => {
+const SubCreateUser = () => {
   const { mutateAsync: userCreate } = useGetUserCreateParams();
   const { mutateAsync: getBlockPanchayat } = useGetBlockPanchayat();
   const { mutateAsync: getGramPanchayat } = useGetGramPanchayat();
@@ -338,8 +338,6 @@ const CreateUser = () => {
               >
                 <option value="">Select</option>
                 <option value="vle">VLE</option>
-                <option value="sub_admin">Sub Admin</option>
-                <option value="rbi">RBI</option>
               </select>
               {errors.user_type && (
                 <p className="text-xs text-red-500 mt-1">{errors.user_type}</p>
@@ -497,4 +495,4 @@ const CreateUser = () => {
   );
 };
 
-export default CreateUser;
+export default SubCreateUser;
