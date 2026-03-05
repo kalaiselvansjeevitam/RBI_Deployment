@@ -28,6 +28,8 @@ export const ViewUser = () => {
   const [selectedUser, setSelectedUser] = useState<AllUser | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const { mutateAsync: deleteUser } = useGetDeleteUser();
+  const [searchInput, setSearchInput] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const handleEditUser = (row: any) => {
     setSelectedUser(row.fullData);
     setSheetOpen(true);
@@ -36,6 +38,9 @@ export const ViewUser = () => {
     setPasswordUser(row);
     setPasswordSheetOpen(true);
   };
+  useEffect(() => {
+    fetchData(currentPage, appliedSearch);
+  }, [currentPage]);
 
   const handleDeleteUser = async (row: any) => {
     const userId = row.fullData?.unique_user_id;
@@ -91,13 +96,20 @@ export const ViewUser = () => {
     return value;
   };
 
-  const fetchData = async () => {
+  const fetchData = async (page = currentPage, keyword = appliedSearch) => {
     try {
       setLoader(true);
-      const offset = getOffsetForPage(currentPage).toString();
-      const result = await getSchoolDashboradData({ offset });
+
+      const offset = getOffsetForPage(page).toString();
+
+      const result = await getSchoolDashboradData({
+        offset,
+        search_by_vle: keyword, // ✅ ONLY when Search clicked
+      });
+
       const sourceData = result?.data ?? [];
       const total_count = result?.count ?? 0;
+
       const transformed = sourceData.map((item: AllUser) => ({
         unique_user_id: safeValue(item.unique_user_id),
         csc_user_id: safeValue(item.csc_user_id),
@@ -128,7 +140,6 @@ export const ViewUser = () => {
       setTotalCount(total_count);
     } catch (error: any) {
       Swal.fire("Error", error?.response?.data?.message, "error");
-      console.error("Error fetching dashboard data:", error);
     } finally {
       setLoader(false);
     }
@@ -202,7 +213,32 @@ export const ViewUser = () => {
     <Layout headerTitle="View Users">
       <div className="flex justify-between items-center flex-wrap gap-4 text-sm mt-3 px-4 pt-3">
         {/* Left-aligned count */}
-        <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>
+        <div className="flex flex-wrap justify-between items-center gap-4 px-4 mt-4">
+          <div className="text-gray-600 font-bold">
+            Total Count: {totalCount}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Search by VLE ID"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="bg-white border border-gray-400 rounded-md px-3 py-2 text-sm w-40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+
+            <Button
+              onClick={() => {
+                setAppliedSearch(searchInput);
+                setCurrentPage(0); // reset pagination
+                fetchData(0, searchInput); // 🔥 CALL API HERE
+              }}
+              className="px-4 py-2 text-sm font-semibold"
+            >
+              Search
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div className="mt-3">

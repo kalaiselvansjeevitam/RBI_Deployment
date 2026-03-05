@@ -324,6 +324,7 @@ export default function CitizenDataReport() {
                     setSelectedDistrict(value);
                     if (value) {
                       setSelectedVleId("");
+                      setRows([]);
                     }
                   }}
                 >
@@ -355,6 +356,7 @@ export default function CitizenDataReport() {
                     // 🔴 Clear VLE if block selected
                     if (value) {
                       setSelectedVleId("");
+                      setRows([]);
                     }
                   }}
                   disabled={!selectedDistrict || loadingBlock}
@@ -390,6 +392,7 @@ export default function CitizenDataReport() {
                     // 🔴 Clear VLE if gram selected
                     if (value) {
                       setSelectedVleId("");
+                      setRows([]);
                     }
                   }}
                   disabled={!selectedBlock || loadingGram}
@@ -421,7 +424,12 @@ export default function CitizenDataReport() {
                 <select
                   className="border rounded-md h-10 px-3 w-full"
                   value={workshopId}
-                  onChange={(e) => setWorkshopId(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setWorkshopId(value);
+                    setSelectedVleId("");
+                    setRows([]);
+                  }}
                   disabled={loadingWorkshops}
                 >
                   <option value="">
@@ -445,7 +453,14 @@ export default function CitizenDataReport() {
                 <Input
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setStartDate(value);
+                    if (value) {
+                      setSelectedVleId("");
+                      setRows([]);
+                    }
+                  }}
                 />
               </div>
 
@@ -457,14 +472,21 @@ export default function CitizenDataReport() {
                 <Input
                   type="date"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEndDate(value);
+                    if (value) {
+                      setSelectedVleId("");
+                      setRows([]);
+                    }
+                  }}
                 />
               </div>
 
               {/* VLE ID */}
               <div className="md:col-span-3">
                 <label className="text-sm text-gray-600">
-                  VLE ID (required)
+                  VLE Name (required)
                 </label>
 
                 <select
@@ -482,6 +504,7 @@ export default function CitizenDataReport() {
                       setSelectedGram("");
                       setStartDate("");
                       setEndDate("");
+                      setRows([]);
                     }
                   }}
                   disabled={!vleList.length}

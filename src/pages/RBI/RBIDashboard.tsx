@@ -12,9 +12,7 @@ import {
   useGetMaleVsFemale,
   useGetMonthWiseWorkshopBarGraph,
   useGetPendingVsCompleted,
-  useGetProgramsConductedBarGraph,
   useGetRBIDashboardValues,
-  useGetScheduledVsCancelled,
   useGetTop5Districts,
   useGetTop5Vles,
 } from "../../app/core/api/RBIDashboard";
@@ -92,14 +90,11 @@ export default function RBIDashboard() {
 
   const { mutateAsync: getCards } = useGetRBIDashboardValues();
   const { mutateAsync: getPendingCompleted } = useGetPendingVsCompleted();
-  const { mutateAsync: getScheduledCancelled } = useGetScheduledVsCancelled();
   const { mutateAsync: getMaleFemale } = useGetMaleVsFemale();
 
   const { mutateAsync: getDistrictBar } = useGetDistrictWiseWorkshopBarGraph();
   const { mutateAsync: getMonthBar } = useGetMonthWiseWorkshopBarGraph();
 
-  // Kept as existing calls (even if not rendered currently)
-  const { mutateAsync: getProgramsBar } = useGetProgramsConductedBarGraph();
   const { mutateAsync: getTopVles } = useGetTop5Vles();
   const { mutateAsync: getTopDistricts } = useGetTop5Districts();
 
@@ -275,10 +270,8 @@ export default function RBIDashboard() {
         const results = await Promise.allSettled([
           getCards(),
           getPendingCompleted(),
-          getScheduledCancelled(),
           getMaleFemale(),
           getDistricts(),
-          getProgramsBar(),
           getTopVles({ offset: 0 }),
           getTopDistricts({ offset: 0 }),
         ]);
@@ -288,10 +281,8 @@ export default function RBIDashboard() {
         const [
           cardsRes,
           pRes,
-          // sRes,
           mRes,
           districtRes,
-          // unused but kept (programs/top5)
           _programsRes,
           _topVlesRes,
           _topDistrictsRes,
@@ -318,9 +309,7 @@ export default function RBIDashboard() {
         const districts = districtRes?.list ?? [];
         const names = Array.isArray(districts)
           ? districts
-              .map((d: any) => d?.district ?? d?.name ?? d?.district_name ?? d)
-              .map(String)
-              .map((s) => s.trim())
+              .map((d) => d.district) // ✅ exact match
               .filter(Boolean)
           : [];
 
@@ -407,14 +396,27 @@ export default function RBIDashboard() {
             <h4 className="text-lg font-semibold text-gray-700 mb-4">
               Achieved vs Target
             </h4>
-            <DonutChartComponent data={donutPendingCompleted} />
+            <DonutChartComponent
+              data={donutPendingCompleted}
+              colorMap={{
+                achieved: "#16A34A", // green-600
+                target: "#6B7280", // gray-500
+              }}
+            />
           </div>
 
           <div className="bg-white rounded-2xl shadow p-6 bg-gradient-to-br from-white to-gray-50 shadow-xl">
             <h4 className="text-lg font-semibold text-gray-700 mb-4">
               Male vs Female %
             </h4>
-            <DonutChartComponent data={donutMaleFemale} />
+            <DonutChartComponent
+              data={donutMaleFemale}
+              colorMap={{
+                male_count: "#4C6FFF",
+                female_count: "#FF5FA2",
+                others_count: "#8B6CFF",
+              }}
+            />
           </div>
         </div>
 

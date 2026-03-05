@@ -5,12 +5,18 @@ import SchoolCardStatus from "./shared/SchoolCardStatus";
 import { Loader } from "lucide-react";
 import {
   useGetgenderWiseDonutParams,
+  useGetgetAlertsForVleParams,
   useGetlocationWiseBarChartParams,
   useGetVLEDashboard,
 } from "../../app/core/api/Admin";
-import type { GetCityCountRes, GetGenderCountRes } from "../../app/lib/types";
+import type {
+  getAlertsForVleRes,
+  GetCityCountRes,
+  GetGenderCountRes,
+} from "../../app/lib/types";
 import DonutChartComponent from "../../app/components/shared/DonutChartComponent";
 import BarChartComponentWorkshop from "./WorkShop/Shared/BarchartWorkshop";
+import AlertCard from "./WorkShop/Shared/Alert";
 
 /* ---------- TYPES ---------- */
 
@@ -40,6 +46,7 @@ export interface VLEDashboardResponse {
 const VLEDashboard = () => {
   const { mutateAsync: getVLEDashboard } = useGetVLEDashboard();
   const { mutateAsync: getGenderWise } = useGetgenderWiseDonutParams();
+  const { mutateAsync: getAlerts } = useGetgetAlertsForVleParams();
   const { mutateAsync: getLocationWise } = useGetlocationWiseBarChartParams();
 
   const [genderData, setGenderData] = useState<GetGenderCountRes["list"]>([]);
@@ -82,6 +89,25 @@ const VLEDashboard = () => {
 
     fetchDashboard();
   }, []);
+  const [alerts, setAlerts] = useState<getAlertsForVleRes | null>(null);
+  const [alertLoading, setAlertLoading] = useState(false);
+
+  useEffect(() => {
+    fetchAlerts();
+  }, []);
+
+  const fetchAlerts = async () => {
+    try {
+      setAlertLoading(true);
+      const res = await getAlerts();
+      setAlerts(res);
+    } catch (error) {
+      console.error("Failed to fetch alerts", error);
+      setAlerts(null);
+    } finally {
+      setAlertLoading(false);
+    }
+  };
   const genderChartData = useMemo(() => {
     return genderData.map((item) => ({
       name: item.gender,
@@ -118,7 +144,6 @@ const VLEDashboard = () => {
       </Layout>
     );
   }
-
   /* ---------- UI ---------- */
   return (
     <Layout headerTitle="VLE Dashboard">
@@ -143,6 +168,21 @@ const VLEDashboard = () => {
             to="to-rose-400"
           />
         </div>
+        {alertLoading ? (
+          <p className="text-center text-gray-500">Loading alerts...</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AlertCard
+              title="Workshop Alerts"
+              alerts={alerts?.data_workshop ?? []}
+            />
+
+            <AlertCard
+              title="Testimony Alerts"
+              alerts={alerts?.data_testimony ?? []}
+            />
+          </div>
+        )}
 
         {/* ---------- BAR CHART ---------- */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -427,3 +427,33 @@ export interface occupationResponse {
   message: string;
   list: occupationRes[];
 }
+export interface WorkshopAlert {
+  id: number;
+  workshop_name: string;
+  date: string;
+  from_time: string;
+  to_time: string;
+  block_panchayat: string;
+  gram_panchayat: string;
+  work_shop_status: string;
+  rejected_reason: string;
+}
+
+export interface testimonyAlert {
+  id: number;
+  workshop_name: string;
+  date: string;
+  from_time: string;
+  to_time: string;
+  media_type: string;
+  filepath: string;
+  is_approved: string;
+  rejected_reason: string;
+}
+
+export interface getAlertsForVleRes {
+  result: string;
+  message: string;
+  data_workshop: WorkshopAlert[];
+  data_testimony: testimonyAlert[];
+}

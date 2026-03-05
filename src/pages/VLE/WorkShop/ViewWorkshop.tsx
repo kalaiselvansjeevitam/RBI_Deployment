@@ -18,11 +18,13 @@ import SchoolSheet from "./Shared/SchoolSheet";
 import { Button } from "../../../app/components/ui/button";
 import type { WorkshopByFiltersData } from "../../../app/lib/types";
 import RescheduleSheet from "./Shared/RescheduleSheet";
+import { useSearchParams } from "react-router-dom";
 
 export const ViewWorkshop = () => {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [loader, setLoader] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   //   const [open, setOpen] = useState(false);
   const [filterApplied, setFilterApplied] = useState(false);
   //   const [loaderside, setLoaderSide] = useState(false);
@@ -32,7 +34,6 @@ export const ViewWorkshop = () => {
   //   const { mutateAsync: getSchoolPaymentDetails } = useGetSchoolPaymentDetails();
   const { mutateAsync: getSchoolDetailsByDate } =
     useGetWorkshopByFiltersByDate();
-  const [submitTrigger, setSubmitTrigger] = useState(0);
   //   const [studentSheetData, setStudentSheetData] = useState<any[]>([]);
   const [schoolSheetData, setSchoolSheetData] = useState<
     WorkshopByFiltersData[]
@@ -42,6 +43,39 @@ export const ViewWorkshop = () => {
   const getOffsetForPage = (page: number): number => {
     return page * itemsPerPage;
   };
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [appliedFilters, setAppliedFilters] = useState<{
+    startDate?: Date;
+    endDate?: Date;
+    status?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const start = searchParams.get("startDate");
+    const end = searchParams.get("endDate");
+    const status = searchParams.get("status");
+    const page = searchParams.get("page");
+
+    if (start && end && status) {
+      const sDate = new Date(start);
+      const eDate = new Date(end);
+
+      setStartDate(sDate);
+      setEndDate(eDate);
+      setWorkingStatus(status);
+      setCurrentPage(page ? Number(page) : 0);
+      setFilterApplied(true);
+
+      // ✅ THIS WAS MISSING
+      setAppliedFilters({
+        startDate: sDate,
+        endDate: eDate,
+        status,
+      });
+    }
+
+    setIsInitialized(true);
+  }, []);
   const [schoolSheetOpen, setSchoolSheetOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
 
@@ -92,7 +126,11 @@ export const ViewWorkshop = () => {
   };
 
   const fetchDataByDate = async () => {
-    if (!startDate || !endDate) return;
+    if (!appliedFilters) return;
+
+    const { startDate, endDate, status } = appliedFilters;
+
+    if (!startDate || !endDate || !status) return;
     try {
       setLoader(true);
       const formatDate = (date: Date) => {
@@ -113,11 +151,6 @@ export const ViewWorkshop = () => {
 
       const rawData = response?.list ?? [];
       const count = response?.total ?? 0;
-      if (response?.result.toLowerCase() == "success") {
-        Swal.fire("Success", response?.message, "success");
-      } else {
-        Swal.fire("Error", response?.message, "error");
-      }
       const transformed = rawData.map((item: WorkshopByFiltersData) => ({
         id: item.id || "-",
         workshop_name: item.workshop_name || "-",
@@ -166,18 +199,19 @@ export const ViewWorkshop = () => {
   }, [shouldReload]);
 
   useEffect(() => {
-    if (filterApplied) {
+    if (!isInitialized) return;
+
+    if (filterApplied && appliedFilters) {
       fetchDataByDate();
-    } else {
+    } else if (!filterApplied) {
       fetchData();
     }
-  }, [currentPage, filterApplied, submitTrigger]);
-
-  useEffect(() => {
-    if (!startDate || !endDate) {
-      setFilterApplied(false);
-    }
-  }, [startDate, endDate]);
+  }, [
+    isInitialized,
+    filterApplied,
+    appliedFilters, // ✅ ONLY triggers after Submit
+    currentPage,
+  ]);
   const STATUS_OPTIONS = [
     {
       label: "Completed",
@@ -387,25 +421,26 @@ ${STATUS_OPTIONS.map(
   ];
 
   const handleOkClick = () => {
-    if (!startDate || !endDate) {
-      Swal.fire("Error", "Please select both start and end dates", "warning");
+    if (!startDate || !endDate || !workingStatus) {
+      Swal.fire("Error", "Please select all filters", "warning");
       return;
     }
-    if (!workingStatus) {
-      Swal.fire("Error", "Please select Status Filter", "warning");
-      return;
-    }
-    if (startDate > endDate) {
-      Swal.fire(
-        "Error",
-        "Please select end date is greater than start date",
-        "warning",
-      );
-      return;
-    }
-    setFilterApplied(true);
+
+    setAppliedFilters({
+      startDate,
+      endDate,
+      status: workingStatus,
+    });
+
     setCurrentPage(0);
-    setSubmitTrigger((prev) => prev + 1);
+    setFilterApplied(true);
+
+    setSearchParams({
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      status: workingStatus,
+      page: "0",
+    });
   };
 
   const CustomInput = React.forwardRef(({ value, onClick }: any, ref: any) => (
@@ -425,6 +460,16 @@ ${STATUS_OPTIONS.map(
   };
   const PROJECT_START_DATE = new Date(2025, 11, 1); // Dec = 11
   const PROJECT_END_DATE = new Date(2026, 2, 31); // Mar = 2
+  const onPageChange = (page: number) => {
+    setCurrentPage(page);
+
+    setSearchParams({
+      startDate: startDate?.toISOString() || "",
+      endDate: endDate?.toISOString() || "",
+      status: workingStatus,
+      page: page.toString(),
+    });
+  };
 
   return (
     <Layout headerTitle="View Workshop">
@@ -506,7 +551,7 @@ ${STATUS_OPTIONS.map(
             itemsPerPage={itemsPerPage}
             totalItems={totalCount}
             currentPage={currentPage}
-            onPageChange={(page) => setCurrentPage(page)}
+            onPageChange={onPageChange}
           />
         )}
       </div>

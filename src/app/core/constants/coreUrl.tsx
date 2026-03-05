@@ -92,6 +92,7 @@ export const API_URL = {
   updatePassword: "/update-users-password",
   getLocationManager: "/getLocationManager",
   genderWiseDonut: "/genderWiseDonut",
+  getAlertsForVle: "/getAlertsForVle",
   locationWiseBarChart: "/locationWiseBarChart",
   getDistrict: "/getDistrict",
   getAllVles: "/getAllVles",

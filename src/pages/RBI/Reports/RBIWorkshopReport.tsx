@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Loader } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import Layout from "../../../app/components/Layout/Layout";
 import { Button } from "../../../app/components/ui/button";
@@ -107,16 +107,64 @@ export default function RBIWorkshopReport() {
   const { mutateAsync: getGrams } = useGetGramPanchayat();
   const [statusList, setStatusList] = useState<string[]>([]);
   const [districtList, setDistrictList] = useState<string[]>([]);
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedBlock, setSelectedBlock] = useState("");
-  const [selectedGram, setSelectedGram] = useState("");
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [rows, setRows] = useState<RBIWorkshopReportRow[]>([]);
-  const [offset, setOffset] = useState(0);
+  const [selectedDistrict, setSelectedDistrict] = useState(
+    searchParams.get("district") ?? "",
+  );
+  const [selectedBlock, setSelectedBlock] = useState(
+    searchParams.get("block") ?? "",
+  );
+  const [selectedGram, setSelectedGram] = useState(
+    searchParams.get("gram") ?? "",
+  );
+
+  const [startDate, setStartDate] = useState(
+    searchParams.get("startDate") ?? "",
+  );
+  const [endDate, setEndDate] = useState(searchParams.get("endDate") ?? "");
+
+  const [workshopStatusfilter, setWorkshopStatusFilter] = useState(
+    searchParams.get("status") ?? "",
+  );
+
+  const [selectedVleId, setSelectedVleId] = useState(
+    searchParams.get("vle") ?? "",
+  );
+
+  const [offset, setOffset] = useState(Number(searchParams.get("offset") ?? 0));
+  useEffect(() => {
+    setSearchParams({
+      district: selectedDistrict,
+      block: selectedBlock,
+      gram: selectedGram,
+      startDate,
+      endDate,
+      status: workshopStatusfilter,
+      vle: selectedVleId,
+      offset: String(offset),
+    });
+  }, [
+    selectedDistrict,
+    selectedBlock,
+    selectedGram,
+    startDate,
+    endDate,
+    workshopStatusfilter,
+    selectedVleId,
+    offset,
+  ]);
+  useEffect(() => {
+    // If filters are already valid from URL, auto-fetch
+    if (canSubmit) {
+      fetchData({ offsetOverride: offset });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [total, setTotal] = useState(0);
+  const [rows, setRows] = useState<RBIWorkshopReportRow[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [loadingBlock, setLoadingBlock] = useState(false);
@@ -133,10 +181,8 @@ export default function RBIWorkshopReport() {
     null,
   );
 
-  const [workshopStatusfilter, setWorkshopStatusFilter] = useState<string>("");
   const { mutateAsync: getVLE } = useGetVLEParams();
   const [vleList, setVleList] = useState<any[]>([]);
-  const [selectedVleId, setSelectedVleId] = useState("");
   // Requirement: district+block+gram required; date optional but must be valid pair if used
   // const hasValidDates = isValidDateRange(startDate, endDate);
   const hasVle = Boolean(selectedVleId);
@@ -158,6 +204,8 @@ export default function RBIWorkshopReport() {
     (!hasVle && hasFullLocation);
 
   /* ---------------- Load districts ---------------- */
+  const isInitialDistrictLoad = useRef(true);
+  const isInitialBlockLoad = useRef(true);
   useEffect(() => {
     (async () => {
       setDistLoad(true);
@@ -190,13 +238,16 @@ export default function RBIWorkshopReport() {
   /* ---------------- Load blocks when district changes ---------------- */
   useEffect(() => {
     if (!selectedDistrict) {
-      setBlockList([]);
-      setGramList([]);
-      setSelectedBlock("");
-      setSelectedGram("");
+      if (!isInitialDistrictLoad.current) {
+        setBlockList([]);
+        setGramList([]);
+        setSelectedBlock("");
+        setSelectedGram("");
+      }
       return;
     }
-    if (selectedDistrict == "All Districts") {
+
+    if (selectedDistrict === "All Districts") {
       setSelectedBlock("All Blocks");
       setSelectedGram("All Gram Panchayats");
       return;
@@ -205,10 +256,14 @@ export default function RBIWorkshopReport() {
     (async () => {
       try {
         setLoadingBlock(true);
-        setBlockList([]);
-        setGramList([]);
-        setSelectedBlock("");
-        setSelectedGram("");
+
+        // 🔑 reset ONLY if user changed district
+        if (!isInitialDistrictLoad.current) {
+          setBlockList([]);
+          setGramList([]);
+          setSelectedBlock("");
+          setSelectedGram("");
+        }
 
         const res = await getBlocks({ district: selectedDistrict });
         setBlockList((res?.list ?? []) as BlockItem[]);
@@ -217,6 +272,7 @@ export default function RBIWorkshopReport() {
         setBlockList([]);
       } finally {
         setLoadingBlock(false);
+        isInitialDistrictLoad.current = false;
       }
     })();
   }, [selectedDistrict, getBlocks]);
@@ -224,12 +280,14 @@ export default function RBIWorkshopReport() {
   /* ---------------- Load grams when block changes ---------------- */
   useEffect(() => {
     if (!selectedBlock) {
-      setGramList([]);
-      setSelectedGram("");
+      if (!isInitialBlockLoad.current) {
+        setGramList([]);
+        setSelectedGram("");
+      }
       return;
     }
-    if (selectedBlock == "All Blocks") {
-      setGramList([]);
+
+    if (selectedBlock === "All Blocks") {
       setSelectedGram("All Gram Panchayats");
       return;
     }
@@ -237,16 +295,23 @@ export default function RBIWorkshopReport() {
     (async () => {
       try {
         setLoadingGram(true);
-        setGramList([]);
-        setSelectedGram("");
 
-        const res = await getGrams({ block_panchayat_name: selectedBlock });
+        // 🔑 reset ONLY if user changed block
+        if (!isInitialBlockLoad.current) {
+          setGramList([]);
+          setSelectedGram("");
+        }
+
+        const res = await getGrams({
+          block_panchayat_name: selectedBlock,
+        });
         setGramList((res?.list ?? []) as GramItem[]);
       } catch (e) {
         console.error("Failed to load grams:", e);
         setGramList([]);
       } finally {
         setLoadingGram(false);
+        isInitialBlockLoad.current = false;
       }
     })();
   }, [selectedBlock, getGrams]);
@@ -258,9 +323,6 @@ export default function RBIWorkshopReport() {
   }) => {
     if (!canSubmit) {
       setError("Please select District, Block Panchayat, and Gram Panchayat.");
-      setRows([]);
-      setTotal(0);
-      setOffset(0);
       return;
     }
 
@@ -390,6 +452,7 @@ export default function RBIWorkshopReport() {
                     setSelectedDistrict(value);
                     if (value) {
                       setSelectedVleId("");
+                      setRows([]);
                     }
                   }}
                 >
@@ -421,6 +484,7 @@ export default function RBIWorkshopReport() {
                     // 🔴 Clear VLE if block selected
                     if (value) {
                       setSelectedVleId("");
+                      setRows([]);
                     }
                   }}
                   disabled={!selectedDistrict || loadingBlock}
@@ -456,6 +520,7 @@ export default function RBIWorkshopReport() {
                     // 🔴 Clear VLE if gram selected
                     if (value) {
                       setSelectedVleId("");
+                      setRows([]);
                     }
                   }}
                   disabled={!selectedBlock || loadingGram}
@@ -487,7 +552,14 @@ export default function RBIWorkshopReport() {
                 <Input
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setStartDate(value);
+                    if (value) {
+                      setSelectedVleId("");
+                      setRows([]);
+                    }
+                  }}
                 />
               </div>
 
@@ -499,7 +571,14 @@ export default function RBIWorkshopReport() {
                 <Input
                   type="date"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEndDate(value);
+                    if (value) {
+                      setSelectedVleId("");
+                      setRows([]);
+                    }
+                  }}
                 />
               </div>
 
@@ -512,7 +591,14 @@ export default function RBIWorkshopReport() {
                 </label>
                 <select
                   value={workshopStatusfilter}
-                  onChange={(e) => setWorkshopStatusFilter(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setWorkshopStatusFilter(value);
+                    if (value) {
+                      setSelectedVleId("");
+                      setRows([]);
+                    }
+                  }}
                   className="border rounded-md h-10 px-3 w-full"
                 >
                   <option value="">Select Status</option>
@@ -527,7 +613,7 @@ export default function RBIWorkshopReport() {
               {/* VLE ID */}
               <div>
                 <label className="text-sm text-gray-600">
-                  VLE ID (required)
+                  VLE Name (required)
                 </label>
                 <select
                   className="border rounded-md h-10 px-3 w-full"
@@ -542,6 +628,10 @@ export default function RBIWorkshopReport() {
                       setSelectedDistrict("");
                       setSelectedBlock("");
                       setSelectedGram("");
+                      setStartDate("");
+                      setEndDate("");
+                      setWorkshopStatusFilter("");
+                      setRows([]);
                     }
                   }}
                   disabled={!vleList.length}

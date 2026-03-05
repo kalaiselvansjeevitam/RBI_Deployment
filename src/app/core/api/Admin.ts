@@ -6,6 +6,7 @@ import type {
   BlockPanchayatResponse,
   districtByLocationResponse,
   districtWiseWorkshopBarGraphRes,
+  getAlertsForVleRes,
   GetAllUsersResponse,
   GetCitizenbyCardRes,
   GetCityCountRes,
@@ -348,7 +349,7 @@ export const useGetWorkshopDetails = () =>
 
 export const useGetgetallusers = () =>
   useMutation({
-    mutationFn: (data: { offset: string }) => {
+    mutationFn: (data: { offset: string; search_by_vle: string }) => {
       return POST<GetAllUsersResponse>({
         url: API_URL.getallusers,
         data,
@@ -417,6 +418,15 @@ export const useGetgenderWiseDonutParams = () =>
     mutationFn: () => {
       return POST<GetGenderCountRes>({
         url: API_URL.genderWiseDonut,
+      });
+    },
+  });
+
+export const useGetgetAlertsForVleParams = () =>
+  useMutation({
+    mutationFn: () => {
+      return POST<getAlertsForVleRes>({
+        url: API_URL.getAlertsForVle,
       });
     },
   });
@@ -491,6 +501,7 @@ export const useGetgetWorkshopList = () =>
       start_date: string; // optional
       end_date: string; // optional
       district: string;
+      search_by_vle: string;
     }) => {
       return POST<WorkshopsResponse>({
         url: API_URL.getWorkShop,

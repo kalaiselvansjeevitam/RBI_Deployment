@@ -92,7 +92,10 @@ const TestimonyByWorkshop = () => {
 
   const [loader, setLoader] = useState(false);
   const [testimonies, setTestimonies] = useState<Testimony[]>([]);
-  const [modalImage, setModalImage] = useState<string | null>(null);
+  const [modalMedia, setModalMedia] = useState<{
+    type: "image" | "video";
+    src: string;
+  } | null>(null);
 
   const { mutateAsync: getTestimonies } = useGetTestimoniesByWorkshop();
   const { mutateAsync: approveTestimony } = useApproveTestimony();
@@ -158,6 +161,13 @@ const TestimonyByWorkshop = () => {
       setStatusLoadingId(null);
     }
   };
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalMedia(null);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
 
   const images = testimonies.filter((t) => t.media_type === "image");
   const videos = testimonies.filter((t) => t.media_type === "video");
@@ -195,10 +205,13 @@ const TestimonyByWorkshop = () => {
                   <img
                     src={img.filepath}
                     className="w-full h-64 object-cover cursor-pointer"
-                    // onClick={(e) => {
-                    //   e.stopPropagation();
-                    //   setModalImage(img.filepath);
-                    // }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalMedia({
+                        type: "image",
+                        src: img.filepath,
+                      });
+                    }}
                   />
 
                   <div className="p-5 flex flex-col justify-between h-[160px]">
@@ -241,11 +254,22 @@ const TestimonyByWorkshop = () => {
                   key={vid.testimony_id}
                   className="border rounded-xl shadow-xl min-w-[320px]"
                 >
-                  <video
-                    src={vid.filepath}
-                    controls
-                    className="w-full h-56 object-cover"
-                  />
+                  <div
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalMedia({
+                        type: "video",
+                        src: vid.filepath,
+                      });
+                    }}
+                  >
+                    <video
+                      src={vid.filepath}
+                      className="w-full h-56 object-cover"
+                      muted
+                    />
+                  </div>
 
                   <div className="p-5 flex flex-col justify-between h-[160px]">
                     <p className="text-sm text-gray-800 line-clamp-3">
@@ -274,12 +298,26 @@ const TestimonyByWorkshop = () => {
         </div>
 
         {/* IMAGE MODAL */}
-        {modalImage && (
+        {modalMedia && (
           <div
             className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-            onClick={() => setModalImage(null)}
+            onClick={() => setModalMedia(null)}
           >
-            <img src={modalImage} className="max-h-[80vh] rounded-lg" />
+            {modalMedia.type === "image" ? (
+              <img
+                src={modalMedia.src}
+                className="max-h-[80vh] max-w-[90vw] rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <video
+                src={modalMedia.src}
+                controls
+                autoPlay
+                className="max-h-[80vh] max-w-[90vw] rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
           </div>
         )}
       </div>

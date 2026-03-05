@@ -18,6 +18,17 @@ export const ViewTestimony = () => {
   const { mutateAsync: deleteTestimony } = useDeleteTestimony();
   const [data, setData] = useState<ViewTestimonytype[]>([]);
   const [loading, setLoading] = useState(false);
+  const [modalMedia, setModalMedia] = useState<{
+    type: "image" | "video";
+    src: string;
+  } | null>(null);
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalMedia(null);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
   // 🔁 Replace sampleData with API response
   //   const data = sampleData;
   useEffect(() => {
@@ -205,6 +216,7 @@ export const ViewTestimony = () => {
                       key={item.id}
                       item={item}
                       onDelete={handleDelete}
+                      onPreview={setModalMedia}
                     />
                   ))
                 ) : (
@@ -222,6 +234,7 @@ export const ViewTestimony = () => {
                       key={item.id}
                       item={item}
                       onDelete={handleDelete}
+                      onPreview={setModalMedia}
                     />
                   ))
                 ) : (
@@ -243,6 +256,28 @@ export const ViewTestimony = () => {
           </>
         )}
       </div>
+      {modalMedia && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
+          onClick={() => setModalMedia(null)}
+        >
+          {modalMedia.type === "image" ? (
+            <img
+              src={modalMedia.src}
+              className="max-h-[80vh] max-w-[90vw] rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <video
+              src={modalMedia.src}
+              controls
+              autoPlay
+              className="max-h-[80vh] max-w-[90vw] rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
+        </div>
+      )}
     </Layout>
   );
 };
@@ -267,9 +302,16 @@ const Section = ({
 const MediaCard = ({
   item,
   onDelete,
+  onPreview,
 }: {
   item: ViewTestimonytype;
   onDelete: (id: string) => void;
+  onPreview: React.Dispatch<
+    React.SetStateAction<{
+      type: "image" | "video";
+      src: string;
+    } | null>
+  >;
 }) => {
   const approved = item.is_approved.toLowerCase() === "approved";
 
@@ -283,13 +325,27 @@ const MediaCard = ({
           <img
             src={item.filepath}
             alt="testimony"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview({
+                type: "image",
+                src: item.filepath,
+              });
+            }}
           />
         ) : (
           <video
             src={item.filepath}
-            controls
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover cursor-pointer"
+            muted
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview({
+                type: "video",
+                src: item.filepath,
+              });
+            }}
           />
         )}
       </div>

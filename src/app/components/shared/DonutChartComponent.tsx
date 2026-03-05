@@ -13,11 +13,16 @@ type DonutChartProps = {
     value: number;
   }[];
   height?: number;
+  colorMap?: Record<string, string>;
 };
 
-const COLORS = ["#3b82f6", "#ec4899", "#22c55e", "#f59e0b"];
+const DEFAULT_COLORS = ["#3b82f6", "#ec4899", "#22c55e", "#f59e0b"];
 
-const DonutChartComponent = ({ data, height = 220 }: DonutChartProps) => {
+const DonutChartComponent = ({
+  data,
+  height = 220,
+  colorMap = {},
+}: DonutChartProps) => {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <PieChart>
@@ -29,8 +34,14 @@ const DonutChartComponent = ({ data, height = 220 }: DonutChartProps) => {
           outerRadius={80}
           paddingAngle={3}
         >
-          {data.map((_, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          {data.map((entry, index) => (
+            <Cell
+              key={`cell-${entry.name}`}
+              fill={
+                colorMap[entry.name] ??
+                DEFAULT_COLORS[index % DEFAULT_COLORS.length]
+              }
+            />
           ))}
         </Pie>
 

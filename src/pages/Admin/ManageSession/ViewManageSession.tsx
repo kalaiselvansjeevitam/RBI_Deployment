@@ -21,23 +21,75 @@ import "react-datepicker/dist/react-datepicker.css";
 // import { ROUTE_URL } from "../../../app/core/constants/coreUrl";
 import AdminViewSheet from "./shared/AdminViewSheet";
 import { Button } from "../../../app/components/ui/button";
+import { useSearchParams } from "react-router-dom";
 
 export const ViewManageSession = () => {
   const [loader, setLoader] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 10;
   const { mutateAsync: getSchoolDashboradData } = useGetgetWorkshopList();
   const [schoolSheetData, setSchoolSheetData] = useState<Workshop[]>([]);
   const [statusList, setStatusList] = useState<string[]>([]);
   const [districtList, setDistrictList] = useState<any[]>([]);
-  const [vleList, setVleList] = useState<any[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  const [currentPage, setCurrentPage] = useState(
+    Number(searchParams.get("page") ?? 0),
+  );
+
+  const [districtfilter, setDistrictFilter] = useState(
+    searchParams.get("district") ?? "",
+  );
+
+  const [workshopStatusfilter, setWorkshopStatusFilter] = useState(
+    searchParams.get("status") ?? "",
+  );
+
+  const [vleIdfilter, setVleIdFilter] = useState(searchParams.get("vle") ?? "");
+
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    searchParams.get("startDate")
+      ? new Date(searchParams.get("startDate")!)
+      : undefined,
+  );
+
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    searchParams.get("endDate")
+      ? new Date(searchParams.get("endDate")!)
+      : undefined,
+  );
+
+  useEffect(() => {
+    setSearchParams({
+      district: districtfilter,
+      status: workshopStatusfilter,
+      vle: vleIdfilter,
+      startDate: startDate ? formatDate(startDate) : "",
+      endDate: endDate ? formatDate(endDate) : "",
+      page: String(currentPage),
+    });
+  }, [
+    districtfilter,
+    workshopStatusfilter,
+    vleIdfilter,
+    startDate,
+    endDate,
+    currentPage,
+  ]);
+  useEffect(() => {
+    if (districtfilter) {
+      fetchData();
+    }
+  }, []);
+
+  const [vleList, setVleList] = useState<any[]>([]);
   const { mutateAsync: getWorkshopStatuses } = useGetWorkShopParams();
   const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: getVles } = useGetVleParams();
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(
     null,
   );
+  const [searchInput, setSearchInput] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
 
   const clearFilters = () => {
     setDistrictFilter("");
@@ -70,11 +122,6 @@ export const ViewManageSession = () => {
   }, []);
 
   const [totalCount, setTotalCount] = useState(0);
-  const [districtfilter, setDistrictFilter] = useState<string>(""); // mandatory
-  const [workshopStatusfilter, setWorkshopStatusFilter] = useState<string>("");
-  const [vleIdfilter, setVleIdFilter] = useState<string>("");
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
   const [open, setOpen] = useState(false);
   const formatDate = (date?: Date) => {
     if (!date) return "";
@@ -143,11 +190,24 @@ export const ViewManageSession = () => {
   const getOffsetForPage = (page: number): number => {
     return page * itemsPerPage;
   };
-  const fetchData = async () => {
-    if (!districtfilter) {
+  const fetchData = async ({
+    isSearch = false,
+    overrideSearch,
+  }: {
+    isSearch?: boolean;
+    overrideSearch?: string;
+  } = {}) => {
+    if (!isSearch && !districtfilter) {
       Swal.fire("Validation Error", "District is mandatory", "warning");
       return;
     }
+    if (isSearch) {
+      if (searchInput == "") {
+        Swal.fire("Validation Error", "Please enter VLE ID", "warning");
+        return;
+      }
+    }
+
     const isOnlyOneDateSelected =
       (startDate && !endDate) || (!startDate && endDate);
 
@@ -171,6 +231,7 @@ export const ViewManageSession = () => {
         start_date: formatDate(startDate),
         end_date: formatDate(endDate),
         district: districtfilter,
+        search_by_vle: overrideSearch ?? appliedSearch ?? "",
       });
 
       const sourceData = result?.data ?? [];
@@ -233,32 +294,51 @@ export const ViewManageSession = () => {
       key: "actions",
       label: "Actions",
       align: "center",
-      render: (_: any, row: Workshop) => (
-        <div className="flex justify-center gap-2">
-          {row.workshop_status !== "Approved" && (
+      render: (_: any, row: Workshop) => {
+        const status = row.workshop_status;
+
+        const isApproved = status === "Approved";
+        const isRejected = status === "Rejected";
+
+        return (
+          <div className="flex justify-center gap-2">
+            {/* APPROVE */}
             <button
               onClick={() => handleApproveWorkshop(Number(row.workshop_id))}
-              className="bg-green-600 text-white px-2 py-1 rounded-md text-xs"
+              disabled={isApproved}
+              className={`px-2 py-1 rounded-md text-xs text-white
+          ${
+            isApproved
+              ? "bg-green-300 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
+          }
+        `}
             >
               Approve
             </button>
-          )}
 
-          {row.workshop_status !== "Rejected" && (
+            {/* REJECT */}
             <button
               onClick={() => handleRejectWorkshop(Number(row.workshop_id))}
-              className="bg-red-600 text-white px-2 py-1 rounded-md text-xs"
+              disabled={isApproved || isRejected}
+              className={`px-2 py-1 rounded-md text-xs text-white
+          ${
+            isApproved || isRejected
+              ? "bg-red-300 cursor-not-allowed"
+              : "bg-red-600 hover:bg-red-700"
+          }
+        `}
             >
               Reject
             </button>
-          )}
-        </div>
-      ),
+          </div>
+        );
+      },
     },
   ];
   useEffect(() => {
     if (districtfilter) {
-      fetchData();
+      fetchData({ isSearch: false });
     }
   }, [currentPage]);
 
@@ -372,10 +452,11 @@ export const ViewManageSession = () => {
 
           <Button
             onClick={() => {
+              setSearchInput("");
+              setAppliedSearch("");
               setCurrentPage(0);
-              fetchData();
+              fetchData({ isSearch: false });
             }}
-            className="hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-semibold h-[38px]"
           >
             Apply
           </Button>
@@ -386,11 +467,35 @@ export const ViewManageSession = () => {
           >
             Clear
           </button>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Search by VLE ID"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="bg-white border border-gray-400 rounded-md px-3 py-2 text-sm w-40
+      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+
+            <Button
+              onClick={() => {
+                setAppliedSearch(searchInput);
+                setCurrentPage(0);
+                fetchData({
+                  isSearch: true,
+                  overrideSearch: searchInput,
+                });
+              }}
+            >
+              Search
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Count */}
-      <div className="flex justify-between items-center text-sm mt-3 px-4 pt-3">
+      <div className="flex items-center text-sm mt-3 px-4 pt-3">
+        {/* LEFT */}
         <div className="text-gray-600 font-bold">Total Count: {totalCount}</div>
       </div>
 
