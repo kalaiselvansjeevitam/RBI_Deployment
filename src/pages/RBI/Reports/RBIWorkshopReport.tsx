@@ -622,8 +622,6 @@ export default function RBIWorkshopReport() {
                     const vleId = e.target.value;
 
                     setSelectedVleId(vleId);
-
-                    // 🔴 Clear location fields when VLE is selected
                     if (vleId) {
                       setSelectedDistrict("");
                       setSelectedBlock("");

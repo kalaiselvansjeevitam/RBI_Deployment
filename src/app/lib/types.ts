@@ -451,9 +451,20 @@ export interface testimonyAlert {
   rejected_reason: string;
 }
 
+export interface ReminderAlert {
+  id: number;
+  workshop_name: string;
+  date: string;
+  from_time: string;
+  to_time: string;
+  reminder: string;
+  work_shop_status: string;
+}
+
 export interface getAlertsForVleRes {
   result: string;
   message: string;
   data_workshop: WorkshopAlert[];
   data_testimony: testimonyAlert[];
+  reminder: ReminderAlert;
 }

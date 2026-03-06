@@ -53,12 +53,9 @@ type SchoolDetailsParams = {
 };
 
 type UserUpdateParams = {
-  name: string;
-  block_panchayat: string;
-  gram_panchayat: string;
-  gram_panchayat_code: string;
-  district_name: string;
-  salutations: string;
+  csc_user_id: string;
+  mobile_number: string;
+  email_id: string;
   change_user_id: string;
 };
 
@@ -360,24 +357,18 @@ export const useGetgetallusers = () =>
 export const useGetUpdateUser = () =>
   useMutation({
     mutationFn: ({
-      name,
-      block_panchayat,
-      gram_panchayat,
-      gram_panchayat_code,
-      district_name,
-      salutations,
+      csc_user_id,
+      mobile_number,
+      email_id,
       change_user_id,
     }: UserUpdateParams) => {
       return POST<GetResponse>({
         url: API_URL.updateUsers,
         data: {
-          name: name,
-          block_panchayat: block_panchayat,
-          gram_panchayat: gram_panchayat,
-          gram_panchayat_code: gram_panchayat_code,
-          district_name: district_name,
+          csc_user_id: csc_user_id,
+          mobile_number: mobile_number,
+          email_id: email_id,
           change_user_id: change_user_id,
-          salutations: salutations,
         },
       });
     },
@@ -515,6 +506,16 @@ export const useGetTestimoniesByWorkshop = () =>
     mutationFn: (data: { workshop_id: string }) => {
       return POST<TestimonyResponse>({
         url: API_URL.getTestimonyByWorkshop,
+        data,
+      });
+    },
+  });
+
+export const useGetupdateReminder = () =>
+  useMutation({
+    mutationFn: (data: { workshop_id: string; reminder_text: string }) => {
+      return POST<GetResponse>({
+        url: API_URL.getRemainder,
         data,
       });
     },

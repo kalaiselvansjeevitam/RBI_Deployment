@@ -340,7 +340,7 @@ Registered On: ${citizen.created_at}
                     <Button
                       onClick={() =>
                         navigate(
-                          `${ROUTE_URL.testimonyByWorkshop}?workshop_id=${workshopId}`,
+                          `${ROUTE_URL.testimonyByRBI}?workshop_id=${workshopId}`,
                         )
                       }
                       className="px-3 py-1 text-xs font-semibold rounded-md text-white hover:bg-blue-700"

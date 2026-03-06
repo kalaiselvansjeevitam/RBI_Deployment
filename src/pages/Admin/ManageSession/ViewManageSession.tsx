@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import {
   useGetDistrictParams,
   useGetgetWorkshopList,
+  useGetupdateReminder,
   useGetupdateWorkshopStatusByAdmin,
   useGetVleParams,
   useGetWorkShopParams,
@@ -27,6 +28,7 @@ export const ViewManageSession = () => {
   const [loader, setLoader] = useState(false);
   const itemsPerPage = 10;
   const { mutateAsync: getSchoolDashboradData } = useGetgetWorkshopList();
+  const { mutateAsync: getUpdateRemainder } = useGetupdateReminder();
   const [schoolSheetData, setSchoolSheetData] = useState<Workshop[]>([]);
   const [statusList, setStatusList] = useState<string[]>([]);
   const [districtList, setDistrictList] = useState<any[]>([]);
@@ -249,6 +251,12 @@ export const ViewManageSession = () => {
       setLoader(false);
     }
   };
+  const [openReminder, setOpenReminder] = useState(false);
+  const [reminderText, setReminderText] = useState("");
+  const [reminderWorkshopId, setReminderWorkshopId] = useState<string | null>(
+    null,
+  );
+  const [reminderLoading, setReminderLoading] = useState(false);
 
   // const navigate = useNavigate();
 
@@ -287,6 +295,22 @@ export const ViewManageSession = () => {
           }}
         >
           View
+        </Button>
+      ),
+    },
+    {
+      key: "reminder",
+      label: "Reminder",
+      align: "center",
+      render: (_value, row: Workshop) => (
+        <Button
+          size="sm"
+          onClick={() => {
+            setReminderWorkshopId(row.workshop_id);
+            setOpenReminder(true);
+          }}
+        >
+          Reminder
         </Button>
       ),
     },
@@ -522,6 +546,74 @@ export const ViewManageSession = () => {
         workshopId={selectedWorkshopId}
         openClose={() => setOpen(false)}
       />
+
+      {/* Reminder Modal */}
+      {openReminder && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white p-6 rounded-lg w-[400px]">
+            <h2 className="text-lg font-semibold mb-3">Send Reminder</h2>
+
+            <textarea
+              className="w-full border rounded p-2 mb-4"
+              placeholder="Enter reminder message..."
+              value={reminderText}
+              onChange={(e) => setReminderText(e.target.value)}
+            />
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setOpenReminder(false);
+                  setReminderText("");
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                disabled={reminderLoading}
+                onClick={async () => {
+                  if (!reminderText) {
+                    Swal.fire(
+                      "Validation",
+                      "Reminder text is required",
+                      "warning",
+                    );
+                    return;
+                  }
+
+                  try {
+                    setReminderLoading(true);
+
+                    const res = await getUpdateRemainder({
+                      workshop_id: reminderWorkshopId ?? "",
+                      reminder_text: reminderText,
+                    });
+                    if (res.result.toLowerCase() == "success") {
+                      Swal.fire("Success", res.message, "success");
+                    }
+                    setOpenReminder(false);
+                    setReminderText("");
+                  } catch (error: any) {
+                    // ✅ backend error message
+                    const message =
+                      error?.response?.data?.message ||
+                      error?.message ||
+                      "Approval failed";
+
+                    Swal.fire("Error", message, "error");
+                  } finally {
+                    setReminderLoading(false);
+                  }
+                }}
+              >
+                {reminderLoading ? "Sending..." : "Submit"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

@@ -1,20 +1,28 @@
-import type { testimonyAlert, WorkshopAlert } from "../../../../app/lib/types";
+import type {
+  ReminderAlert,
+  testimonyAlert,
+  WorkshopAlert,
+} from "../../../../app/lib/types";
 
 interface AlertCardProps {
   title: string;
-  alerts: (WorkshopAlert | testimonyAlert)[];
+  alerts: (WorkshopAlert | testimonyAlert | ReminderAlert)[];
 }
 
 /* ---------- TYPE GUARDS ---------- */
-const isWorkshopAlert = (
-  alert: WorkshopAlert | testimonyAlert,
-): alert is WorkshopAlert => {
-  return "work_shop_status" in alert;
+type AlertType = WorkshopAlert | testimonyAlert | ReminderAlert;
+
+/* ---------- TYPE GUARDS ---------- */
+
+const isReminderAlert = (alert: AlertType): alert is ReminderAlert => {
+  return "reminder" in alert;
 };
 
-const isTestimonyAlert = (
-  alert: WorkshopAlert | testimonyAlert,
-): alert is testimonyAlert => {
+const isWorkshopAlert = (alert: AlertType): alert is WorkshopAlert => {
+  return "work_shop_status" in alert && !("reminder" in alert);
+};
+
+const isTestimonyAlert = (alert: AlertType): alert is testimonyAlert => {
   return "media_type" in alert;
 };
 
@@ -43,6 +51,35 @@ const AlertCard = ({ title, alerts }: AlertCardProps) => {
             </p>
 
             {/* ---------- WORKSHOP ALERT ---------- */}
+            {/* ---------- REMINDER ALERT ---------- */}
+            {isReminderAlert(alert) && (
+              <>
+                <p>
+                  <span className="font-semibold">Workshop:</span>{" "}
+                  {alert.workshop_name}
+                </p>
+
+                <p>
+                  <span className="font-semibold">Status:</span>{" "}
+                  <span
+                    className={`${
+                      alert.work_shop_status === "Approved"
+                        ? "text-green-600"
+                        : alert.work_shop_status === "Rejected"
+                          ? "text-red-600"
+                          : "text-yellow-600"
+                    }`}
+                  >
+                    {alert.work_shop_status}
+                  </span>
+                </p>
+
+                <p className="text-red-600">
+                  <span className="font-semibold">Reminder:</span>{" "}
+                  {alert.reminder}
+                </p>
+              </>
+            )}
             {isWorkshopAlert(alert) && (
               <>
                 <p>

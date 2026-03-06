@@ -171,7 +171,12 @@ const VLEDashboard = () => {
         {alertLoading ? (
           <p className="text-center text-gray-500">Loading alerts...</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <AlertCard
+              title="Reminder Alerts"
+              alerts={alerts?.reminder ? [alerts.reminder] : []}
+            />
+
             <AlertCard
               title="Workshop Alerts"
               alerts={alerts?.data_workshop ?? []}

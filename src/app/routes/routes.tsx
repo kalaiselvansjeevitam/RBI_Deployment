@@ -51,6 +51,7 @@ import VideoScriptsFAQ from "../../pages/VLE/FAQ/VideoScriptsFAQ";
 import RBIWorkshopReport from "../../pages/RBI/Reports/RBIWorkshopReport";
 import { CreateIEC } from "../../pages/Admin/CreateIECMaterial/CreateIEC";
 import SubCreateUser from "../../pages/SubAdmin/CreateUser";
+import TestimonyByRBI from "../../pages/RBI/Reports/shared/testimonybyworkshop";
 
 export const authProtectedRoutes = [
   {
@@ -114,7 +115,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.testimonyByWorkshop,
         element: (
-          <RequireRole allowedRoles={["admin", "rbi"]}>
+          <RequireRole allowedRoles={["admin"]}>
             <TestimonyByWorkshop />
           </RequireRole>
         ),
@@ -124,6 +125,14 @@ export const authProtectedRoutes = [
         element: (
           <RequireRole allowedRoles={["admin"]}>
             <CreateLocationManage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.testimonyByRBI,
+        element: (
+          <RequireRole allowedRoles={["rbi"]}>
+            <TestimonyByRBI />
           </RequireRole>
         ),
       },

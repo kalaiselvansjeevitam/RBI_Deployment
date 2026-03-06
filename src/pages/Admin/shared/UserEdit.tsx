@@ -8,19 +8,20 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import type {
   AllUser,
-  BlockPanchayatRes,
-  District,
-  GetDistrictListRes,
-  GramPanchayatRes,
+  // BlockPanchayatRes,
+  // District,
+  // GetDistrictListRes,
+  // GramPanchayatRes,
 } from "../../../app/lib/types";
 import {
-  useGetBlockPanchayat,
-  useGetDistrictParams,
-  useGetGramPanchayat,
+  // useGetBlockPanchayat,
+  // useGetDistrictParams,
+  // useGetGramPanchayat,
   useGetUpdateUser,
 } from "../../../app/core/api/Admin";
 import { Button } from "../../../app/components/ui/button";
 import { Loader } from "lucide-react";
+// import { Loader } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -30,51 +31,58 @@ type Props = {
 
 const UserEditSheet = ({ open, user, onClose }: Props) => {
   const { mutateAsync: updateUser } = useGetUpdateUser();
-  const [districts, setDistricts] = useState<District[]>([]);
-  const { mutateAsync: getBlockPanchayat } = useGetBlockPanchayat();
-  const { mutateAsync: getGramPanchayat } = useGetGramPanchayat();
-  const [blockPanchayats, setBlockPanchayats] = useState<BlockPanchayatRes[]>(
-    [],
-  );
-  const [gramPanchayats, setGramPanchayats] = useState<GramPanchayatRes[]>([]);
-  const [loadingdist, setLoadingdist] = useState(false);
-  const [loadingbp, setLoadingbp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  // const [districts, setDistricts] = useState<District[]>([]);
+  // const { mutateAsync: getBlockPanchayat } = useGetBlockPanchayat();
+  // const { mutateAsync: getGramPanchayat } = useGetGramPanchayat();
+  // const [blockPanchayats, setBlockPanchayats] = useState<BlockPanchayatRes[]>(
+  //   [],
+  // );
+  // // const [gramPanchayats, setGramPanchayats] = useState<GramPanchayatRes[]>([]);
+  // const [loadingdist, setLoadingdist] = useState(false);
+  // const [loadingbp, setLoadingbp] = useState(false);
   const [formData, setForm] = useState({
-    name: "",
-    block_panchayat: "",
-    gram_panchayat: "",
-    gram_panchayat_code: "",
-    district_name: "",
-    salutations: "",
+    csc_user_id: "",
+    mobile_number: "",
+    email_id: "",
+    // name: "",
+    // block_panchayat: "",
+    // gram_panchayat: "",
+    // gram_panchayat_code: "",
+    // district_name: "",
+    // salutations: "",
     change_user_id: "",
   });
-  const { mutateAsync: getDistricts } = useGetDistrictParams();
+  // const { mutateAsync: getDistricts } = useGetDistrictParams();
 
-  useEffect(() => {
-    const fetchDistricts = async () => {
-      try {
-        const res: GetDistrictListRes = await getDistricts();
-        if (res?.result === "success") {
-          setDistricts(res.list);
-        }
-      } catch (error) {
-        console.error("Failed to fetch districts", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchDistricts = async () => {
+  //     try {
+  //       const res: GetDistrictListRes = await getDistricts();
+  //       if (res?.result === "success") {
+  //         setDistricts(res.list);
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to fetch districts", error);
+  //     }
+  //   };
 
-    fetchDistricts();
-  }, [getDistricts]);
+  //   fetchDistricts();
+  // }, [getDistricts]);
 
   /* ---------- PREFILL FORM ---------- */
   useEffect(() => {
     if (user) {
       setForm({
-        name: user.name || "",
-        block_panchayat: user.block_panchayat || "",
-        gram_panchayat: user.gram_panchayat || "",
-        gram_panchayat_code: user.gram_panchayat_code || "",
-        district_name: user.district_name || "",
-        salutations: user.salutations || "",
+        csc_user_id: user.csc_user_id || "",
+        mobile_number: user.mobile_number || "",
+        email_id: user.email_id || "",
+        // name: user.name || "",
+        // block_panchayat: user.block_panchayat || "",
+        // gram_panchayat: user.gram_panchayat || "",
+        // gram_panchayat_code: user.gram_panchayat_code || "",
+        // district_name: user.district_name || "",
+        // salutations: user.salutations || "",
         change_user_id: user.unique_user_id || "",
       });
     }
@@ -83,6 +91,7 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
   /* ---------- SUBMIT ---------- */
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       const response = await updateUser(formData);
 
       Swal.fire({
@@ -92,7 +101,7 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
         timer: 1500,
         showConfirmButton: false,
       });
-
+      setLoading(false);
       onClose(true);
     } catch (error: any) {
       Swal.fire({
@@ -103,113 +112,116 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
         allowOutsideClick: false,
         showConfirmButton: false,
       });
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
-  async function handleLocationChange(districtName: string): Promise<void> {
-    setLoadingdist(true);
-    // set district in form
-    setForm((prev) => ({
-      ...prev,
-      district: districtName,
-      block_panchayat: "", // reset dependent field
-      gram_panchayat: "",
-      gram_panchayat_code: "",
-    }));
+  // async function handleLocationChange(districtName: string): Promise<void> {
+  //   setLoadingdist(true);
+  //   // set district in form
+  //   setForm((prev) => ({
+  //     ...prev,
+  //     district: districtName,
+  //     block_panchayat: "", // reset dependent field
+  //     gram_panchayat: "",
+  //     gram_panchayat_code: "",
+  //   }));
 
-    if (!districtName) {
-      setBlockPanchayats([]);
-      setLoadingdist(false);
-      return;
-    }
+  //   if (!districtName) {
+  //     setBlockPanchayats([]);
+  //     setLoadingdist(false);
+  //     return;
+  //   }
 
-    try {
-      const response = await getBlockPanchayat({
-        district: districtName, // 👈 passing district name
-      });
+  //   try {
+  //     const response = await getBlockPanchayat({
+  //       district: districtName, // 👈 passing district name
+  //     });
 
-      if (response?.result === "success") {
-        setBlockPanchayats(response.list);
-      } else {
-        setBlockPanchayats([]);
-      }
-    } catch (error) {
-      console.error("Failed to fetch block panchayat", error);
-      setBlockPanchayats([]);
-    } finally {
-      setLoadingdist(false);
-    }
-  }
-  async function handleGramPanchayatChange(
-    blockPanchayatName: string,
-  ): Promise<void> {
-    setLoadingbp(true);
+  //     if (response?.result === "success") {
+  //       setBlockPanchayats(response.list);
+  //     } else {
+  //       setBlockPanchayats([]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch block panchayat", error);
+  //     setBlockPanchayats([]);
+  //   } finally {
+  //     setLoadingdist(false);
+  //   }
+  // }
+  // async function handleGramPanchayatChange(
+  //   blockPanchayatName: string,
+  // ): Promise<void> {
+  //   setLoadingbp(true);
 
-    // set selected block panchayat in form
-    setForm((prev) => ({
-      ...prev,
-      block_panchayat: blockPanchayatName,
-      gram_panchayat: "", // reset dependent field
-    }));
+  //   // set selected block panchayat in form
+  //   setForm((prev) => ({
+  //     ...prev,
+  //     block_panchayat: blockPanchayatName,
+  //     gram_panchayat: "", // reset dependent field
+  //   }));
 
-    if (!blockPanchayatName) {
-      setGramPanchayats([]);
-      setLoadingbp(false);
-      return;
-    }
+  //   if (!blockPanchayatName) {
+  //     setGramPanchayats([]);
+  //     setLoadingbp(false);
+  //     return;
+  //   }
 
-    try {
-      const response = await getGramPanchayat({
-        block_panchayat_name: blockPanchayatName,
-      });
+  //   try {
+  //     const response = await getGramPanchayat({
+  //       block_panchayat_name: blockPanchayatName,
+  //     });
 
-      if (response?.result === "success") {
-        setGramPanchayats(response.list);
-      } else {
-        setGramPanchayats([]);
-      }
-    } catch (error) {
-      console.error("Failed to fetch gram panchayat", error);
-      setGramPanchayats([]);
-    } finally {
-      setLoadingbp(false);
-    }
-  }
-  useEffect(() => {
-    if (!user?.district_name) return;
+  //     if (response?.result === "success") {
+  //       setGramPanchayats(response.list);
+  //     } else {
+  //       setGramPanchayats([]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch gram panchayat", error);
+  //     setGramPanchayats([]);
+  //   } finally {
+  //     setLoadingbp(false);
+  //   }
+  // }
+  // useEffect(() => {
+  //   if (!user?.district_name) return;
 
-    (async () => {
-      setLoadingdist(true);
-      try {
-        const res = await getBlockPanchayat({
-          district: user.district_name,
-        });
+  //   (async () => {
+  //     setLoadingdist(true);
+  //     try {
+  //       const res = await getBlockPanchayat({
+  //         district: user.district_name,
+  //       });
 
-        if (res?.result === "success") {
-          setBlockPanchayats(res.list);
-        }
-      } finally {
-        setLoadingdist(false);
-      }
-    })();
-  }, [user?.district_name]);
-  useEffect(() => {
-    if (!user?.block_panchayat) return;
+  //       if (res?.result === "success") {
+  //         setBlockPanchayats(res.list);
+  //       }
+  //     } finally {
+  //       setLoadingdist(false);
+  //     }
+  //   })();
+  // }, [user?.district_name]);
+  // useEffect(() => {
+  //   if (!user?.block_panchayat) return;
 
-    (async () => {
-      setLoadingbp(true);
-      try {
-        const res = await getGramPanchayat({
-          block_panchayat_name: user.block_panchayat,
-        });
+  //   (async () => {
+  //     setLoadingbp(true);
+  //     try {
+  //       const res = await getGramPanchayat({
+  //         block_panchayat_name: user.block_panchayat,
+  //       });
 
-        if (res?.result === "success") {
-          setGramPanchayats(res.list);
-        }
-      } finally {
-        setLoadingbp(false);
-      }
-    })();
-  }, [user?.block_panchayat]);
+  //       if (res?.result === "success") {
+  //         setGramPanchayats(res.list);
+  //       }
+  //     } finally {
+  //       setLoadingbp(false);
+  //     }
+  //   })();
+  // }, [user?.block_panchayat]);
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -226,16 +238,47 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
           {/* Username */}
           <div>
             <label className="text-sm font-medium">
-              Name<span className="text-red-500">*</span>
+              CSC ID<span className="text-red-500">*</span>
             </label>
             <input
               className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={formData.name}
-              onChange={(e) => setForm({ ...formData, name: e.target.value })}
+              value={formData.csc_user_id}
+              onChange={(e) =>
+                setForm({ ...formData, csc_user_id: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">
+              Mobile Number<span className="text-red-500">*</span>
+            </label>
+            <input
+              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={formData.mobile_number}
+              maxLength={10}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ""); // remove non-numbers
+                if (value.length <= 10) {
+                  setForm({ ...formData, mobile_number: value });
+                }
+              }}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">
+              Email<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={formData.email_id}
+              onChange={(e) =>
+                setForm({ ...formData, email_id: e.target.value })
+              }
             />
           </div>
           {/* Salutation */}
-          <div>
+          {/* <div>
             <label className="text-sm font-medium">
               Salutation<span className="text-red-500">*</span>
             </label>
@@ -252,8 +295,8 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
               <option value="ms">Ms</option>
             </select>
           </div>
-          <div>
-            <label className="text-sm font-medium">
+          <div> */}
+          {/* <label className="text-sm font-medium">
               District <span className="text-red-500">*</span>
             </label>
 
@@ -276,10 +319,10 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
                 Fetching data...
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Sub District */}
-          <div>
+          {/* <div>
             <label className="text-sm font-medium">
               Block Panchayat <span className="text-red-500">*</span>
             </label>
@@ -309,8 +352,8 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
               </div>
             )}
           </div>
-          <div>
-            <label className="text-sm font-medium">
+          <div> */}
+          {/* <label className="text-sm font-medium">
               Gram Panchayat <span className="text-red-500">*</span>
             </label>
 
@@ -344,18 +387,15 @@ const UserEditSheet = ({ open, user, onClose }: Props) => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
         </div>
 
         {/* Location (2 column) */}
 
         {/* Footer */}
         <div className="px-6 py-4 border-t bg-white sticky bottom-0">
-          <Button
-            onClick={handleSubmit}
-            className="w-full text-white py-2.5 rounded-md font-medium hover:bg-blue-700 transition"
-          >
-            Update User
+          <Button onClick={handleSubmit} className="w-full" disabled={loading}>
+            {loading ? <Loader className="animate-spin" /> : "Update User"}
           </Button>
         </div>
       </SheetContent>
