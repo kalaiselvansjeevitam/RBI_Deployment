@@ -173,6 +173,7 @@ export default function RBIWorkshopReport() {
 
   const [blockList, setBlockList] = useState<BlockItem[]>([]);
   const [gramList, setGramList] = useState<GramItem[]>([]);
+  const [filtertype, setfiltertype] = useState("Descending");
 
   // Optional session_id support (no UI input currently)
   // const [sessionId, setSessionId] = useState("");
@@ -320,6 +321,7 @@ export default function RBIWorkshopReport() {
   const fetchData = async (opts?: {
     reset?: boolean;
     offsetOverride?: number;
+    filterTypeOverride?: string;
   }) => {
     if (!canSubmit) {
       setError("Please select District, Block Panchayat, and Gram Panchayat.");
@@ -341,6 +343,7 @@ export default function RBIWorkshopReport() {
         offset: nextOffset,
         start_date: startDate, // backend expects keys; empty string ok if optional
         end_date: endDate,
+        filter_type: opts?.filterTypeOverride ?? filtertype,
       };
 
       const res = await fetchView(payload);
@@ -383,6 +386,7 @@ export default function RBIWorkshopReport() {
         gram_panchayat: selectedGram,
         vle_id: selectedVleId,
         workshop_status: workshopStatusfilter,
+        filter_type: filtertype,
       };
 
       const s = normalizeDate(startDate);
@@ -741,25 +745,49 @@ export default function RBIWorkshopReport() {
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Workshop ID
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    Workshop date
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
+                    <div className="flex items-center gap-1">
+                      Workshop Date
+                      {/* Up Arrow */}
+                      {/* Up Arrow */}
+                      <button
+                        onClick={() => {
+                          const next =
+                            filtertype === "Ascending"
+                              ? "Descending"
+                              : "Ascending";
+
+                          setfiltertype(next);
+                          fetchData({
+                            filterTypeOverride: next,
+                          });
+                        }}
+                        className={`text-xs ${
+                          filtertype === "Ascending"
+                            ? "text-blue-600"
+                            : "text-blue-600"
+                        }`}
+                      >
+                        {filtertype === "Ascending" ? "▲" : "▼"}
+                      </button>
+                    </div>
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Workshop Time
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Workshop Status
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
-                    CSC ID
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
+                    Mobile Number
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     VLE Name
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Workshop Reject Reason
                   </th>
                   {/* <th className="px-4 py-3 text-left font-medium text-gray-700">
@@ -779,16 +807,16 @@ export default function RBIWorkshopReport() {
                   {/* <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Center Address
                   </th> */}
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Participants Count
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Workshop Block Panchayat
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Workshop Gram Panchayat
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     View
                   </th>
                 </tr>
@@ -824,14 +852,16 @@ export default function RBIWorkshopReport() {
                     >
                       <td className="px-4 py-3">{r.workshop_id ?? "-"}</td>
 
-                      <td className="px-4 py-3">{r.workshop_date ?? "-"}</td>
+                      <td className="px-4 py-3">
+                        {r.workshop_date_format ?? "-"}
+                      </td>
                       <td className="px-4 py-3">
                         {r.workshop_from_time ?? "-"} -{" "}
                         {r.workshop_to_time ?? "-"}
                       </td>
 
                       <td className="px-4 py-3">{r.workshop_status ?? "-"}</td>
-                      <td className="px-4 py-3">{r.csc_id ?? "-"}</td>
+                      <td className="px-4 py-3">{r.mobile_number ?? "-"}</td>
                       <td className="px-4 py-3">
                         {(r as any).vle_name ?? "-"}
                       </td>

@@ -493,6 +493,7 @@ export const useGetgetWorkshopList = () =>
       end_date: string; // optional
       district: string;
       search_by_vle: string;
+      filter_type: string;
     }) => {
       return POST<WorkshopsResponse>({
         url: API_URL.getWorkShop,
@@ -727,6 +728,19 @@ export const useGetcreateIECMaterial = () =>
     mutationFn: (formData: FormData) => {
       return POST<GetResponsewithFile>({
         url: API_URL.createIECMaterial,
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    },
+  });
+
+export const useGetUploadLocation = () =>
+  useMutation({
+    mutationFn: (formData: FormData) => {
+      return POST<GetResponsewithFile>({
+        url: API_URL.uploadLocation, // 👈 correct API
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",

@@ -155,6 +155,30 @@ export const ViewManageSession = () => {
       Swal.fire("Error", message, "error");
     }
   };
+  const handlePendingWorkshop = async (workshopId: number) => {
+    try {
+      const res = await updateWorkshopStatus({
+        workshop_id: workshopId,
+        workshop_status: "Pending",
+        rejected_reason: "",
+      });
+
+      // ✅ success message from backend
+      Swal.fire(
+        "Success",
+        res?.message || "Workshop approved successfully",
+        "success",
+      );
+
+      fetchData(); // refresh table
+    } catch (error: any) {
+      // ✅ backend error message
+      const message =
+        error?.response?.data?.message || error?.message || "Approval failed";
+
+      Swal.fire("Error", message, "error");
+    }
+  };
 
   const handleRejectWorkshop = async (workshopId: number) => {
     const { value: reason } = await Swal.fire({
@@ -192,12 +216,17 @@ export const ViewManageSession = () => {
   const getOffsetForPage = (page: number): number => {
     return page * itemsPerPage;
   };
+  const [sortType, setSortType] = useState<"Ascending" | "Descending">(
+    "Descending",
+  );
   const fetchData = async ({
     isSearch = false,
     overrideSearch,
+    sortOverride,
   }: {
     isSearch?: boolean;
     overrideSearch?: string;
+    sortOverride?: "Ascending" | "Descending";
   } = {}) => {
     if (!isSearch && !districtfilter) {
       Swal.fire("Validation Error", "District is mandatory", "warning");
@@ -234,6 +263,7 @@ export const ViewManageSession = () => {
         end_date: formatDate(endDate),
         district: districtfilter,
         search_by_vle: overrideSearch ?? appliedSearch ?? "",
+        filter_type: sortOverride ?? sortType, // ✅ IMPORTANT
       });
 
       const sourceData = result?.data ?? [];
@@ -267,7 +297,29 @@ export const ViewManageSession = () => {
   const tableContents: Column[] = [
     { key: "workshop_id", label: "Workshop ID", align: "center" },
     { key: "workshop_name", label: "Workshop Name", align: "center" },
-    { key: "workshop_date", label: "Date", align: "left" },
+    {
+      key: "workshop_date_format",
+      label: (
+        <div className="flex items-center gap-1">
+          Workshop Date
+          <button
+            onClick={() => {
+              const next =
+                sortType === "Ascending" ? "Descending" : "Ascending";
+
+              setSortType(next);
+              fetchData({ sortOverride: next });
+            }}
+            className={`text-xs ${
+              sortType === "Ascending" ? "text-blue-600" : "text-blue-600"
+            }`}
+          >
+            {sortType === "Ascending" ? "▲" : "▼"}
+          </button>
+        </div>
+      ),
+      align: "left",
+    },
     {
       key: "time",
       label: "Time",
@@ -321,40 +373,53 @@ export const ViewManageSession = () => {
       render: (_: any, row: Workshop) => {
         const status = row.workshop_status;
 
-        const isApproved = status === "Approved";
-        const isRejected = status === "Rejected";
+        const showApprove = [
+          "Pending",
+          "Rejected",
+          "Rescheduled",
+          "Pending for Approval",
+        ].includes(status);
+
+        const showReject = [
+          "Pending",
+          "Approved",
+          "Rescheduled",
+          "Pending for Approval",
+        ].includes(status);
+
+        const showPending = ["Approved", "Rejected"].includes(status);
 
         return (
           <div className="flex justify-center gap-2">
             {/* APPROVE */}
-            <button
-              onClick={() => handleApproveWorkshop(Number(row.workshop_id))}
-              disabled={isApproved}
-              className={`px-2 py-1 rounded-md text-xs text-white
-          ${
-            isApproved
-              ? "bg-green-300 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
-          }
-        `}
-            >
-              Approve
-            </button>
+            {showApprove && (
+              <button
+                onClick={() => handleApproveWorkshop(Number(row.workshop_id))}
+                className="px-2 py-1 rounded-md text-xs text-white bg-green-600 hover:bg-green-700"
+              >
+                Approve
+              </button>
+            )}
 
             {/* REJECT */}
-            <button
-              onClick={() => handleRejectWorkshop(Number(row.workshop_id))}
-              disabled={isApproved || isRejected}
-              className={`px-2 py-1 rounded-md text-xs text-white
-          ${
-            isApproved || isRejected
-              ? "bg-red-300 cursor-not-allowed"
-              : "bg-red-600 hover:bg-red-700"
-          }
-        `}
-            >
-              Reject
-            </button>
+            {showReject && (
+              <button
+                onClick={() => handleRejectWorkshop(Number(row.workshop_id))}
+                className="px-2 py-1 rounded-md text-xs text-white bg-red-600 hover:bg-red-700"
+              >
+                Reject
+              </button>
+            )}
+
+            {/* PENDING */}
+            {showPending && (
+              <button
+                onClick={() => handlePendingWorkshop(Number(row.workshop_id))}
+                className="px-2 py-1 rounded-md text-xs text-white bg-yellow-500 hover:bg-yellow-600"
+              >
+                Pending
+              </button>
+            )}
           </div>
         );
       },

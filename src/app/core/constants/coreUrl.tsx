@@ -27,6 +27,7 @@ export const ROUTE_URL = {
   downloadWorkshopReport: "/rbi-deployment/admin/DownloadWorkshopReport",
   subAdminDashboard: "/rbi-deployment/admin/sub-admin-dashboard",
   createIEC: "/rbi-deployment/admin/create-IEC-Material",
+  uploadLocation: "/rbi-deployment/admin/upload-Location",
 
   vleIecMaterials: "/rbi-deployment/admin/vle/iec-materials",
   vleFaq: "/rbi-deployment/admin/vle/faq",
@@ -77,6 +78,7 @@ export const API_URL = {
   getPendingWorkshop: "/getPendingWorkshop",
   getworkshoptestimonyCount: "/workshop-testimony-count",
   uploadCitizens: "/uploadCitizens",
+  uploadLocation: "/uploadLocation",
   uploadTestimony: "/update-testimony",
   uploadVle: "/upload-vle",
   createIECMaterial: "/createIECMaterial",

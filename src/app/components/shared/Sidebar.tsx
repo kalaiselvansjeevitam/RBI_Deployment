@@ -118,6 +118,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           href: ROUTE_URL.createLoactionManager,
           icon: UserPlus,
         },
+        {
+          label: "Upload Locations",
+          href: ROUTE_URL.uploadLocation,
+          icon: Upload,
+        },
         // {
         //   label: "View Locations",
         //   href: ROUTE_URL.viewLocationManager,

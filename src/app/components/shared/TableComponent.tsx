@@ -18,7 +18,7 @@ import {
 } from "../ui/pagination";
 export type Column = {
   key: string;
-  label: string;
+  label: string | React.ReactNode;
   align?: "left" | "center" | "right";
   render?: (value: any, row: any) => React.ReactNode;
 };

@@ -401,7 +401,7 @@ export default function WorkshopsLt50Report() {
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Location
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Date
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">

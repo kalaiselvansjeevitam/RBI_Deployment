@@ -279,6 +279,10 @@ const RescheduleSheet = ({ open, workshop, openClose }: StudentSheetProps) => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   };
+  const getLastWorkingDate = () => {
+    const year = new Date().getFullYear();
+    return `${year}-03-31`;
+  };
 
   return (
     <Sheet
@@ -329,6 +333,7 @@ const RescheduleSheet = ({ open, workshop, openClose }: StudentSheetProps) => {
                 value={rescheduleData.date}
                 disabled={!isEditable}
                 min={getTodayDate()}
+                max={getLastWorkingDate()}
                 onChange={(e) => handleChange("date", e.target.value)}
               />
 
@@ -490,6 +495,7 @@ const InputRow = ({
   disabled,
   type = "text",
   min,
+  max,
 }: {
   label: string;
   value: string;
@@ -497,6 +503,7 @@ const InputRow = ({
   disabled?: boolean;
   type?: string;
   min?: string;
+  max?: string;
 }) => (
   <div className="flex flex-col gap-1 text-sm">
     <label className="font-medium text-gray-600">{label}</label>
@@ -506,6 +513,7 @@ const InputRow = ({
       onChange={onChange}
       disabled={disabled}
       min={min}
+      max={max}
       className={`border rounded-md px-3 py-1.5 ${
         disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"
       }`}

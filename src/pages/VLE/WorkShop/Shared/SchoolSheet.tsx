@@ -260,14 +260,14 @@ Registered On: ${citizen.created_at}
     Pending: "bg-yellow-100 text-yellow-700",
     Rejected: "bg-red-100 text-red-700",
     Cancelled: "bg-gray-300 text-gray-700",
-    SendingForApproval: "bg-purple-100 text-purple-700",
+    Rescheduled: "bg-purple-100 text-purple-700",
   };
 
   /* ---------- UI ---------- */
   const isEditable =
     workshop?.work_shop_status === "Pending" ||
-    workshop?.work_shop_status === "Rejected";
-
+    workshop?.work_shop_status === "Rejected" ||
+    workshop?.work_shop_status === "Rescheduled";
   return (
     <Sheet
       open={open}

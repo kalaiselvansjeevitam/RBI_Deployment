@@ -116,6 +116,7 @@ export const useDownloadRBIWorkshopReport = () =>
       gram_panchayat: string;
       vle_id: string;
       workshop_status: string;
+      filter_type: string;
     }) => {
       return POST<DownloadReportResponse>({
         url: API_URL.downloadRBIWorkshopReport,
@@ -265,6 +266,7 @@ export type WorkshoplistRes = {
 export type RBIWorkshopReportRow = {
   workshop_name: string;
   workshop_date: string;
+  workshop_date_format: string;
   workshop_from_time: string;
   workshop_to_time: string;
   workshop_district: string;
@@ -282,6 +284,7 @@ export type RBIWorkshopReportRow = {
   participants_count: string;
   workshop_block_panchayat: string;
   workshop_gram_panchayat: string;
+  mobile_number: string;
 };
 
 export type RBIWorkshopReportResponse = {
@@ -352,6 +355,7 @@ export const useViewWorkshopReport = () =>
       offset: number;
       workshop_status: string;
       vle_id: string;
+      filter_type: string;
     }) => {
       return POST<RBIWorkshopReportResponse>({
         url: API_URL.viewWorkShopReport,
@@ -364,6 +368,7 @@ export const useViewWorkshopReport = () =>
           offset: payload.offset,
           vle_id: payload.vle_id,
           workshop_status: payload.workshop_status,
+          filter_type: payload.filter_type,
         },
       });
     },

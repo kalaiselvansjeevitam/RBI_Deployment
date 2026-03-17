@@ -312,7 +312,7 @@ export default function SubCitizenDataReport() {
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Age
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Created Date
                   </th>
                 </tr>

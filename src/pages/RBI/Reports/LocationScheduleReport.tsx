@@ -313,7 +313,7 @@ export default function LocationScheduleReport() {
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Workshop Name
                   </th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">
                     Workshop Date
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">

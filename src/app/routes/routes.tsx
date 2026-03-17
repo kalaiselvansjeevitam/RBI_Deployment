@@ -52,6 +52,7 @@ import RBIWorkshopReport from "../../pages/RBI/Reports/RBIWorkshopReport";
 import { CreateIEC } from "../../pages/Admin/CreateIECMaterial/CreateIEC";
 import SubCreateUser from "../../pages/SubAdmin/CreateUser";
 import TestimonyByRBI from "../../pages/RBI/Reports/shared/testimonybyworkshop";
+import { UploadLocation } from "../../pages/Admin/LocationManager/uploadLocation";
 
 export const authProtectedRoutes = [
   {
@@ -121,6 +122,14 @@ export const authProtectedRoutes = [
         ),
       },
       {
+        path: ROUTE_URL.uploadLocation,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <UploadLocation />
+          </RequireRole>
+        ),
+      },
+      {
         path: ROUTE_URL.createLoactionManager,
         element: (
           <RequireRole allowedRoles={["admin"]}>
@@ -136,6 +145,7 @@ export const authProtectedRoutes = [
           </RequireRole>
         ),
       },
+
       // {
       //   path: ROUTE_URL.viewLocationManager,
       //   element: (

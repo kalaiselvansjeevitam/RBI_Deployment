@@ -161,7 +161,7 @@ export default function RBIDashboard() {
         ]),
       },
       {
-        title: "Under the Schedule\n(Total workshop pending)",
+        title: "Scheduled - Pending",
         value: cardValueInt([
           "total_pending",
           "pending",
@@ -172,7 +172,7 @@ export default function RBIDashboard() {
         to: "to-orange-400",
       },
       {
-        title: "Total Workshop Pending for Approval",
+        title: "Conducted - Pending Approval",
         value: cardValueInt([
           "total_completed",
           "completed",
@@ -183,7 +183,7 @@ export default function RBIDashboard() {
         to: "to-rose-500",
       },
       {
-        title: "Total Workshop Approved",
+        title: "Conducted - Approved",
         value: cardValueInt([
           "total_approved",
           "approved",

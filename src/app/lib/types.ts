@@ -298,6 +298,7 @@ export interface Workshop {
   vle_id: string;
   vle_mobile_number: string;
   vle_name: string;
+  workshop_date_format: string;
 }
 
 export interface WorkshopsResponse {
