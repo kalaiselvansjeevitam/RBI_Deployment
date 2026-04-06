@@ -555,6 +555,7 @@ export const useGetupdateWorkshopStatusByAdmin = () =>
       workshop_id: number;
       workshop_status: string;
       rejected_reason: string;
+      pass_key: string;
     }) => {
       return POST<GetResponse>({
         url: API_URL.updateWorkshopStatus,

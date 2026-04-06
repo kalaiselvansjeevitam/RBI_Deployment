@@ -77,7 +77,7 @@ const CreateWorkshop = () => {
     return today.toISOString().split("T")[0]; // yyyy-mm-dd
   };
 
-  const MAX_DATE = "2026-03-31";
+  const MAX_DATE = "2026-05-31";
 
   const validate = () => {
     const newErrors: Record<string, string> = {};

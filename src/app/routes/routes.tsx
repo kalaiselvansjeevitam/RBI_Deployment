@@ -53,6 +53,7 @@ import { CreateIEC } from "../../pages/Admin/CreateIECMaterial/CreateIEC";
 import SubCreateUser from "../../pages/SubAdmin/CreateUser";
 import TestimonyByRBI from "../../pages/RBI/Reports/shared/testimonybyworkshop";
 import { UploadLocation } from "../../pages/Admin/LocationManager/uploadLocation";
+import RBISubAdminWorkshopReport from "../../pages/RbiSubadmin/WorkshopReport";
 
 export const authProtectedRoutes = [
   {
@@ -142,6 +143,14 @@ export const authProtectedRoutes = [
         element: (
           <RequireRole allowedRoles={["rbi"]}>
             <TestimonyByRBI />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.RbisubAdminWorkshopReports,
+        element: (
+          <RequireRole allowedRoles={["rbi_sub_admin"]}>
+            <RBISubAdminWorkshopReport />
           </RequireRole>
         ),
       },

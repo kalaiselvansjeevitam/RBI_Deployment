@@ -66,6 +66,8 @@ export const ROUTE_URL = {
     "/rbi-deployment/admin/sub-admin-Reports/district-pending-complete",
   subAdminReportWorkshopsLt50:
     "/rbi-deployment/admin/sub-admin-Reports/workshops-lt-50",
+  RbisubAdminWorkshopReports:
+    "/rbi-deployment/admin/rbi-subadmin-workshop-Reports",
 };
 
 export const API_URL = {
@@ -140,6 +142,8 @@ export const API_URL = {
   viewCitizenDataByDistrictReport: "/view-citizen-data-by-district-report",
   viewWorkshopLookup: "/get-all-workshop-lookup",
   viewWorkShopReport: "/view-workshop-by-district-block-gram-panchayat-wise",
+  workShopForRBISubAdmin: "/workShopForRBISubAdmin",
+  downloadWorkshopRBISubAdmin: "/downloadWorkshopRBISubAdmin",
   viewLocationManagerWiseWorkshopReport:
     "/view-location-manager-wise-workshop-report",
   viewDistrictWiseByStatusWorkshopReport:

@@ -33,7 +33,7 @@ export const ViewManageSession = () => {
   const [statusList, setStatusList] = useState<string[]>([]);
   const [districtList, setDistrictList] = useState<any[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const [loadingRowId, setLoadingRowId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(
     Number(searchParams.get("page") ?? 0),
   );
@@ -53,6 +53,12 @@ export const ViewManageSession = () => {
       ? new Date(searchParams.get("startDate")!)
       : undefined,
   );
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("search") ?? "",
+  );
+  const [appliedSearch, setAppliedSearch] = useState(
+    searchParams.get("search") ?? "",
+  );
 
   const [endDate, setEndDate] = useState<Date | undefined>(
     searchParams.get("endDate")
@@ -68,6 +74,7 @@ export const ViewManageSession = () => {
       startDate: startDate ? formatDate(startDate) : "",
       endDate: endDate ? formatDate(endDate) : "",
       page: String(currentPage),
+      search: appliedSearch,
     });
   }, [
     districtfilter,
@@ -76,10 +83,16 @@ export const ViewManageSession = () => {
     startDate,
     endDate,
     currentPage,
+    appliedSearch,
   ]);
   useEffect(() => {
-    if (districtfilter) {
-      fetchData();
+    const urlSearch = searchParams.get("search") ?? "";
+
+    if (districtfilter || urlSearch) {
+      fetchData({
+        overrideSearch: urlSearch,
+        isSearch: !!urlSearch, // ✅ important
+      });
     }
   }, []);
 
@@ -90,8 +103,6 @@ export const ViewManageSession = () => {
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(
     null,
   );
-  const [searchInput, setSearchInput] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
 
   const clearFilters = () => {
     setDistrictFilter("");
@@ -132,35 +143,46 @@ export const ViewManageSession = () => {
   const { mutateAsync: updateWorkshopStatus } =
     useGetupdateWorkshopStatusByAdmin();
   const handleApproveWorkshop = async (workshopId: number) => {
+    const { value: passKey } = await Swal.fire({
+      title: "Approve Workshop",
+      input: "text",
+      inputLabel: "Enter Pass Key",
+      showCancelButton: true,
+      inputValidator: (value) => (!value ? "Pass key is required" : null),
+    });
+
+    if (!passKey) return;
+
+    setLoadingRowId(workshopId); // ✅ set row loading
+
     try {
       const res = await updateWorkshopStatus({
         workshop_id: workshopId,
         workshop_status: "Approved",
         rejected_reason: "",
+        pass_key: passKey,
       });
 
-      // ✅ success message from backend
-      Swal.fire(
-        "Success",
-        res?.message || "Workshop approved successfully",
-        "success",
-      );
-
-      fetchData(); // refresh table
+      Swal.fire("Success", res?.message || "Approved", "success");
+      fetchData();
     } catch (error: any) {
-      // ✅ backend error message
-      const message =
-        error?.response?.data?.message || error?.message || "Approval failed";
-
-      Swal.fire("Error", message, "error");
+      Swal.fire(
+        "Error",
+        error?.response?.data?.message || "Approval failed",
+        "error",
+      );
+    } finally {
+      setLoadingRowId(null); // ✅ reset
     }
   };
   const handlePendingWorkshop = async (workshopId: number) => {
+    setLoadingRowId(workshopId);
     try {
       const res = await updateWorkshopStatus({
         workshop_id: workshopId,
         workshop_status: "Pending",
         rejected_reason: "",
+        pass_key: "",
       });
 
       // ✅ success message from backend
@@ -177,39 +199,70 @@ export const ViewManageSession = () => {
         error?.response?.data?.message || error?.message || "Approval failed";
 
       Swal.fire("Error", message, "error");
+    } finally {
+      setLoadingRowId(null);
     }
   };
 
   const handleRejectWorkshop = async (workshopId: number) => {
-    const { value: reason } = await Swal.fire({
+    const { value: formValues } = await Swal.fire({
       title: "Reject Workshop",
-      input: "text",
-      inputLabel: "Reason for rejection",
-      inputPlaceholder: "Enter reason",
+      html: `
+  <label style="display:block; text-align:left; margin:8px 0 4px;">
+    Reason for rejection
+  </label>
+  <input id="swal-reason" class="swal2-input" placeholder="Enter reason" />
+
+  <label style="display:block; text-align:left; margin:8px 0 4px;">
+    Pass Key
+  </label>
+  <input id="swal-passkey" type="text" class="swal2-input" placeholder="Enter pass key" />
+`,
+      focusConfirm: false,
       showCancelButton: true,
-      inputValidator: (value) =>
-        !value ? "Rejection reason is required" : null,
+      preConfirm: () => {
+        const reason = (
+          document.getElementById("swal-reason") as HTMLInputElement
+        ).value;
+        const passKey = (
+          document.getElementById("swal-passkey") as HTMLInputElement
+        ).value;
+
+        if (!reason) {
+          Swal.showValidationMessage("Rejection reason is required");
+          return;
+        }
+
+        if (!passKey) {
+          Swal.showValidationMessage("Pass key is required");
+          return;
+        }
+
+        return { reason, passKey };
+      },
     });
 
-    if (!reason) return;
+    if (!formValues) return;
+    setLoadingRowId(workshopId);
 
     try {
       const res = await updateWorkshopStatus({
         workshop_id: workshopId,
         workshop_status: "Rejected",
-        rejected_reason: reason,
+        rejected_reason: formValues.reason,
+        pass_key: formValues.passKey, // ✅ added here
       });
 
-      // ✅ success message from backend
       Swal.fire("Success", res?.message || "Workshop Rejected", "success");
 
-      fetchData(); // refresh table
+      fetchData();
     } catch (error: any) {
-      // ✅ backend error message
       const message =
         error?.response?.data?.message || error?.message || "Rejection failed";
 
       Swal.fire("Error", message, "error");
+    } finally {
+      setLoadingRowId(null);
     }
   };
 
@@ -228,7 +281,7 @@ export const ViewManageSession = () => {
     overrideSearch?: string;
     sortOverride?: "Ascending" | "Descending";
   } = {}) => {
-    if (!isSearch && !districtfilter) {
+    if (!isSearch && !districtfilter && !appliedSearch) {
       Swal.fire("Validation Error", "District is mandatory", "warning");
       return;
     }
@@ -387,37 +440,45 @@ export const ViewManageSession = () => {
           "Pending for Approval",
         ].includes(status);
 
-        const showPending = ["Approved", "Rejected"].includes(status);
+        const showPending = [
+          "Approved",
+          "Rejected",
+          "Pending for Approval",
+        ].includes(status);
+        const isLoading = loadingRowId === Number(row.workshop_id);
 
         return (
           <div className="flex justify-center gap-2">
             {/* APPROVE */}
             {showApprove && (
               <button
+                disabled={isLoading}
                 onClick={() => handleApproveWorkshop(Number(row.workshop_id))}
-                className="px-2 py-1 rounded-md text-xs text-white bg-green-600 hover:bg-green-700"
+                className="px-2 py-1 rounded-md text-xs text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
               >
-                Approve
+                {isLoading ? "Loading..." : "Approve"}
               </button>
             )}
 
             {/* REJECT */}
             {showReject && (
               <button
+                disabled={isLoading}
                 onClick={() => handleRejectWorkshop(Number(row.workshop_id))}
-                className="px-2 py-1 rounded-md text-xs text-white bg-red-600 hover:bg-red-700"
+                className="px-2 py-1 rounded-md text-xs text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
               >
-                Reject
+                {isLoading ? "Loading..." : "Reject"}
               </button>
             )}
 
             {/* PENDING */}
             {showPending && (
               <button
+                disabled={isLoading}
                 onClick={() => handlePendingWorkshop(Number(row.workshop_id))}
-                className="px-2 py-1 rounded-md text-xs text-white bg-yellow-500 hover:bg-yellow-600"
+                className="px-2 py-1 rounded-md text-xs text-white bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50"
               >
-                Pending
+                {isLoading ? "Loading..." : "Pending"}
               </button>
             )}
           </div>
@@ -544,7 +605,12 @@ export const ViewManageSession = () => {
               setSearchInput("");
               setAppliedSearch("");
               setCurrentPage(0);
-              fetchData({ isSearch: false });
+              setSearchParams((prev) => ({
+                ...Object.fromEntries(prev),
+                search: "", // ✅ clear URL search also
+                page: "0",
+              }));
+              fetchData({ isSearch: false, overrideSearch: "" });
             }}
           >
             Apply
@@ -570,6 +636,11 @@ export const ViewManageSession = () => {
               onClick={() => {
                 setAppliedSearch(searchInput);
                 setCurrentPage(0);
+                setSearchParams((prev) => ({
+                  ...Object.fromEntries(prev),
+                  search: searchInput, // ✅ force update URL immediately
+                  page: "0",
+                }));
                 fetchData({
                   isSearch: true,
                   overrideSearch: searchInput,

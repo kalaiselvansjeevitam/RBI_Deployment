@@ -264,6 +264,9 @@ export default function DistrictStatusReport() {
                   <th className="px-4 py-3 text-left font-medium text-gray-700">
                     Rejected
                   </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700">
+                    Rescheduled
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -298,6 +301,9 @@ export default function DistrictStatusReport() {
                       </td>
                       <td className="px-4 py-3">
                         {Number(r.rejected_count ?? 0)}
+                      </td>
+                      <td className="px-4 py-3">
+                        {Number(r.rescheduled_count ?? 0)}
                       </td>
                     </tr>
                   ))

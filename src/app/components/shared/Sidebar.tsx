@@ -340,6 +340,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         },
       ],
     });
+  } else if (user_type?.toLowerCase() === "rbi_sub_admin") {
+    sidebarItems.splice(1, 0, {
+      icon: Home,
+      label: "Workshop Report",
+      href: ROUTE_URL.RbisubAdminWorkshopReports,
+    });
   }
 
   /* ---------------- HELPERS ---------------- */

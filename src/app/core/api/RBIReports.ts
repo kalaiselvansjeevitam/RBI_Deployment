@@ -429,6 +429,7 @@ export type DistrictStatusRow = {
   completed_count: string;
   approved_count: string;
   rejected_count: string;
+  rescheduled_count : string;
   citizens_count_lessthan_50: string;
 };
 
@@ -488,6 +489,58 @@ export const getWorkshopList = () =>
     mutationFn: () => {
       return POST<WorkshoplistRes>({
         url: API_URL.viewWorkshopLookup,
+      });
+    },
+  });
+
+export type RBISubAdminWorkshopReportRow = {
+  workshop_id: string;
+  workshop_name: string;
+  workshop_date: string;
+  workshop_date_format: string;
+  workshop_from_time: string;
+  workshop_to_time: string;
+  workshop_status: string;
+  workshop_rejected_reason: string;
+  vle_name: string;
+  csc_id: string;
+  participants_count: string;
+  workshop_district: string;
+  workshop_block_panchayat: string;
+  workshop_gram_panchayat: string;
+  location: string;
+  mobile_number: string;
+};
+
+export type RBISubAdminWorkshopReportResponse = {
+  status: "Success" | "Error";
+  message: string;
+  count: number;
+  data: RBISubAdminWorkshopReportRow[];
+};
+export type downloadWorkshopRBISubAdminResponse = {
+  status: string;
+  message: string;
+  data: string;
+};
+export const useViewRBISubAdminWorkshopReport = () =>
+  useMutation({
+    mutationFn: (payload: { offset: number; filter_type: string }) => {
+      return POST<RBISubAdminWorkshopReportResponse>({
+        url: API_URL.workShopForRBISubAdmin,
+        data: {
+          offset: payload.offset,
+          filter_type: payload.filter_type,
+        },
+      });
+    },
+  });
+
+export const usedownloadWorkshopRBISubAdmin = () =>
+  useMutation({
+    mutationFn: () => {
+      return POST<downloadWorkshopRBISubAdminResponse>({
+        url: API_URL.downloadWorkshopRBISubAdmin,
       });
     },
   });
