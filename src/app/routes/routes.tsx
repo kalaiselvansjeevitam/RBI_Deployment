@@ -141,7 +141,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.testimonyByRBI,
         element: (
-          <RequireRole allowedRoles={["rbi"]}>
+          <RequireRole allowedRoles={["rbi", "rbi_sub_admin"]}>
             <TestimonyByRBI />
           </RequireRole>
         ),
@@ -294,7 +294,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.viewCitizenByCard,
         element: (
-          <RequireRole allowedRoles={["vle", "admin", "rbi"]}>
+          <RequireRole allowedRoles={["vle", "admin", "rbi","rbi_sub_admin"]}>
             <ViewCitizenByCard />
           </RequireRole>
         ),
@@ -318,7 +318,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiWorkshopDateWise,
         element: (
-          <RequireRole allowedRoles={["rbi"]}>
+          <RequireRole allowedRoles={["rbi", "rbi_sub_admin"]}>
             <RBIWorkshopDateWise />
           </RequireRole>
         ),
@@ -351,7 +351,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiReportCitizenData,
         element: (
-          <RequireRole allowedRoles={["rbi"]}>
+          <RequireRole allowedRoles={["rbi", "rbi_sub_admin"]}>
             <CitizenDataReport />
           </RequireRole>
         ),
@@ -359,7 +359,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.rbiworkshopData,
         element: (
-          <RequireRole allowedRoles={["rbi"]}>
+          <RequireRole allowedRoles={["rbi", "rbi_sub_admin"]}>
             <RBIWorkshopReport />
           </RequireRole>
         ),

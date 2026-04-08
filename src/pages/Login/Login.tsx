@@ -47,7 +47,7 @@ const Login = () => {
       } else if (res.data.user_type.toLowerCase() === "sub_admin") {
         navigate(ROUTE_URL.subAdminDashboard, { replace: true });
       } else if (res.data.user_type.toLowerCase() === "rbi_sub_admin") {
-        navigate(ROUTE_URL.RbisubAdminWorkshopReports, { replace: true });
+        navigate(ROUTE_URL.rbiworkshopData, { replace: true });
       } else {
         navigate(ROUTE_URL.dashboard, { replace: true });
       }

@@ -134,6 +134,7 @@ export default function RBIWorkshopReport() {
   );
 
   const [offset, setOffset] = useState(Number(searchParams.get("offset") ?? 0));
+  const UserType = sessionStorage.getItem("user_type");
   useEffect(() => {
     setSearchParams({
       district: selectedDistrict,
@@ -211,8 +212,18 @@ export default function RBIWorkshopReport() {
     (async () => {
       setDistLoad(true);
       try {
-        const workStatusres = getWorkshopStatuses();
-        setStatusList((await workStatusres).data);
+        let statuses: string[] = [];
+
+        if (UserType === "rbi_sub_admin") {
+          // ✅ No API call
+          statuses = ["Pending", "Rescheduled"];
+        } else {
+          // ✅ Call API for other users
+          const res = await getWorkshopStatuses();
+          statuses = res?.data ?? [];
+        }
+
+        setStatusList(statuses);
         const VLEres = await getVLE({ get_by: "All" });
         setVleList(VLEres?.data ?? []);
         const res = await getDistricts();

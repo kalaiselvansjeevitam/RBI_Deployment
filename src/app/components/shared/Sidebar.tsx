@@ -341,10 +341,65 @@ const Sidebar: React.FC<SidebarProps> = ({
       ],
     });
   } else if (user_type?.toLowerCase() === "rbi_sub_admin") {
-    sidebarItems.splice(1, 0, {
-      icon: Home,
-      label: "Workshop Report",
-      href: ROUTE_URL.RbisubAdminWorkshopReports,
+    // sidebarItems.splice(2, 0, {
+    //   icon: BarChart3,
+    //   label: "Dashboard",
+    //   href: ROUTE_URL.rbiDashboard,
+    // });
+
+    // sidebarItems.splice(3, 0, {
+    //   icon: Calendar,
+    //   label: "Month View",
+    //   href: ROUTE_URL.rbiMonthView,
+    // });
+
+    // sidebarItems.splice(4, 0, {
+    //   icon: ClipboardList,
+    //   label: "Workshop Date Wise",
+    //   href: ROUTE_URL.rbiWorkshopDateWise,
+    // });
+
+    sidebarItems.splice(5, 0, {
+      icon: FileText,
+      label: "Reports",
+      href: ROUTE_URL.rbiworkshopData,
+      children: [
+        // {
+        //   label: "District Status",
+        //   href: ROUTE_URL.rbiReportDistrictStatus,
+        //   icon: View,
+        // },
+        // {
+        //   label: "Gender Participation",
+        //   href: ROUTE_URL.rbiReportGenderParticipation,
+        //   icon: View,
+        // },
+        // {
+        //   label: "Citizen Data",
+        //   href: ROUTE_URL.rbiReportCitizenData,
+        //   icon: View,
+        // },
+        {
+          label: "Workshop Data",
+          href: ROUTE_URL.rbiworkshopData,
+          icon: View,
+        },
+        // {
+        //   label: "Location Schedule",
+        //   href: ROUTE_URL.rbiReportLocationSchedule,
+        //   icon: View,
+        // },
+        // {
+        //   label: "Pending vs Completed",
+        //   href: ROUTE_URL.rbiReportDistrictPendingComplete,
+        //   icon: View,
+        // },
+        // {
+        //   label: "< 50 Attendees",
+        //   href: ROUTE_URL.rbiReportWorkshopsLt50,
+        //   icon: View,
+        // },
+      ],
     });
   }
 

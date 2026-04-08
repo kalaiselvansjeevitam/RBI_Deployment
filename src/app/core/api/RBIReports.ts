@@ -429,7 +429,7 @@ export type DistrictStatusRow = {
   completed_count: string;
   approved_count: string;
   rejected_count: string;
-  rescheduled_count : string;
+  rescheduled_count: string;
   citizens_count_lessthan_50: string;
 };
 
