@@ -161,13 +161,19 @@ export default function RBIDashboard() {
         ]),
       },
       {
-        title: "Scheduled - Pending",
+        title: "Scheduled - Pending - Non Commented",
         value: cardValueInt([
           "total_pending",
           "pending",
           "totalWorkshopPending",
           "total_workshop_pending",
         ]),
+        from: "from-amber-600",
+        to: "to-orange-300",
+      },
+      {
+        title: "Scheduled - Pending - Commented",
+        value: cardValueInt(["total_pending_reminder"]),
         from: "from-amber-300",
         to: "to-orange-400",
       },

@@ -54,6 +54,8 @@ import SubCreateUser from "../../pages/SubAdmin/CreateUser";
 import TestimonyByRBI from "../../pages/RBI/Reports/shared/testimonybyworkshop";
 import { UploadLocation } from "../../pages/Admin/LocationManager/uploadLocation";
 import RBISubAdminWorkshopReport from "../../pages/RbiSubadmin/WorkshopReport";
+import { DuplicateImages } from "../../pages/Admin/DuplicateImages/DuplicateImages";
+import { ImageDetails } from "../../pages/Admin/DuplicateImages/ImageDetails";
 
 export const authProtectedRoutes = [
   {
@@ -77,7 +79,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.adminDashboard,
         element: (
-          <RequireRole allowedRoles={["admin"]}>
+          <RequireRole allowedRoles={["admin", "AdminViewOnly"]}>
             <AdminDashboard />
           </RequireRole>
         ),
@@ -109,7 +111,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.viewSession,
         element: (
-          <RequireRole allowedRoles={["admin"]}>
+          <RequireRole allowedRoles={["admin", "AdminViewOnly"]}>
             <ViewManageSession />
           </RequireRole>
         ),
@@ -162,19 +164,35 @@ export const authProtectedRoutes = [
       //       <ViewLocationManagerPage />
       //     </RequireRole>
       //   ),
-      // },
+      // },duplicateImages
       {
         path: ROUTE_URL.downloadVLEReport,
         element: (
-          <RequireRole allowedRoles={["admin"]}>
+          <RequireRole allowedRoles={["admin", "AdminViewOnly"]}>
             <VLEReport />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.duplicateImages,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <DuplicateImages />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.duplicateImageDetails,
+        element: (
+          <RequireRole allowedRoles={["admin"]}>
+            <ImageDetails />
           </RequireRole>
         ),
       },
       {
         path: ROUTE_URL.downloadCitizenReport,
         element: (
-          <RequireRole allowedRoles={["admin"]}>
+          <RequireRole allowedRoles={["admin", "AdminViewOnly"]}>
             <CitizenReport />
           </RequireRole>
         ),
@@ -182,7 +200,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.downloadWorkshopReport,
         element: (
-          <RequireRole allowedRoles={["admin"]}>
+          <RequireRole allowedRoles={["admin", "AdminViewOnly"]}>
             <WorkshopReport />
           </RequireRole>
         ),
@@ -294,7 +312,7 @@ export const authProtectedRoutes = [
       {
         path: ROUTE_URL.viewCitizenByCard,
         element: (
-          <RequireRole allowedRoles={["vle", "admin", "rbi","rbi_sub_admin"]}>
+          <RequireRole allowedRoles={["vle", "admin", "rbi", "rbi_sub_admin"]}>
             <ViewCitizenByCard />
           </RequireRole>
         ),

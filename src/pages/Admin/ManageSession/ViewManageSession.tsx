@@ -37,7 +37,7 @@ export const ViewManageSession = () => {
   const [currentPage, setCurrentPage] = useState(
     Number(searchParams.get("page") ?? 0),
   );
-
+  const user_name = sessionStorage.getItem("username");
   const [districtfilter, setDistrictFilter] = useState(
     searchParams.get("district") ?? "",
   );
@@ -143,24 +143,63 @@ export const ViewManageSession = () => {
   const { mutateAsync: updateWorkshopStatus } =
     useGetupdateWorkshopStatusByAdmin();
   const handleApproveWorkshop = async (workshopId: number) => {
-    const { value: passKey } = await Swal.fire({
+    const { value: formValues } = await Swal.fire({
       title: "Approve Workshop",
-      input: "text",
-      inputLabel: "Enter Pass Key",
+      html: `
+      <label style="display:block; text-align:left; margin:8px 0 4px;">
+        Pass Key
+      </label>
+      <input id="swal-passkey" type="text" class="swal2-input" placeholder="Enter pass key" />
+
+      <label style="display:block; text-align:left; margin:8px 0 4px;">
+        Approval Count
+      </label>
+      <input id="swal-count" type="number" class="swal2-input" placeholder="Enter approval count" />
+    `,
+      focusConfirm: false,
       showCancelButton: true,
-      inputValidator: (value) => (!value ? "Pass key is required" : null),
+      preConfirm: () => {
+        const passKey = (
+          document.getElementById("swal-passkey") as HTMLInputElement
+        )?.value;
+
+        const approvalCount = (
+          document.getElementById("swal-count") as HTMLInputElement
+        )?.value;
+
+        if (!passKey) {
+          Swal.showValidationMessage("Pass key is required");
+          return;
+        }
+
+        if (!approvalCount) {
+          Swal.showValidationMessage("Approval count is required");
+          return;
+        }
+
+        if (Number(approvalCount) <= 0) {
+          Swal.showValidationMessage("Approval count must be greater than 0");
+          return;
+        }
+
+        return {
+          passKey,
+          approval_count: Number(approvalCount),
+        };
+      },
     });
 
-    if (!passKey) return;
+    if (!formValues) return;
 
-    setLoadingRowId(workshopId); // ✅ set row loading
+    setLoadingRowId(workshopId);
 
     try {
       const res = await updateWorkshopStatus({
         workshop_id: workshopId,
         workshop_status: "Approved",
         rejected_reason: "",
-        pass_key: passKey,
+        pass_key: formValues.passKey, // ✅ pass key
+        approval_count: formValues.approval_count, // ✅ approval count
       });
 
       Swal.fire("Success", res?.message || "Approved", "success");
@@ -172,7 +211,7 @@ export const ViewManageSession = () => {
         "error",
       );
     } finally {
-      setLoadingRowId(null); // ✅ reset
+      setLoadingRowId(null);
     }
   };
   const handlePendingWorkshop = async (workshopId: number) => {
@@ -183,6 +222,7 @@ export const ViewManageSession = () => {
         workshop_status: "Pending",
         rejected_reason: "",
         pass_key: "",
+        approval_count: "",
       });
 
       // ✅ success message from backend
@@ -251,6 +291,7 @@ export const ViewManageSession = () => {
         workshop_status: "Rejected",
         rejected_reason: formValues.reason,
         pass_key: formValues.passKey, // ✅ added here
+        approval_count: "",
       });
 
       Swal.fire("Success", res?.message || "Workshop Rejected", "success");
@@ -347,9 +388,108 @@ export const ViewManageSession = () => {
   //   // Navigate to the testimony page and pass workshop_id
   //   navigate(`${ROUTE_URL.testimonyByWorkshop}?workshop_id=${workshopId}`);
   // };
+  const actionColumns: Column[] =
+    user_name !== "8965870021"
+      ? [
+          {
+            key: "reminder",
+            label: "Reminder",
+            align: "center",
+            render: (_value, row: Workshop) => (
+              <Button
+                size="sm"
+                onClick={() => {
+                  setReminderWorkshopId(row.workshop_id);
+                  setOpenReminder(true);
+                }}
+              >
+                Reminder
+              </Button>
+            ),
+          },
+
+          {
+            key: "actions",
+            label: "Actions",
+            align: "center",
+            render: (_: any, row: Workshop) => {
+              const status = row.workshop_status;
+
+              const showApprove = [
+                "Pending",
+                "Rejected",
+                "Rescheduled",
+                "Pending for Approval",
+              ].includes(status);
+
+              const showReject = [
+                "Pending",
+                "Approved",
+                "Rescheduled",
+                "Pending for Approval",
+              ].includes(status);
+
+              const showPending = [
+                "Approved",
+                "Rejected",
+                "Pending for Approval",
+              ].includes(status);
+
+              const isLoading = loadingRowId === Number(row.workshop_id);
+
+              return (
+                <div className="flex justify-center gap-2">
+                  <div className="flex justify-center gap-2">
+                    {/* APPROVE */}
+                    {showApprove && (
+                      <button
+                        disabled={isLoading}
+                        onClick={() =>
+                          handleApproveWorkshop(Number(row.workshop_id))
+                        }
+                        className="px-2 py-1 rounded-md text-xs text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {isLoading ? "Loading..." : "Approve"}
+                      </button>
+                    )}
+
+                    {/* REJECT */}
+                    {showReject && (
+                      <button
+                        disabled={isLoading}
+                        onClick={() =>
+                          handleRejectWorkshop(Number(row.workshop_id))
+                        }
+                        className="px-2 py-1 rounded-md text-xs text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {isLoading ? "Loading..." : "Reject"}
+                      </button>
+                    )}
+
+                    {/* PENDING */}
+                    {showPending && (
+                      <button
+                        disabled={isLoading}
+                        onClick={() =>
+                          handlePendingWorkshop(Number(row.workshop_id))
+                        }
+                        className="px-2 py-1 rounded-md text-xs text-white bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50"
+                      >
+                        {isLoading ? "Loading..." : "Pending"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            },
+          },
+        ]
+      : [];
+
   const tableContents: Column[] = [
     { key: "workshop_id", label: "Workshop ID", align: "center" },
     { key: "workshop_name", label: "Workshop Name", align: "center" },
+
     {
       key: "workshop_date_format",
       label: (
@@ -363,9 +503,7 @@ export const ViewManageSession = () => {
               setSortType(next);
               fetchData({ sortOverride: next });
             }}
-            className={`text-xs ${
-              sortType === "Ascending" ? "text-blue-600" : "text-blue-600"
-            }`}
+            className="text-xs text-blue-600"
           >
             {sortType === "Ascending" ? "▲" : "▼"}
           </button>
@@ -373,6 +511,7 @@ export const ViewManageSession = () => {
       ),
       align: "left",
     },
+
     {
       key: "time",
       label: "Time",
@@ -380,13 +519,13 @@ export const ViewManageSession = () => {
       render: (_: any, row: Workshop) =>
         `${row.workshop_from_time} - ${row.workshop_to_time}`,
     },
+
     { key: "workshop_status", label: "Workshop Status", align: "left" },
-    // { key: "workshop_centre", label: "Workshop Center", align: "left" },
     { key: "workshop_district", label: "Workshop District", align: "left" },
-    // { key: "workshop_pincode", label: "Workshop Pincode", align: "left" },
     { key: "vle_id", label: "VLE ID", align: "center" },
     { key: "vle_mobile_number", label: "VLE Mobile Number", align: "center" },
     { key: "vle_name", label: "VLE Name", align: "center" },
+
     {
       key: "view",
       label: "View",
@@ -403,88 +542,9 @@ export const ViewManageSession = () => {
         </Button>
       ),
     },
-    {
-      key: "reminder",
-      label: "Reminder",
-      align: "center",
-      render: (_value, row: Workshop) => (
-        <Button
-          size="sm"
-          onClick={() => {
-            setReminderWorkshopId(row.workshop_id);
-            setOpenReminder(true);
-          }}
-        >
-          Reminder
-        </Button>
-      ),
-    },
-    {
-      key: "actions",
-      label: "Actions",
-      align: "center",
-      render: (_: any, row: Workshop) => {
-        const status = row.workshop_status;
 
-        const showApprove = [
-          "Pending",
-          "Rejected",
-          "Rescheduled",
-          "Pending for Approval",
-        ].includes(status);
-
-        const showReject = [
-          "Pending",
-          "Approved",
-          "Rescheduled",
-          "Pending for Approval",
-        ].includes(status);
-
-        const showPending = [
-          "Approved",
-          "Rejected",
-          "Pending for Approval",
-        ].includes(status);
-        const isLoading = loadingRowId === Number(row.workshop_id);
-
-        return (
-          <div className="flex justify-center gap-2">
-            {/* APPROVE */}
-            {showApprove && (
-              <button
-                disabled={isLoading}
-                onClick={() => handleApproveWorkshop(Number(row.workshop_id))}
-                className="px-2 py-1 rounded-md text-xs text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
-              >
-                {isLoading ? "Loading..." : "Approve"}
-              </button>
-            )}
-
-            {/* REJECT */}
-            {showReject && (
-              <button
-                disabled={isLoading}
-                onClick={() => handleRejectWorkshop(Number(row.workshop_id))}
-                className="px-2 py-1 rounded-md text-xs text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
-              >
-                {isLoading ? "Loading..." : "Reject"}
-              </button>
-            )}
-
-            {/* PENDING */}
-            {showPending && (
-              <button
-                disabled={isLoading}
-                onClick={() => handlePendingWorkshop(Number(row.workshop_id))}
-                className="px-2 py-1 rounded-md text-xs text-white bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50"
-              >
-                {isLoading ? "Loading..." : "Pending"}
-              </button>
-            )}
-          </div>
-        );
-      },
-    },
+    // SHOW ONLY IF NOT AdminViewOnly
+    ...actionColumns,
   ];
   useEffect(() => {
     if (districtfilter) {

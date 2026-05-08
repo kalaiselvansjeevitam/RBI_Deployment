@@ -10,6 +10,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import Swal from "sweetalert2";
 import React from "react";
 import {
+  useDeleteWorkshop,
   useGetupdateWorkshopStatus,
   useGetWorkshopByFilters,
   useGetWorkshopByFiltersByDate,
@@ -31,6 +32,7 @@ export const ViewWorkshop = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 10;
   const { mutateAsync: getSchoolDashboradData } = useGetWorkshopByFilters();
+  const { mutateAsync: deleteWorkshop } = useDeleteWorkshop(); // create this hook
   //   const { mutateAsync: getSchoolPaymentDetails } = useGetSchoolPaymentDetails();
   const { mutateAsync: getSchoolDetailsByDate } =
     useGetWorkshopByFiltersByDate();
@@ -120,6 +122,44 @@ export const ViewWorkshop = () => {
     } catch (error: any) {
       Swal.fire("Error", error?.response?.data?.message, "error");
       console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoader(false);
+    }
+  };
+  const handleDelete = async (id: number) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This will delete the workshop permanently",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      setLoader(true);
+
+      const res = await deleteWorkshop({ workshop_id: id });
+
+      if (res?.result?.toLowerCase() === "success") {
+        Swal.fire("Deleted!", res.message, "success");
+
+        // ✅ Option 1: reload via API (BEST)
+        setShouldReload(true);
+
+        // ✅ Option 2 (instant UI update):
+        // setSchoolSheetData(prev => prev.filter(item => item.id !== id));
+        // setTotalCount(prev => prev - 1);
+      } else {
+        Swal.fire("Error", res.message, "error");
+      }
+    } catch (error: any) {
+      Swal.fire(
+        "Error",
+        error?.response?.data?.message || "Delete failed",
+        "error",
+      );
     } finally {
       setLoader(false);
     }
@@ -392,6 +432,21 @@ ${STATUS_OPTIONS.map(
           }}
         >
           View
+        </Button>
+      ),
+    },
+    {
+      key: "delete",
+      label: "Delete",
+      align: "center",
+      render: (_value, row) => (
+        <Button
+          size="sm"
+          onClick={() => {
+            handleDelete(row.id);
+          }}
+        >
+          Delete Citizens
         </Button>
       ),
     },

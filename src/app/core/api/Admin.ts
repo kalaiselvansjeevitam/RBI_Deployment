@@ -12,6 +12,8 @@ import type {
   GetCityCountRes,
   GetDashboardStatsRes,
   GetDistrictListRes,
+  GetDuplicateImageDetails,
+  GetDuplicateImages,
   GetGenderCountRes,
   GetLocationListRes,
   GetMediaCountResponse,
@@ -57,6 +59,9 @@ type UserUpdateParams = {
   mobile_number: string;
   email_id: string;
   change_user_id: string;
+  district_name: string;
+  block_panchayat: string;
+  gram_panchayat: string;
 };
 
 type CreateCitizenParams = {
@@ -255,6 +260,15 @@ export const useGetWorkshopByFilters = () =>
       });
     },
   });
+export const useDeleteWorkshop = () =>
+  useMutation({
+    mutationFn: (data: { workshop_id: number }) => {
+      return POST<GetResponse>({
+        url: API_URL.deleteCitizens,
+        data,
+      });
+    },
+  });
 
 export const useGetWorkshopByFiltersByDate = () =>
   useMutation({
@@ -361,6 +375,9 @@ export const useGetUpdateUser = () =>
       mobile_number,
       email_id,
       change_user_id,
+      district_name,
+      block_panchayat,
+      gram_panchayat,
     }: UserUpdateParams) => {
       return POST<GetResponse>({
         url: API_URL.updateUsers,
@@ -369,6 +386,9 @@ export const useGetUpdateUser = () =>
           mobile_number: mobile_number,
           email_id: email_id,
           change_user_id: change_user_id,
+          district_name: district_name,
+          block_panchayat: block_panchayat,
+          gram_panchayat: gram_panchayat,
         },
       });
     },
@@ -556,6 +576,20 @@ export const useGetupdateWorkshopStatusByAdmin = () =>
       workshop_status: string;
       rejected_reason: string;
       pass_key: string;
+      approval_count: string;
+    }) => {
+      return POST<GetResponse>({
+        url: API_URL.updateWorkshopStatus,
+        data,
+      });
+    },
+  });
+export const useGetupdateWorkshopStatusByAdminByimage = () =>
+  useMutation({
+    mutationFn: (data: {
+      workshop_id: number;
+      workshop_status: string;
+      rejected_reason: string;
     }) => {
       return POST<GetResponse>({
         url: API_URL.updateWorkshopStatus,
@@ -746,6 +780,25 @@ export const useGetUploadLocation = () =>
         headers: {
           "Content-Type": "multipart/form-data",
         },
+      });
+    },
+  });
+
+export const useGetDuplicateImage = () =>
+  useMutation({
+    mutationFn: () => {
+      return POST<GetDuplicateImages>({
+        url: API_URL.duplicateImage,
+      });
+    },
+  });
+
+export const useGetDuplicateImageDetails = () =>
+  useMutation({
+    mutationFn: (data: { hash_value: string }) => {
+      return POST<GetDuplicateImageDetails>({
+        url: API_URL.duplicateImageDetails,
+        data,
       });
     },
   });

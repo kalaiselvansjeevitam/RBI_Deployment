@@ -18,6 +18,8 @@ export const ROUTE_URL = {
   viewTestimony: "/rbi-deployment/admin/viewTestimony",
   viewCitizenByCard: "/rbi-deployment/admin/viewCitizenDetails",
   viewSession: "/rbi-deployment/admin/viewSession",
+  duplicateImages: "/rbi-deployment/admin/duplicate-images",
+  duplicateImageDetails: "/rbi-deployment/admin/duplicate-image-details",
   testimonyByWorkshop: "/rbi-deployment/admin/testimonyByWorkshop",
   testimonyByRBI: "/rbi-deployment/admin/testimony-by-RBI",
   createLoactionManager: "/rbi-deployment/admin/createLoactionManager",
@@ -85,6 +87,7 @@ export const API_URL = {
   uploadVle: "/upload-vle",
   createIECMaterial: "/createIECMaterial",
   getWorkshopByFilters: "/getWorkshopByFilters",
+  deleteCitizens: "/deleteCitizens",
   updateChecklist: "/updateChecklist",
   updateStatus: "/updateStatus",
   viewTestimony: "/get-testimony-by-user-workshop",
@@ -122,6 +125,8 @@ export const API_URL = {
   getGramPanchayat: "/getGramPanchayat",
   getOccupations: "/getOccupations",
   rescheduleWorkshop: "/rescheduleWorkShop",
+  duplicateImage: "/duplicateImages",
+  duplicateImageDetails: "/getDuplicateImagesDetails",
 
   // RBI Reports (DOWNLOAD)
   downloadDistrictWiseWorkshopReport: "/download-district-wise-workshop-report",

@@ -65,6 +65,7 @@ export const useDownloadCitizenDataByDistrictReport = () =>
       end_date?: string;
       work_shop_id?: string;
       vle_id?: string;
+      workshop_status: string;
     }) =>
       POST<{
         result: string; // "success"
@@ -305,6 +306,7 @@ export const useViewCitizenDataByDistrictReport = () =>
       work_shop_id?: string;
       offset: number;
       vle_id: string;
+      workshop_status: string;
     }) => {
       return POST<ViewCitizenResponse>({
         url: API_URL.viewCitizenDataByDistrictReport,
@@ -317,6 +319,7 @@ export const useViewCitizenDataByDistrictReport = () =>
           work_shop_id: payload.work_shop_id,
           offset: payload.offset,
           vle_id: payload.vle_id,
+          workshop_status: payload.workshop_status,
         },
       });
     },

@@ -48,6 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   setMobileOpen,
 }) => {
   const user_type = sessionStorage.getItem("user_type");
+  const user_name = sessionStorage.getItem("username");
   const isDesktop = useWindowSize();
   const location = useLocation();
   const navigate = useNavigate();
@@ -57,107 +58,203 @@ const Sidebar: React.FC<SidebarProps> = ({
   const sidebarItems: SidebarItemType[] = [];
 
   if (user_type?.toLowerCase() === "admin") {
-    sidebarItems.splice(1, 0, {
-      icon: Home,
-      label: "Admin Dashboard",
-      href: ROUTE_URL.adminDashboard,
-    });
-    sidebarItems.splice(2, 0, {
-      icon: Home,
-      label: "Manage Users",
-      href: ROUTE_URL.createUser,
-      children: [
-        {
-          label: "Create Users",
-          href: ROUTE_URL.createUser,
-          icon: User,
-        },
-        {
-          label: "View Users",
-          href: ROUTE_URL.viewUser,
-          icon: View,
-        },
-        {
-          label: "VLE Upload",
-          href: ROUTE_URL.uploadVle,
-          icon: Upload,
-        },
-      ],
-    });
-    sidebarItems.splice(3, 0, {
-      icon: FileText,
-      label: "Reports",
-      href: ROUTE_URL.subAdminReportWorkshopsLt50,
-      children: [
-        {
-          label: "< 50 Attendees",
-          href: ROUTE_URL.subAdminReportWorkshopsLt50,
-          icon: View,
-        },
-      ],
-    });
-    sidebarItems.splice(4, 0, {
-      icon: Home,
-      label: "Manage Session",
-      href: ROUTE_URL.viewSession,
-      children: [
-        {
-          label: "View Session",
-          href: ROUTE_URL.viewSession,
-          icon: User,
-        },
-      ],
-    });
-    sidebarItems.splice(5, 0, {
-      icon: Locate,
-      label: "Location Manager",
-      href: ROUTE_URL.createLoactionManager,
-      children: [
-        {
-          label: "Add Locations",
-          href: ROUTE_URL.createLoactionManager,
-          icon: UserPlus,
-        },
-        {
-          label: "Upload Locations",
-          href: ROUTE_URL.uploadLocation,
-          icon: Upload,
-        },
-        // {
-        //   label: "View Locations",
-        //   href: ROUTE_URL.viewLocationManager,
-        //   icon: View,
-        // },
-      ],
-    });
-    sidebarItems.splice(6, 0, {
-      icon: File,
-      label: "Report",
-      href: ROUTE_URL.downloadVLEReport,
-      children: [
-        {
-          label: "VLE Report",
-          href: ROUTE_URL.downloadVLEReport,
-          icon: UserPlus,
-        },
-        {
-          label: "Citizen Report",
-          href: ROUTE_URL.downloadCitizenReport,
-          icon: View,
-        },
-        {
-          label: "Workshop Report",
-          href: ROUTE_URL.downloadWorkshopReport,
-          icon: View,
-        },
-      ],
-    });
-    // sidebarItems.splice(7, 0, {
-    //   icon: UserPlus,
-    //   label: "Create IEC",
-    //   href: ROUTE_URL.createIEC,
-    // });
-  } else if (user_type?.toLowerCase() === "vle") {
+    if (user_name === "8965870021") {
+      sidebarItems.splice(1, 0, {
+        icon: Home,
+        label: "Admin Dashboard",
+        href: ROUTE_URL.adminDashboard,
+      });
+      sidebarItems.splice(4, 0, {
+        icon: Home,
+        label: "Manage Session",
+        href: ROUTE_URL.viewSession,
+        children: [
+          {
+            label: "View Session",
+            href: ROUTE_URL.viewSession,
+            icon: User,
+          },
+        ],
+      });
+      sidebarItems.splice(6, 0, {
+        icon: File,
+        label: "Report",
+        href: ROUTE_URL.downloadVLEReport,
+        children: [
+          {
+            label: "VLE Report",
+            href: ROUTE_URL.downloadVLEReport,
+            icon: UserPlus,
+          },
+          {
+            label: "Citizen Report",
+            href: ROUTE_URL.downloadCitizenReport,
+            icon: View,
+          },
+          {
+            label: "Workshop Report",
+            href: ROUTE_URL.downloadWorkshopReport,
+            icon: View,
+          },
+        ],
+      });
+    } else {
+      sidebarItems.splice(1, 0, {
+        icon: Home,
+        label: "Admin Dashboard",
+        href: ROUTE_URL.adminDashboard,
+      });
+      sidebarItems.splice(2, 0, {
+        icon: Home,
+        label: "Manage Users",
+        href: ROUTE_URL.createUser,
+        children: [
+          {
+            label: "Create Users",
+            href: ROUTE_URL.createUser,
+            icon: User,
+          },
+          {
+            label: "View Users",
+            href: ROUTE_URL.viewUser,
+            icon: View,
+          },
+          {
+            label: "VLE Upload",
+            href: ROUTE_URL.uploadVle,
+            icon: Upload,
+          },
+        ],
+      });
+      sidebarItems.splice(3, 0, {
+        icon: FileText,
+        label: "Reports",
+        href: ROUTE_URL.subAdminReportWorkshopsLt50,
+        children: [
+          {
+            label: "< 50 Attendees",
+            href: ROUTE_URL.subAdminReportWorkshopsLt50,
+            icon: View,
+          },
+        ],
+      });
+      sidebarItems.splice(4, 0, {
+        icon: Home,
+        label: "Manage Session",
+        href: ROUTE_URL.viewSession,
+        children: [
+          {
+            label: "View Session",
+            href: ROUTE_URL.viewSession,
+            icon: User,
+          },
+        ],
+      });
+      sidebarItems.splice(5, 0, {
+        icon: Locate,
+        label: "Location Manager",
+        href: ROUTE_URL.createLoactionManager,
+        children: [
+          {
+            label: "Add Locations",
+            href: ROUTE_URL.createLoactionManager,
+            icon: UserPlus,
+          },
+          {
+            label: "Upload Locations",
+            href: ROUTE_URL.uploadLocation,
+            icon: Upload,
+          },
+          // {
+          //   label: "View Locations",
+          //   href: ROUTE_URL.viewLocationManager,
+          //   icon: View,
+          // },
+        ],
+      });
+      sidebarItems.splice(6, 0, {
+        icon: File,
+        label: "Report",
+        href: ROUTE_URL.downloadVLEReport,
+        children: [
+          {
+            label: "VLE Report",
+            href: ROUTE_URL.downloadVLEReport,
+            icon: UserPlus,
+          },
+          {
+            label: "Citizen Report",
+            href: ROUTE_URL.downloadCitizenReport,
+            icon: View,
+          },
+          {
+            label: "Workshop Report",
+            href: ROUTE_URL.downloadWorkshopReport,
+            icon: View,
+          },
+        ],
+      });
+      sidebarItems.splice(7, 0, {
+        icon: Home,
+        label: "Duplicate Image",
+        href: ROUTE_URL.duplicateImages,
+        // children: [
+        //   {
+        //     label: "Duplicate Image",
+        //     href: ROUTE_URL.duplicateImages,
+        //     icon: User,
+        //   },
+        // ],
+      });
+      // sidebarItems.splice(7, 0, {
+      //   icon: UserPlus,
+      //   label: "Create IEC",
+      //   href: ROUTE_URL.createIEC,
+      // });
+    }
+  }
+  // else if (user_type === "AdminViewOnly") {
+  //   sidebarItems.splice(1, 0, {
+  //     icon: Home,
+  //     label: "Admin Dashboard",
+  //     href: ROUTE_URL.adminDashboard,
+  //   });
+  //   sidebarItems.splice(4, 0, {
+  //     icon: Home,
+  //     label: "Manage Session",
+  //     href: ROUTE_URL.viewSession,
+  //     children: [
+  //       {
+  //         label: "View Session",
+  //         href: ROUTE_URL.viewSession,
+  //         icon: User,
+  //       },
+  //     ],
+  //   });
+  //   sidebarItems.splice(6, 0, {
+  //     icon: File,
+  //     label: "Report",
+  //     href: ROUTE_URL.downloadVLEReport,
+  //     children: [
+  //       {
+  //         label: "VLE Report",
+  //         href: ROUTE_URL.downloadVLEReport,
+  //         icon: UserPlus,
+  //       },
+  //       {
+  //         label: "Citizen Report",
+  //         href: ROUTE_URL.downloadCitizenReport,
+  //         icon: View,
+  //       },
+  //       {
+  //         label: "Workshop Report",
+  //         href: ROUTE_URL.downloadWorkshopReport,
+  //         icon: View,
+  //       },
+  //     ],
+  //   });
+  // }
+  else if (user_type?.toLowerCase() === "vle") {
     sidebarItems.splice(2, 0, {
       icon: Home,
       label: "Dashboard",

@@ -469,3 +469,33 @@ export interface getAlertsForVleRes {
   data_testimony: testimonyAlert[];
   reminder: ReminderAlert;
 }
+
+export interface DuplicateImage {
+  file_url: string;
+  hash_value: string;
+  total: number;
+}
+
+export interface GetDuplicateImages {
+  result: string;
+  message: string;
+  list: DuplicateImage[];
+}
+
+export interface DuplicateImageDetails {
+  id: number;
+  filepath: string;
+  testimony_status: string;
+  workshop_id: string;
+  vle_name: string;
+  vle_id: string;
+  workshop_date: string;
+  work_shop_status: string;
+  csc_user_id: string;
+}
+
+export interface GetDuplicateImageDetails {
+  result: string;
+  message: string;
+  data: DuplicateImageDetails[];
+}

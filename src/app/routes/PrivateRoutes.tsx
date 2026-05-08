@@ -42,6 +42,8 @@ export const RequireRole = ({ allowedRoles, children }: RequireRoleProps) => {
   if (!normalizedAllowed.includes(role)) {
     if (role === "admin")
       return <Navigate to={ROUTE_URL.adminDashboard} replace />;
+    if (role === "AdminViewOnly")
+      return <Navigate to={ROUTE_URL.adminDashboard} replace />;
     if (role === "vle") return <Navigate to={ROUTE_URL.vleDashboard} replace />;
     if (role === "rbi") return <Navigate to={ROUTE_URL.rbiDashboard} replace />;
     if (role === "sub_admin")
@@ -58,6 +60,8 @@ export const RoleFallbackRedirect = () => {
   const role = getRole();
 
   if (role === "admin")
+    return <Navigate to={ROUTE_URL.adminDashboard} replace />;
+  if (role === "AdminViewOnly")
     return <Navigate to={ROUTE_URL.adminDashboard} replace />;
   if (role === "vle") return <Navigate to={ROUTE_URL.vleDashboard} replace />;
   if (role === "rbi") return <Navigate to={ROUTE_URL.rbiDashboard} replace />;

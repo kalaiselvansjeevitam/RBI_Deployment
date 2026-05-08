@@ -33,21 +33,24 @@ const Login = () => {
     try {
       const res = await logIn(loginData);
 
-      sessionStorage.setItem("user_type", res.data.user_type.toLowerCase());
+      sessionStorage.setItem("user_type", res.data.user_type);
       sessionStorage.setItem("session_token", res.data.session_token);
       sessionStorage.setItem("user_id", res.data.unique_user_id);
       sessionStorage.setItem("district", res.data.district);
+      sessionStorage.setItem("username", res.data.username);
 
-      if (res.data.user_type.toLowerCase() === "vle") {
+      if (res.data.user_type === "vle") {
         navigate(ROUTE_URL.vleDashboard, { replace: true });
-      } else if (res.data.user_type.toLowerCase() === "admin") {
+      } else if (res.data.user_type === "admin") {
         navigate(ROUTE_URL.adminDashboard, { replace: true });
-      } else if (res.data.user_type.toLowerCase() === "rbi") {
+      } else if (res.data.user_type === "rbi") {
         navigate(ROUTE_URL.rbiDashboard, { replace: true });
-      } else if (res.data.user_type.toLowerCase() === "sub_admin") {
+      } else if (res.data.user_type === "sub_admin") {
         navigate(ROUTE_URL.subAdminDashboard, { replace: true });
-      } else if (res.data.user_type.toLowerCase() === "rbi_sub_admin") {
+      } else if (res.data.user_type === "rbi_sub_admin") {
         navigate(ROUTE_URL.rbiworkshopData, { replace: true });
+      } else if (res.data.user_type === "AdminViewOnly") {
+        navigate(ROUTE_URL.adminDashboard, { replace: true });
       } else {
         navigate(ROUTE_URL.dashboard, { replace: true });
       }

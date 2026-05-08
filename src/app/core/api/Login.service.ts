@@ -18,6 +18,7 @@ type loginRes = {
     user_type: string;
     session_token: string;
     login_update: string;
+    username: string;
   };
 };
 export const login = () =>

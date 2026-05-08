@@ -11,6 +11,7 @@ import {
   useGetDistrictParams,
   useGetGramPanchayat,
   useGetVLEParams,
+  useGetWorkShopParams,
 } from "../../../app/core/api/Admin";
 import {
   getWorkshopList,
@@ -34,6 +35,7 @@ export default function CitizenDataReport() {
   const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: getVLE } = useGetVLEParams();
   const { mutateAsync: fetchWorkshopsApi } = getWorkshopList();
+  const { mutateAsync: getWorkshopStatus } = useGetWorkShopParams();
 
   const [districtList, setDistrictList] = useState<string[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
@@ -63,6 +65,9 @@ export default function CitizenDataReport() {
   const [workshopId, setWorkshopId] = useState<string>("");
   const [vleList, setVleList] = useState<any[]>([]);
   const [selectedVleId, setSelectedVleId] = useState("");
+  const [workshopStatusList, setWorkshopStatusList] = useState<string[]>([]);
+  const [selectedWorkshopStatus, setSelectedWorkshopStatus] = useState("");
+  const [loadingWorkshopStatus, setLoadingWorkshopStatus] = useState(false);
 
   const hasVle = Boolean(selectedVleId);
 
@@ -77,12 +82,30 @@ export default function CitizenDataReport() {
   );
 
   const hasDates = Boolean(startDate && endDate);
+  useEffect(() => {
+    const fetchWorkshopStatus = async () => {
+      try {
+        setLoadingWorkshopStatus(true);
+        const res = await getWorkshopStatus();
+
+        if (res?.result === "Success") {
+          setWorkshopStatusList(res.data ?? []);
+        } else {
+          setWorkshopStatusList([]);
+        }
+      } catch (e) {
+        console.error("Failed to load workshop status:", e);
+        setWorkshopStatusList([]);
+      } finally {
+        setLoadingWorkshopStatus(false);
+      }
+    };
+
+    fetchWorkshopStatus();
+  }, []);
 
   const canSubmit =
-    // VLE ONLY (no location fields touched)
-    (hasVle && !hasAnyLocation) ||
-    // FULL location ONLY (no VLE)
-    (hasDates && !hasVle && hasFullLocation);
+    (hasVle && !hasAnyLocation) || (hasDates && !hasVle && hasFullLocation);
 
   /* ---------------- Load districts ---------------- */
   useEffect(() => {
@@ -210,9 +233,13 @@ export default function CitizenDataReport() {
         vle_id: selectedVleId,
         end_date: endDate,
         offset: nextOffset,
+        workshop_status: selectedWorkshopStatus,
       };
 
       if (workshopId) payload.work_shop_id = workshopId;
+      if (selectedWorkshopStatus) {
+        payload.work_shop_status = selectedWorkshopStatus;
+      }
 
       const res = await fetchView(payload);
 
@@ -257,6 +284,9 @@ export default function CitizenDataReport() {
 
       // ✅ optional workshop_id (kept as session_id)
       if (workshopId) payload.work_shop_id = workshopId;
+      if (selectedWorkshopStatus) {
+        payload.work_shop_status = selectedWorkshopStatus;
+      }
 
       const res = await download(payload);
 
@@ -444,6 +474,37 @@ export default function CitizenDataReport() {
                   ))}
                 </select>
               </div>
+              <div className="md:col-span-3">
+                <label className="text-sm text-gray-600">
+                  Workshop Status (optional)
+                </label>
+
+                <select
+                  className="border rounded-md h-10 px-3 w-full"
+                  value={selectedWorkshopStatus}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedWorkshopStatus(value);
+                    if (value) {
+                      setSelectedVleId("");
+                      setRows([]);
+                    }
+                  }}
+                  disabled={loadingWorkshopStatus}
+                >
+                  <option value="">
+                    {loadingWorkshopStatus
+                      ? "Loading statuses..."
+                      : "All Status"}
+                  </option>
+
+                  {workshopStatusList.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {/* Start Date */}
               <div className="md:col-span-3">
@@ -504,6 +565,7 @@ export default function CitizenDataReport() {
                       setSelectedGram("");
                       setStartDate("");
                       setEndDate("");
+                      setSelectedWorkshopStatus("");
                       setRows([]);
                     }
                   }}
@@ -520,6 +582,7 @@ export default function CitizenDataReport() {
                   ))}
                 </select>
               </div>
+              {/* Workshop Status */}
 
               {/* View Button */}
               <div className="md:col-span-2">

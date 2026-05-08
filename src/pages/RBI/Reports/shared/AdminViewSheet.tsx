@@ -39,6 +39,7 @@ const CHECKLIST_ITEMS = [
   "Refreshment",
   "TV/Projector",
   "Chairs",
+  "Partially Conducted",
 ];
 
 /* ---------- COMPONENT ---------- */
