@@ -11,6 +11,7 @@ import {
   useGetupdateReminder,
   useGetupdateWorkshopStatusByAdmin,
   useGetVleParams,
+  useGetDeleteWorkshop,
   useGetWorkShopParams,
 } from "../../../app/core/api/Admin";
 import type { Workshop } from "../../../app/lib/types";
@@ -28,6 +29,7 @@ export const ViewManageSession = () => {
   const [loader, setLoader] = useState(false);
   const itemsPerPage = 10;
   const { mutateAsync: getSchoolDashboradData } = useGetgetWorkshopList();
+  const { mutateAsync: getDeleteworkshop } = useGetDeleteWorkshop();
   const { mutateAsync: getUpdateRemainder } = useGetupdateReminder();
   const [schoolSheetData, setSchoolSheetData] = useState<Workshop[]>([]);
   const [statusList, setStatusList] = useState<string[]>([]);
@@ -47,6 +49,7 @@ export const ViewManageSession = () => {
   );
 
   const [vleIdfilter, setVleIdFilter] = useState(searchParams.get("vle") ?? "");
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
   const [startDate, setStartDate] = useState<Date | undefined>(
     searchParams.get("startDate")
@@ -391,6 +394,64 @@ export const ViewManageSession = () => {
   const actionColumns: Column[] =
     user_name !== "8965870021"
       ? [
+          {
+            key: "delete",
+            label: "Delete",
+            align: "center",
+            render: (_value, row: Workshop) => {
+              const isDeleting = deleteLoadingId === row.workshop_id;
+
+              return (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={isDeleting}
+                  onClick={async () => {
+                    const confirm = await Swal.fire({
+                      title: "Are you sure?",
+                      text: "This workshop will be deleted permanently",
+                      icon: "warning",
+                      showCancelButton: true,
+                      confirmButtonText: "Yes, Delete",
+                    });
+
+                    if (!confirm.isConfirmed) return;
+
+                    try {
+                      setDeleteLoadingId(row.workshop_id);
+
+                      const res = await getDeleteworkshop({
+                        workshop_id: row.workshop_id,
+                      });
+
+                      Swal.fire(
+                        "Deleted",
+                        res?.message || "Workshop deleted successfully",
+                        "success",
+                      );
+
+                      // ✅ Reload table data
+                      await fetchData();
+                    } catch (error: any) {
+                      Swal.fire(
+                        "Error",
+                        error?.response?.data?.message || "Delete failed",
+                        "error",
+                      );
+                    } finally {
+                      setDeleteLoadingId(null);
+                    }
+                  }}
+                >
+                  {isDeleting ? (
+                    <Loader className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Delete"
+                  )}
+                </Button>
+              );
+            },
+          },
           {
             key: "reminder",
             label: "Reminder",

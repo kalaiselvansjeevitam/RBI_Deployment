@@ -162,7 +162,7 @@ const CreateUser = () => {
 
     try {
       const response = await getBlockPanchayat({
-        district: districtName, // 👈 passing district name
+        district: districtName,
       });
 
       if (response?.result === "success") {

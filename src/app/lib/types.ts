@@ -169,6 +169,9 @@ export interface WorkshopDetails {
   id: string;
   workshop_name: string;
   date: string;
+  district: string;
+  block_panchayat: string;
+  gram_panchayat: string;
   from_time: string;
   to_time: string;
   vle_name: string;

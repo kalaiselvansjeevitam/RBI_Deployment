@@ -65,7 +65,6 @@ export const ImageDetails = () => {
 
       Swal.fire("Success", res?.message || "Workshop Rejected", "success");
 
-      // 🔄 Refresh data
       const refreshed = await getDetails({ hash_value: hash_value! });
       setData(refreshed.data || []);
     } catch (error: any) {
@@ -74,7 +73,7 @@ export const ImageDetails = () => {
 
       Swal.fire("Error", message, "error");
     } finally {
-      setLoadingRowId(null); // ✅ stop loading
+      setLoadingRowId(null);
     }
   };
 

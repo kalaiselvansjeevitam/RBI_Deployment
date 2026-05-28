@@ -108,6 +108,7 @@ export const API_URL = {
   getVLE: "/get-users-lookup",
   getWorkshopStatus: "/get-workshop-status-values",
   getTestimonyByWorkshop: "/get-testimony-by-workshop",
+  deleteWorkshop: "/deleteWorkshop",
   getRemainder: "/updateReminder",
   updateTestimonystatus: "/update-testimony-status",
   updateWorkshopStatus: "/update-workshop-status",

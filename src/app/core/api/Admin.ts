@@ -532,6 +532,16 @@ export const useGetTestimoniesByWorkshop = () =>
     },
   });
 
+export const useGetDeleteWorkshop = () =>
+  useMutation({
+    mutationFn: (data: { workshop_id: string }) => {
+      return POST<GetResponse>({
+        url: API_URL.deleteWorkshop,
+        data,
+      });
+    },
+  });
+
 export const useGetupdateReminder = () =>
   useMutation({
     mutationFn: (data: { workshop_id: string; reminder_text: string }) => {
@@ -667,7 +677,11 @@ export const useGetDownloadCitizenParams = () =>
   });
 export const useGetDownloadWorkshopParams = () =>
   useMutation({
-    mutationFn: (data: { district: string }) => {
+    mutationFn: (data: {
+      district: string;
+      start_date: string;
+      end_date: string;
+    }) => {
       return POST<GetResponsewithFile>({
         url: API_URL.downloadWorkshop,
         data,

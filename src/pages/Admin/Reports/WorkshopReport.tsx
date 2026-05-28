@@ -7,17 +7,25 @@ import {
   useGetDistrictParams,
   useGetDownloadWorkshopParams,
 } from "../../../app/core/api/Admin";
+import React from "react";
 import type { District } from "../../../app/lib/types";
 import { Button } from "../../../app/components/ui/button";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export const WorkshopReport = () => {
   const { mutateAsync: getDistricts } = useGetDistrictParams();
   const { mutateAsync: downloadWorkshop } = useGetDownloadWorkshopParams();
 
   const [districtList, setDistrictList] = useState<District[]>([]);
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const formatDate = (date?: Date) => {
+    if (!date) return "";
+    return date.toISOString().split("T")[0];
+  };
   /* ---------- Load Districts ---------- */
   useEffect(() => {
     const loadDistricts = async () => {
@@ -44,6 +52,8 @@ export const WorkshopReport = () => {
 
       const res = await downloadWorkshop({
         district: selectedDistrict,
+        start_date: formatDate(startDate),
+        end_date: formatDate(endDate),
       });
 
       /* ---------- NO DATA FOUND ---------- */
@@ -82,6 +92,27 @@ export const WorkshopReport = () => {
       setLoading(false);
     }
   };
+  const CustomInput = React.forwardRef<
+    HTMLButtonElement,
+    { value?: string; onClick?: () => void; placeholder?: string }
+  >(({ value, onClick, placeholder }, ref) => (
+    <button
+      type="button"
+      onClick={onClick}
+      ref={ref}
+      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-left bg-white hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {value || placeholder}
+    </button>
+  ));
+
+  CustomInput.displayName = "CustomInput";
+  const normalizeDate = (date: Date | null) => {
+    if (!date) return undefined;
+    const d = new Date(date);
+    d.setHours(12, 0, 0, 0);
+    return d;
+  };
 
   return (
     <Layout headerTitle="Workshop Report">
@@ -92,21 +123,65 @@ export const WorkshopReport = () => {
           </h2>
 
           {/* District */}
-          <div>
-            <label className="text-sm font-medium">District</label>
-            <select
-              value={selectedDistrict}
-              onChange={(e) => setSelectedDistrict(e.target.value)}
-              className="w-full border p-2 rounded"
-            >
-              <option value="">Select District</option>
-              <option value="All Districts">All Districts</option>
-              {districtList.map((d) => (
-                <option key={d.id} value={d.district}>
-                  {d.district}
-                </option>
-              ))}
-            </select>
+          {/* Filters */}
+          <div className="space-y-4">
+            {/* District */}
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-700 mb-1">
+                District
+              </label>
+
+              <select
+                value={selectedDistrict}
+                onChange={(e) => setSelectedDistrict(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select District</option>
+                <option value="All Districts">All Districts</option>
+
+                {districtList.map((d) => (
+                  <option key={d.id} value={d.district}>
+                    {d.district}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Start Date */}
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-700 mb-1">
+                Start Date
+              </label>
+
+              <ReactDatePicker
+                dateFormat="dd/MM/yyyy"
+                selected={startDate}
+                onChange={(date: any) =>
+                  setStartDate(normalizeDate(date || undefined))
+                }
+                placeholderText="Select Start Date"
+                customInput={<CustomInput placeholder="Select Start Date" />}
+                popperClassName="z-50"
+              />
+            </div>
+
+            {/* End Date */}
+            <div className="flex flex-col">
+              <label className="text-sm font-semibold text-gray-700 mb-1">
+                End Date
+              </label>
+
+              <ReactDatePicker
+                dateFormat="dd/MM/yyyy"
+                selected={endDate}
+                onChange={(date: any) =>
+                  setEndDate(normalizeDate(date || undefined))
+                }
+                placeholderText="Select End Date"
+                customInput={<CustomInput placeholder="Select End Date" />}
+                popperClassName="z-50"
+              />
+            </div>
           </div>
 
           {/* Download Button */}
