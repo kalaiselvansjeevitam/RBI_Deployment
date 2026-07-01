@@ -40,7 +40,7 @@ const Login = () => {
       sessionStorage.setItem("username", res.data.username);
 
       if (res.data.user_type === "vle") {
-        navigate(ROUTE_URL.vleDashboard, { replace: true });
+        navigate(ROUTE_URL.vlePDFPage, { replace: true });
       } else if (res.data.user_type === "admin") {
         navigate(ROUTE_URL.adminDashboard, { replace: true });
       } else if (res.data.user_type === "rbi") {

@@ -281,7 +281,7 @@ const RescheduleSheet = ({ open, workshop, openClose }: StudentSheetProps) => {
   };
   const getLastWorkingDate = () => {
     const year = new Date().getFullYear();
-    return `${year}-05-31`;
+    return `${year}-07-31`;
   };
 
   return (

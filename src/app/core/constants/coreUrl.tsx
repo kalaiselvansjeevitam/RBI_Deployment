@@ -36,6 +36,7 @@ export const ROUTE_URL = {
   vleFaqOma: "/rbi-deployment/admin/vle/faq/oma-portal",
   vleFaqProject: "/rbi-deployment/admin/vle/faq/project",
   vleFaqVideoScripts: "/rbi-deployment/admin/vle/faq/video-scripts",
+  vlePDFPage: "/rbi-deployment/admin/vle-PDF",
 
   rbiDashboard: "/rbi-deployment/admin/rbiDashboard",
   rbiMonthView: "/rbi-deployment/admin/rbi/month-view",

@@ -56,6 +56,7 @@ import { UploadLocation } from "../../pages/Admin/LocationManager/uploadLocation
 import RBISubAdminWorkshopReport from "../../pages/RbiSubadmin/WorkshopReport";
 import { DuplicateImages } from "../../pages/Admin/DuplicateImages/DuplicateImages";
 import { ImageDetails } from "../../pages/Admin/DuplicateImages/ImageDetails";
+import { PDF } from "../../pages/VLE/PDF/PDF";
 
 export const authProtectedRoutes = [
   {
@@ -218,6 +219,14 @@ export const authProtectedRoutes = [
         element: (
           <RequireRole allowedRoles={["vle"]}>
             <ViewWorkshop />
+          </RequireRole>
+        ),
+      },
+      {
+        path: ROUTE_URL.vlePDFPage,
+        element: (
+          <RequireRole allowedRoles={["vle"]}>
+            <PDF />
           </RequireRole>
         ),
       },

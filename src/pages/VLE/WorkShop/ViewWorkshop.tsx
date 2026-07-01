@@ -514,7 +514,7 @@ ${STATUS_OPTIONS.map(
     return d;
   };
   const PROJECT_START_DATE = new Date(2025, 11, 1); // Dec = 11
-  const PROJECT_END_DATE = new Date(2026, 4, 31); // Mar = 2
+  const PROJECT_END_DATE = new Date(2026, 6, 31); // Mar = 2
   const onPageChange = (page: number) => {
     setCurrentPage(page);
 
